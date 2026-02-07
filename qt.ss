@@ -2913,6 +2913,9 @@
 
 ;;; ---- QProcess ----
 
+;; Track handler IDs per process for cleanup
+(def *qt-process-handlers* (make-hash-table))
+
 (def (qt-process-create parent: (parent #f))
   (qt_process_create parent))
 
@@ -2953,15 +2956,22 @@
 
 (def (qt-process-on-finished! proc handler)
   (let ((id (register-qt-int-handler! handler)))
+    (let ((ids (hash-ref *qt-process-handlers* proc '())))
+      (hash-put! *qt-process-handlers* proc (cons id ids)))
     (raw_qt_process_on_finished proc id)
     id))
 
 (def (qt-process-on-ready-read! proc handler)
   (let ((id (register-qt-void-handler! handler)))
+    (let ((ids (hash-ref *qt-process-handlers* proc '())))
+      (hash-put! *qt-process-handlers* proc (cons id ids)))
     (raw_qt_process_on_ready_read proc id)
     id))
 
 (def (qt-process-destroy! proc)
+  (let ((ids (hash-ref *qt-process-handlers* proc '())))
+    (for-each unregister-qt-handler! ids)
+    (hash-remove! *qt-process-handlers* proc))
   (qt_process_destroy proc))
 
 ;;; ---- QWizard / QWizardPage ----
