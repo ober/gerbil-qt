@@ -2830,6 +2830,10 @@
   (qt_process_create parent))
 
 (def (qt-process-start! proc program (args []))
+  (for-each (lambda (a)
+              (when (string-contains a "\n")
+                (error "qt-process-start!: argument must not contain newlines" a)))
+            args)
   (let ((args-str (string-join args "\n")))
     (qt_process_start proc program args-str)))
 
