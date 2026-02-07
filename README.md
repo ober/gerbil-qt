@@ -616,7 +616,7 @@ Group boxes are widgets — they participate in Qt parent-child ownership. Use `
 | `(qt-font-set-italic! f bool)` | Set italic |
 | `(qt-font-destroy! f)` | Destroy font |
 | `(qt-widget-set-font! w f)` | Set font on any widget |
-| `(qt-widget-font w)` | Get widget's font (new copy) |
+| `(qt-widget-font w)` | Get widget's font (new copy — caller must destroy) |
 
 #### QColor
 

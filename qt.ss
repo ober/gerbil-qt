@@ -1648,6 +1648,7 @@
 (def (qt-widget-set-font! w font)
   (qt_widget_set_font w font))
 
+;; Returns a NEW QFont copy — caller must destroy with qt-font-destroy! or use with-font.
 (def (qt-widget-font w)
   (qt_widget_font w))
 
