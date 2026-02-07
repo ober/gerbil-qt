@@ -15,7 +15,7 @@
 
      ;; Widget base
      qt_widget_create qt_widget_show qt_widget_hide qt_widget_close
-     qt_widget_set_enabled qt_widget_is_enabled qt_widget_set_visible
+     qt_widget_set_enabled qt_widget_is_enabled qt_widget_set_visible qt_widget_is_visible
      qt_widget_set_fixed_size qt_widget_set_minimum_size
      qt_widget_set_maximum_size qt_widget_resize
      qt_widget_set_style_sheet qt_widget_set_tooltip
@@ -1519,6 +1519,8 @@ END-C
     "qt_widget_is_enabled")
   (define-c-lambda qt_widget_set_visible ((pointer void) int) void
     "qt_widget_set_visible")
+  (define-c-lambda qt_widget_is_visible ((pointer void)) int
+    "qt_widget_is_visible")
   (define-c-lambda qt_widget_set_fixed_size ((pointer void) int int) void
     "qt_widget_set_fixed_size")
   (define-c-lambda qt_widget_set_minimum_size ((pointer void) int int) void

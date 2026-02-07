@@ -34,6 +34,7 @@ void qt_widget_close(qt_widget_t w);
 void qt_widget_set_enabled(qt_widget_t w, int enabled);
 int  qt_widget_is_enabled(qt_widget_t w);
 void qt_widget_set_visible(qt_widget_t w, int visible);
+int  qt_widget_is_visible(qt_widget_t w);
 void qt_widget_set_fixed_size(qt_widget_t w, int width, int height);
 void qt_widget_set_minimum_size(qt_widget_t w, int width, int height);
 void qt_widget_set_maximum_size(qt_widget_t w, int width, int height);

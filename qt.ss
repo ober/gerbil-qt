@@ -7,7 +7,7 @@
   ;; Widget
   qt-widget-create qt-widget-show! qt-widget-hide! qt-widget-close!
   qt-widget-set-enabled! qt-widget-enabled?
-  qt-widget-set-visible! qt-widget-set-fixed-size!
+  qt-widget-set-visible! qt-widget-visible? qt-widget-set-fixed-size!
   qt-widget-set-minimum-size! qt-widget-set-maximum-size!
   qt-widget-resize! qt-widget-set-style-sheet!
   qt-widget-set-tooltip! qt-widget-set-font-size!
@@ -674,6 +674,9 @@
 
 (def (qt-widget-set-visible! w visible)
   (qt_widget_set_visible w (if visible 1 0)))
+
+(def (qt-widget-visible? w)
+  (not (= (qt_widget_is_visible w) 0)))
 
 (def (qt-widget-set-fixed-size! w width height)
   (qt_widget_set_fixed_size w width height))

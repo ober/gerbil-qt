@@ -43,6 +43,16 @@
         (check (qt-widget-enabled? w) => #t)
         (qt-widget-destroy! w)))
 
+    (test-case "widget visible round-trip"
+      (let ((w (qt-widget-create)))
+        ;; Widget not yet shown, so isVisible returns false
+        (check (qt-widget-visible? w) => #f)
+        (qt-widget-set-visible! w #t)
+        (check (qt-widget-visible? w) => #t)
+        (qt-widget-set-visible! w #f)
+        (check (qt-widget-visible? w) => #f)
+        (qt-widget-destroy! w)))
+
     (test-case "layout create"
       (let* ((w (qt-widget-create))
              (vbox (qt-vbox-layout-create w))

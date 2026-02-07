@@ -127,7 +127,7 @@
           (qt-action-set-shortcut! a1 "Ctrl+1")
           (qt-on-triggered! a1
             (lambda ()
-              (if (qt-widget-enabled? nav-dock)
+              (if (qt-widget-visible? nav-dock)
                 (qt-widget-hide! nav-dock)
                 (qt-widget-show! nav-dock))
               (qt-plain-text-edit-append! out-text "Toggled Navigation dock")))
@@ -137,7 +137,7 @@
           (qt-action-set-shortcut! a2 "Ctrl+2")
           (qt-on-triggered! a2
             (lambda ()
-              (if (qt-widget-enabled? prop-dock)
+              (if (qt-widget-visible? prop-dock)
                 (qt-widget-hide! prop-dock)
                 (qt-widget-show! prop-dock))
               (qt-plain-text-edit-append! out-text "Toggled Properties dock")))
@@ -147,7 +147,7 @@
           (qt-action-set-shortcut! a3 "Ctrl+3")
           (qt-on-triggered! a3
             (lambda ()
-              (if (qt-widget-enabled? out-dock)
+              (if (qt-widget-visible? out-dock)
                 (qt-widget-hide! out-dock)
                 (qt-widget-show! out-dock))
               (qt-plain-text-edit-append! out-text "Toggled Output dock")))

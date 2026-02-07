@@ -215,6 +215,10 @@ extern "C" void qt_widget_set_visible(qt_widget_t w, int visible) {
     static_cast<QWidget*>(w)->setVisible(visible != 0);
 }
 
+extern "C" int qt_widget_is_visible(qt_widget_t w) {
+    return static_cast<QWidget*>(w)->isVisible() ? 1 : 0;
+}
+
 extern "C" void qt_widget_set_fixed_size(qt_widget_t w, int width, int height) {
     static_cast<QWidget*>(w)->setFixedSize(width, height);
 }
