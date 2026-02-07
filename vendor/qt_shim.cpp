@@ -4368,7 +4368,8 @@ extern "C" void qt_tool_box_on_current_changed(qt_tool_box_t tb,
 // Phase 16: QUndoStack / QUndoCommand
 // ============================================================
 
-// Custom QUndoCommand subclass that calls Scheme callbacks for undo/redo
+// Custom QUndoCommand subclass that calls Scheme callbacks for undo/redo.
+// Note: QUndoStack::push() calls redo() immediately — this is by design.
 class SchemeUndoCommand : public QUndoCommand {
 public:
     SchemeUndoCommand(const QString& text,
@@ -4376,21 +4377,14 @@ public:
                       qt_callback_void redo_cb, long redo_id)
         : QUndoCommand(text)
         , m_undo_cb(undo_cb), m_undo_id(undo_id)
-        , m_redo_cb(redo_cb), m_redo_id(redo_id)
-        , m_first_redo(true) {}
+        , m_redo_cb(redo_cb), m_redo_id(redo_id) {}
 
     void undo() override {
         if (m_undo_cb) m_undo_cb(m_undo_id);
     }
 
     void redo() override {
-        // Skip the first redo — QUndoStack calls redo() on push
-        if (m_first_redo) {
-            m_first_redo = false;
-            if (m_redo_cb) m_redo_cb(m_redo_id);
-        } else {
-            if (m_redo_cb) m_redo_cb(m_redo_id);
-        }
+        if (m_redo_cb) m_redo_cb(m_redo_id);
     }
 
 private:
@@ -4398,7 +4392,6 @@ private:
     long m_undo_id;
     qt_callback_void m_redo_cb;
     long m_redo_id;
-    bool m_first_redo;
 };
 
 extern "C" qt_undo_stack_t qt_undo_stack_create(qt_widget_t parent) {

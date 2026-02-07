@@ -619,7 +619,13 @@
   ;; Phase 16 constants
   QT_LCD_DEC QT_LCD_HEX QT_LCD_OCT QT_LCD_BIN
   QT_LCD_OUTLINE QT_LCD_FILLED QT_LCD_FLAT
-  QT_DIR_DIRS QT_DIR_FILES QT_DIR_HIDDEN QT_DIR_NO_DOT_AND_DOT_DOT)
+  QT_DIR_DIRS QT_DIR_FILES QT_DIR_HIDDEN QT_DIR_NO_DOT_AND_DOT_DOT
+
+  ;; Callback management
+  unregister-qt-handler!
+
+  ;; Resource-safety macros
+  with-painter with-font with-color with-pixmap)
 
 (import :gerbil-qt/libqt
         :std/srfi/13)
@@ -1625,7 +1631,8 @@
 ;;; ---- Font Dialog ----
 
 (def (qt-font-dialog parent: (parent #f))
-  (qt_font_dialog_get_font parent))
+  (let ((f (qt_font_dialog_get_font parent)))
+    (if f f #f)))
 
 ;;; ---- Color Dialog ----
 
@@ -3062,3 +3069,25 @@
 
 (def (qt-file-system-model-destroy! model)
   (qt_file_system_model_destroy model))
+
+;;; ---- Resource-safety macros ----
+
+(defrule (with-painter (p pixmap) body ...)
+  (let ((p (qt-painter-create pixmap)))
+    (try body ...
+      (finally (qt-painter-end! p) (qt-painter-destroy! p)))))
+
+(defrule (with-font (f family . args) body ...)
+  (let ((f (qt-font-create family . args)))
+    (try body ...
+      (finally (qt-font-destroy! f)))))
+
+(defrule (with-color (c . args) body ...)
+  (let ((c (qt-color-create . args)))
+    (try body ...
+      (finally (qt-color-destroy! c)))))
+
+(defrule (with-pixmap (pm . args) body ...)
+  (let ((pm (qt-pixmap-create-blank . args)))
+    (try body ...
+      (finally (qt-pixmap-destroy! pm)))))

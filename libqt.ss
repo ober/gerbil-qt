@@ -676,7 +676,8 @@
      *qt-int-handlers* *qt-bool-handlers*
      *qt-next-callback-id*
      register-qt-void-handler! register-qt-string-handler!
-     register-qt-int-handler! register-qt-bool-handler!)
+     register-qt-int-handler! register-qt-bool-handler!
+     unregister-qt-handler!)
 
   (declare (not safe))
 
@@ -3425,29 +3426,49 @@ static void ffi_paint_widget_trampoline(long callback_id) {
       (hash-put! *qt-bool-handlers* id handler)
       id))
 
+  (define (unregister-qt-handler! id)
+    (hash-remove! *qt-void-handlers* id)
+    (hash-remove! *qt-string-handlers* id)
+    (hash-remove! *qt-int-handlers* id)
+    (hash-remove! *qt-bool-handlers* id))
+
   ;; ---- c-define trampolines (Scheme functions callable from C) ----
+  ;; Each trampoline is guarded with with-catch to prevent Scheme exceptions
+  ;; from propagating through C++ frames (undefined behavior).
   (c-define (ffi_qt_callback_void callback-id)
             (long) void
             "ffi_qt_callback_void" ""
-    (let ((handler (hash-ref *qt-void-handlers* callback-id #f)))
-      (when handler (handler))))
+    (with-catch
+      (lambda (e) (display-exception e (current-error-port)))
+      (lambda ()
+        (let ((handler (hash-ref *qt-void-handlers* callback-id #f)))
+          (when handler (handler))))))
 
   (c-define (ffi_qt_callback_string callback-id value)
             (long UTF-8-string) void
             "ffi_qt_callback_string" ""
-    (let ((handler (hash-ref *qt-string-handlers* callback-id #f)))
-      (when handler (handler value))))
+    (with-catch
+      (lambda (e) (display-exception e (current-error-port)))
+      (lambda ()
+        (let ((handler (hash-ref *qt-string-handlers* callback-id #f)))
+          (when handler (handler value))))))
 
   (c-define (ffi_qt_callback_int callback-id value)
             (long int) void
             "ffi_qt_callback_int" ""
-    (let ((handler (hash-ref *qt-int-handlers* callback-id #f)))
-      (when handler (handler value))))
+    (with-catch
+      (lambda (e) (display-exception e (current-error-port)))
+      (lambda ()
+        (let ((handler (hash-ref *qt-int-handlers* callback-id #f)))
+          (when handler (handler value))))))
 
   (c-define (ffi_qt_callback_bool callback-id value)
             (long int) void
             "ffi_qt_callback_bool" ""
-    (let ((handler (hash-ref *qt-bool-handlers* callback-id #f)))
-      (when handler (handler (not (= value 0))))))
+    (with-catch
+      (lambda (e) (display-exception e (current-error-port)))
+      (lambda ()
+        (let ((handler (hash-ref *qt-bool-handlers* callback-id #f)))
+          (when handler (handler (not (= value 0))))))))
 
 ) ;; end begin-ffi

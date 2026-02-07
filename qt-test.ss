@@ -1,6 +1,7 @@
 (import :std/test
         :std/srfi/13
-        :gerbil-qt/qt)
+        :gerbil-qt/qt
+        :gerbil-qt/libqt)
 
 (export qt-test)
 
@@ -3313,5 +3314,50 @@
       (check QT_LCD_FLAT    => 2)
       (check QT_DIR_DIRS    => 1)
       (check QT_DIR_FILES   => 2))
+
+    ;; ==================== Review Fixes ====================
+
+    (test-case "unregister-qt-handler! removes callback"
+      (ensure-app!)
+      (let* ((counter 0)
+             (id (register-qt-void-handler! (lambda () (set! counter (+ counter 1))))))
+        ;; Handler is registered
+        (let ((handler (hash-ref *qt-void-handlers* id #f)))
+          (check (not (eq? handler #f)) => #t))
+        ;; Unregister it
+        (unregister-qt-handler! id)
+        ;; Handler is gone from all tables
+        (check (hash-ref *qt-void-handlers* id #f) => #f)
+        (check (hash-ref *qt-string-handlers* id #f) => #f)
+        (check (hash-ref *qt-int-handlers* id #f) => #f)
+        (check (hash-ref *qt-bool-handlers* id #f) => #f)))
+
+    (test-case "with-painter cleans up"
+      (ensure-app!)
+      (with-pixmap (pm 100 100)
+        (with-painter (p pm)
+          (qt-painter-set-pen-color! p 255 0 0)
+          (qt-painter-draw-line! p 0 0 100 100))
+        ;; After with-painter, painter is ended and destroyed.
+        ;; Pixmap is still usable.
+        (check (qt-pixmap-width pm) => 100)))
+
+    (test-case "with-font cleans up"
+      (ensure-app!)
+      (with-font (f "Monospace" point-size: 12)
+        (check (string? (qt-font-family f)) => #t)))
+
+    (test-case "with-color cleans up"
+      (ensure-app!)
+      (with-color (c 255 0 128)
+        (check (qt-color-red c) => 255)
+        (check (qt-color-green c) => 0)
+        (check (qt-color-blue c) => 128)))
+
+    (test-case "with-pixmap cleans up"
+      (ensure-app!)
+      (with-pixmap (pm 200 150)
+        (check (qt-pixmap-width pm) => 200)
+        (check (qt-pixmap-height pm) => 150)))
 
   ))
