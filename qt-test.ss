@@ -1,4 +1,5 @@
 (import :std/test
+        :std/srfi/13
         :gerbil-qt/qt)
 
 (export qt-test)
@@ -1673,5 +1674,217 @@
         (qt-line-edit-set-text! edit "typed")
         (check (qt-line-edit-text edit) => "typed")
         (qt-widget-destroy! win)))
+
+    ;; ==================== Phase 10: Forms, Dialogs, Shortcuts, Calendar, Rich Text ====================
+
+    ;; --- Form Layout ---
+
+    (test-case "form layout create"
+      (let* ((w (qt-widget-create))
+             (fl (qt-form-layout-create parent: w)))
+        (check (not (eq? fl #f)) => #t)
+        (check (qt-form-layout-row-count fl) => 0)
+        (qt-widget-destroy! w)))
+
+    (test-case "form layout add rows"
+      (let* ((w (qt-widget-create))
+             (fl (qt-form-layout-create parent: w))
+             (edit1 (qt-line-edit-create parent: w))
+             (edit2 (qt-line-edit-create parent: w)))
+        (qt-form-layout-add-row! fl "Name:" edit1)
+        (check (qt-form-layout-row-count fl) => 1)
+        (qt-form-layout-add-row! fl "Email:" edit2)
+        (check (qt-form-layout-row-count fl) => 2)
+        (qt-widget-destroy! w)))
+
+    (test-case "form layout add row widget"
+      (let* ((w (qt-widget-create))
+             (fl (qt-form-layout-create parent: w))
+             (label (qt-label-create "Custom Label" parent: w))
+             (edit (qt-line-edit-create parent: w)))
+        (qt-form-layout-add-row-widget! fl label edit)
+        (check (qt-form-layout-row-count fl) => 1)
+        (qt-widget-destroy! w)))
+
+    (test-case "form layout add spanning widget"
+      (let* ((w (qt-widget-create))
+             (fl (qt-form-layout-create parent: w))
+             (btn (qt-push-button-create "Submit" parent: w)))
+        (qt-form-layout-add-spanning-widget! fl btn)
+        (check (qt-form-layout-row-count fl) => 1)
+        (qt-widget-destroy! w)))
+
+    (test-case "form layout spacing and margins"
+      (let* ((w (qt-widget-create))
+             (fl (qt-form-layout-create parent: w)))
+        ;; These use existing qt_layout_t functions
+        (qt-layout-set-spacing! fl 10)
+        (qt-layout-set-margins! fl 5 5 5 5)
+        (qt-widget-destroy! w)))
+
+    ;; --- Shortcut ---
+
+    (test-case "shortcut create and destroy"
+      (let* ((win (qt-widget-create))
+             (sc (qt-shortcut-create "Ctrl+S" win)))
+        (check (not (eq? sc #f)) => #t)
+        (qt-shortcut-destroy! sc)
+        (qt-widget-destroy! win)))
+
+    (test-case "shortcut set key"
+      (let* ((win (qt-widget-create))
+             (sc (qt-shortcut-create "Ctrl+S" win)))
+        (qt-shortcut-set-key! sc "Ctrl+Q")
+        (qt-shortcut-destroy! sc)
+        (qt-widget-destroy! win)))
+
+    (test-case "shortcut enabled"
+      (let* ((win (qt-widget-create))
+             (sc (qt-shortcut-create "Ctrl+S" win)))
+        (check (qt-shortcut-enabled? sc) => #t)
+        (qt-shortcut-set-enabled! sc #f)
+        (check (qt-shortcut-enabled? sc) => #f)
+        (qt-shortcut-set-enabled! sc #t)
+        (check (qt-shortcut-enabled? sc) => #t)
+        (qt-shortcut-destroy! sc)
+        (qt-widget-destroy! win)))
+
+    (test-case "shortcut on activated"
+      (let* ((win (qt-widget-create))
+             (sc (qt-shortcut-create "Ctrl+T" win)))
+        (qt-on-shortcut-activated! sc (lambda () #t))
+        (qt-shortcut-destroy! sc)
+        (qt-widget-destroy! win)))
+
+    ;; --- Text Browser ---
+
+    (test-case "text browser create"
+      (let ((tb (qt-text-browser-create)))
+        (check (not (eq? tb #f)) => #t)
+        (qt-widget-destroy! tb)))
+
+    (test-case "text browser set html and plain text"
+      (let ((tb (qt-text-browser-create)))
+        (qt-text-browser-set-html! tb "<b>Hello</b>")
+        (check (string-contains (qt-text-browser-plain-text tb) "Hello") =>  0)
+        (qt-text-browser-set-plain-text! tb "Plain text")
+        (check (qt-text-browser-plain-text tb) => "Plain text")
+        (qt-widget-destroy! tb)))
+
+    (test-case "text browser open external links"
+      (let ((tb (qt-text-browser-create)))
+        (qt-text-browser-set-open-external-links! tb #t)
+        (qt-widget-destroy! tb)))
+
+    (test-case "text browser source"
+      (let ((tb (qt-text-browser-create)))
+        ;; Default source is empty
+        (check (qt-text-browser-source tb) => "")
+        (qt-widget-destroy! tb)))
+
+    (test-case "text browser on anchor clicked"
+      (let ((tb (qt-text-browser-create)))
+        (qt-on-anchor-clicked! tb (lambda (url) #t))
+        (qt-widget-destroy! tb)))
+
+    ;; --- Dialog Button Box ---
+
+    (test-case "button box create"
+      (let ((bb (qt-button-box-create (bitwise-ior QT_BUTTON_OK QT_BUTTON_CANCEL))))
+        (check (not (eq? bb #f)) => #t)
+        (qt-widget-destroy! bb)))
+
+    (test-case "button box get standard button"
+      (let ((bb (qt-button-box-create (bitwise-ior QT_BUTTON_OK QT_BUTTON_CANCEL))))
+        (let ((ok-btn (qt-button-box-button bb QT_BUTTON_OK)))
+          (check (not (eq? ok-btn #f)) => #t))
+        (qt-widget-destroy! bb)))
+
+    (test-case "button box add custom button"
+      (let* ((bb (qt-button-box-create QT_BUTTON_OK))
+             (btn (qt-push-button-create "Custom")))
+        (qt-button-box-add-button! bb btn QT_BUTTON_ROLE_ACTION)
+        (qt-widget-destroy! bb)))
+
+    (test-case "button box signals"
+      (let ((bb (qt-button-box-create (bitwise-ior QT_BUTTON_OK QT_BUTTON_CANCEL))))
+        (qt-on-accepted! bb (lambda () #t))
+        (qt-on-rejected! bb (lambda () #t))
+        (qt-on-button-clicked! bb (lambda () #t))
+        (qt-widget-destroy! bb)))
+
+    (test-case "button box constants"
+      (check QT_BUTTON_OK      => #x00000400)
+      (check QT_BUTTON_CANCEL  => #x00400000)
+      (check QT_BUTTON_APPLY   => #x02000000)
+      (check QT_BUTTON_CLOSE   => #x00200000)
+      (check QT_BUTTON_YES     => #x00004000)
+      (check QT_BUTTON_NO      => #x00010000)
+      (check QT_BUTTON_RESET   => #x04000000)
+      (check QT_BUTTON_HELP    => #x01000000)
+      (check QT_BUTTON_SAVE    => #x00000800)
+      (check QT_BUTTON_DISCARD => #x00800000)
+      (check QT_BUTTON_ROLE_ACCEPT  => 0)
+      (check QT_BUTTON_ROLE_REJECT  => 1)
+      (check QT_BUTTON_ROLE_HELP    => 4))
+
+    ;; --- Calendar Widget ---
+
+    (test-case "calendar create"
+      (let ((cal (qt-calendar-create)))
+        (check (not (eq? cal #f)) => #t)
+        (qt-widget-destroy! cal)))
+
+    (test-case "calendar set and get date"
+      (let ((cal (qt-calendar-create)))
+        (qt-calendar-set-selected-date! cal 2025 6 15)
+        (check (qt-calendar-selected-year cal) => 2025)
+        (check (qt-calendar-selected-month cal) => 6)
+        (check (qt-calendar-selected-day cal) => 15)
+        (check (qt-calendar-selected-date-string cal) => "2025-06-15")
+        (qt-widget-destroy! cal)))
+
+    (test-case "calendar min/max date"
+      (let ((cal (qt-calendar-create)))
+        (qt-calendar-set-minimum-date! cal 2020 1 1)
+        (qt-calendar-set-maximum-date! cal 2030 12 31)
+        (qt-calendar-set-selected-date! cal 2025 6 15)
+        (check (qt-calendar-selected-year cal) => 2025)
+        (qt-widget-destroy! cal)))
+
+    (test-case "calendar grid visible"
+      (let ((cal (qt-calendar-create)))
+        (qt-calendar-set-grid-visible! cal #t)
+        (check (qt-calendar-grid-visible? cal) => #t)
+        (qt-calendar-set-grid-visible! cal #f)
+        (check (qt-calendar-grid-visible? cal) => #f)
+        (qt-widget-destroy! cal)))
+
+    (test-case "calendar first day of week"
+      (let ((cal (qt-calendar-create)))
+        (qt-calendar-set-first-day-of-week! cal QT_SUNDAY)
+        (qt-calendar-set-first-day-of-week! cal QT_MONDAY)
+        (qt-widget-destroy! cal)))
+
+    (test-case "calendar navigation bar"
+      (let ((cal (qt-calendar-create)))
+        (qt-calendar-set-navigation-bar-visible! cal #f)
+        (qt-calendar-set-navigation-bar-visible! cal #t)
+        (qt-widget-destroy! cal)))
+
+    (test-case "calendar signals"
+      (let ((cal (qt-calendar-create)))
+        (qt-on-selection-changed! cal (lambda () #t))
+        (qt-on-calendar-clicked! cal (lambda (date-str) #t))
+        (qt-widget-destroy! cal)))
+
+    (test-case "day-of-week constants"
+      (check QT_MONDAY    => 1)
+      (check QT_TUESDAY   => 2)
+      (check QT_WEDNESDAY => 3)
+      (check QT_THURSDAY  => 4)
+      (check QT_FRIDAY    => 5)
+      (check QT_SATURDAY  => 6)
+      (check QT_SUNDAY    => 7))
 
   ))

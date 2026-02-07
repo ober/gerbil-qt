@@ -87,6 +87,9 @@ make demo-dashboard
 make demo-filebrowser
 make demo-styled
 make demo-settings
+make demo-painter
+make demo-datainput
+make demo-planner
 ```
 
 ## API Reference
@@ -793,6 +796,81 @@ QFrame is a QWidget — use layouts inside it and destroy via parent-child owner
 
 All QInputDialog functions are blocking modal dialogs. They return the value on accept, or `#f` on cancel. The `items` parameter is a Scheme list of strings.
 
+### Phase 10: Forms, Calendar, Rich Text, Dialog Buttons, Shortcuts
+
+#### QFormLayout
+
+| Function | Description |
+|----------|-------------|
+| `(qt-form-layout-create parent: #f)` | Create form layout (label:field rows) |
+| `(qt-form-layout-add-row! form label widget)` | Add labeled row |
+| `(qt-form-layout-add-row-widget! form widget)` | Add spanning widget |
+| `(qt-form-layout-row-count form)` | Get number of rows |
+
+QFormLayout reuses the layout type — `qt-layout-set-spacing!` and `qt-layout-set-margins!` work on it.
+
+#### QCalendarWidget
+
+| Function | Description |
+|----------|-------------|
+| `(qt-calendar-create parent: #f)` | Create calendar widget |
+| `(qt-calendar-set-selected-date! cal year month day)` | Set selected date |
+| `(qt-calendar-selected-year cal)` | Get selected year |
+| `(qt-calendar-selected-month cal)` | Get selected month (1-12) |
+| `(qt-calendar-selected-day cal)` | Get selected day (1-31) |
+| `(qt-calendar-selected-date-string cal)` | Get ISO date string ("YYYY-MM-DD") |
+| `(qt-calendar-set-minimum-date! cal year month day)` | Set minimum selectable date |
+| `(qt-calendar-set-maximum-date! cal year month day)` | Set maximum selectable date |
+| `(qt-calendar-set-first-day-of-week! cal day)` | Set first day (use `QT_MONDAY`..`QT_SUNDAY`) |
+| `(qt-calendar-set-grid-visible! cal bool)` | Show/hide grid lines |
+| `(qt-calendar-grid-visible? cal)` | Is grid visible? |
+| `(qt-calendar-set-navigation-bar-visible! cal bool)` | Show/hide navigation bar |
+| `(qt-on-selection-changed! cal handler)` | Selection changed: `(lambda () ...)` |
+| `(qt-on-calendar-clicked! cal handler)` | Date clicked: `(lambda (iso-date) ...)` |
+
+#### QTextBrowser
+
+| Function | Description |
+|----------|-------------|
+| `(qt-text-browser-create parent: #f)` | Create rich text/HTML viewer |
+| `(qt-text-browser-set-html! tb html)` | Set HTML content |
+| `(qt-text-browser-set-plain-text! tb text)` | Set plain text content |
+| `(qt-text-browser-plain-text tb)` | Get plain text content |
+| `(qt-text-browser-set-open-external-links! tb bool)` | Enable browser launch on link click |
+| `(qt-text-browser-set-source! tb url)` | Load content from URL/file |
+| `(qt-text-browser-source tb)` | Get current source URL |
+| `(qt-on-anchor-clicked! tb handler)` | Link clicked: `(lambda (url) ...)` |
+
+#### QDialogButtonBox
+
+| Function | Description |
+|----------|-------------|
+| `(qt-button-box-create flags parent: #f)` | Create with standard button flags (bitwise-ior) |
+| `(qt-button-box-button bb role)` | Get QPushButton by standard button constant |
+| `(qt-button-box-add-button! bb text role)` | Add custom button with role |
+| `(qt-on-accepted! bb handler)` | Accept clicked: `(lambda () ...)` |
+| `(qt-on-rejected! bb handler)` | Reject clicked: `(lambda () ...)` |
+| `(qt-on-button-clicked! bb handler)` | Any button clicked: `(lambda () ...)` |
+
+**Standard buttons:** `QT_BUTTON_OK`, `QT_BUTTON_CANCEL`, `QT_BUTTON_APPLY`, `QT_BUTTON_CLOSE`, `QT_BUTTON_YES`, `QT_BUTTON_NO`, `QT_BUTTON_RESET`, `QT_BUTTON_HELP`, `QT_BUTTON_SAVE`, `QT_BUTTON_DISCARD`
+
+**Button roles:** `QT_BUTTON_ACCEPT_ROLE`, `QT_BUTTON_REJECT_ROLE`, `QT_BUTTON_RESET_ROLE`, `QT_BUTTON_APPLY_ROLE`, `QT_BUTTON_HELP_ROLE`
+
+Combine standard buttons with `bitwise-ior`: `(bitwise-ior QT_BUTTON_OK QT_BUTTON_CANCEL)`
+
+#### QShortcut
+
+| Function | Description |
+|----------|-------------|
+| `(qt-shortcut-create key-sequence parent)` | Create shortcut (e.g. `"Ctrl+S"`) |
+| `(qt-shortcut-set-key! sc key-sequence)` | Change key sequence |
+| `(qt-shortcut-set-enabled! sc bool)` | Enable/disable |
+| `(qt-shortcut-enabled? sc)` | Is enabled? |
+| `(qt-on-shortcut-activated! sc handler)` | Shortcut triggered: `(lambda () ...)` |
+| `(qt-shortcut-destroy! sc)` | Destroy shortcut (QObject, not QWidget) |
+
+**Day-of-week constants:** `QT_MONDAY`, `QT_TUESDAY`, `QT_WEDNESDAY`, `QT_THURSDAY`, `QT_FRIDAY`, `QT_SATURDAY`, `QT_SUNDAY`
+
 ## Architecture
 
 The binding uses a three-layer architecture:
@@ -830,6 +908,7 @@ Qt uses parent-child ownership: destroying a parent automatically destroys all c
 - `examples/settings.ss` -- Settings dialog with radio buttons, button groups, group boxes, dark theme
 - `examples/painter.ss` -- QPainter demo with shapes, text, transforms, compositing
 - `examples/datainput.ss` -- Data input with double spin box, date/time pickers, frames, progress dialog, input dialogs
+- `examples/planner.ss` -- Event planner with form layout, calendar, rich text preview, dialog buttons, shortcuts
 
 ## License
 

@@ -306,6 +306,36 @@
   qt-input-dialog-get-text qt-input-dialog-get-int
   qt-input-dialog-get-double qt-input-dialog-get-item
 
+  ;; Form Layout
+  qt-form-layout-create qt-form-layout-add-row!
+  qt-form-layout-add-row-widget! qt-form-layout-add-spanning-widget!
+  qt-form-layout-row-count
+
+  ;; Shortcut
+  qt-shortcut-create qt-shortcut-set-key! qt-shortcut-set-enabled!
+  qt-shortcut-enabled? qt-on-shortcut-activated! qt-shortcut-destroy!
+
+  ;; Text Browser
+  qt-text-browser-create qt-text-browser-set-html!
+  qt-text-browser-set-plain-text! qt-text-browser-plain-text
+  qt-text-browser-set-open-external-links!
+  qt-text-browser-set-source! qt-text-browser-source
+  qt-on-anchor-clicked!
+
+  ;; Dialog Button Box
+  qt-button-box-create qt-button-box-button
+  qt-button-box-add-button!
+  qt-on-accepted! qt-on-rejected! qt-on-button-clicked!
+
+  ;; Calendar Widget
+  qt-calendar-create qt-calendar-set-selected-date!
+  qt-calendar-selected-year qt-calendar-selected-month
+  qt-calendar-selected-day qt-calendar-selected-date-string
+  qt-calendar-set-minimum-date! qt-calendar-set-maximum-date!
+  qt-calendar-set-first-day-of-week! qt-calendar-set-grid-visible!
+  qt-calendar-grid-visible? qt-calendar-set-navigation-bar-visible!
+  qt-on-selection-changed! qt-on-calendar-clicked!
+
   ;; Constants
   QT_ALIGN_LEFT QT_ALIGN_RIGHT QT_ALIGN_CENTER
   QT_ALIGN_TOP QT_ALIGN_BOTTOM
@@ -333,7 +363,16 @@
   QT_TRAY_TRIGGER QT_TRAY_CONTEXT QT_TRAY_DOUBLE_CLICK QT_TRAY_MIDDLE_CLICK
   QT_FRAME_NO_FRAME QT_FRAME_BOX QT_FRAME_PANEL QT_FRAME_WIN_PANEL
   QT_FRAME_HLINE QT_FRAME_VLINE QT_FRAME_STYLED_PANEL
-  QT_FRAME_PLAIN QT_FRAME_RAISED QT_FRAME_SUNKEN)
+  QT_FRAME_PLAIN QT_FRAME_RAISED QT_FRAME_SUNKEN
+  QT_BUTTON_OK QT_BUTTON_CANCEL QT_BUTTON_APPLY QT_BUTTON_CLOSE
+  QT_BUTTON_YES QT_BUTTON_NO QT_BUTTON_RESET QT_BUTTON_HELP
+  QT_BUTTON_SAVE QT_BUTTON_DISCARD
+  QT_BUTTON_ROLE_INVALID QT_BUTTON_ROLE_ACCEPT QT_BUTTON_ROLE_REJECT
+  QT_BUTTON_ROLE_DESTRUCTIVE QT_BUTTON_ROLE_ACTION QT_BUTTON_ROLE_HELP
+  QT_BUTTON_ROLE_YES QT_BUTTON_ROLE_NO
+  QT_BUTTON_ROLE_APPLY QT_BUTTON_ROLE_RESET
+  QT_MONDAY QT_TUESDAY QT_WEDNESDAY QT_THURSDAY
+  QT_FRIDAY QT_SATURDAY QT_SUNDAY)
 
 (import :gerbil-qt/libqt
         :std/srfi/13)
@@ -1704,3 +1743,137 @@
          (result (qt_input_dialog_get_item parent title label items-str
                                            current (if editable 1 0))))
     (if (= (qt_input_dialog_was_accepted) 0) #f result)))
+
+;;; ---- Form Layout ----
+
+(def (qt-form-layout-create parent: (parent #f))
+  (qt_form_layout_create parent))
+
+(def (qt-form-layout-add-row! layout label field)
+  (qt_form_layout_add_row layout label field))
+
+(def (qt-form-layout-add-row-widget! layout label-widget field)
+  (qt_form_layout_add_row_widget layout label-widget field))
+
+(def (qt-form-layout-add-spanning-widget! layout widget)
+  (qt_form_layout_add_spanning_widget layout widget))
+
+(def (qt-form-layout-row-count layout)
+  (qt_form_layout_row_count layout))
+
+;;; ---- Shortcut ----
+
+(def (qt-shortcut-create key-sequence parent)
+  (qt_shortcut_create key-sequence parent))
+
+(def (qt-shortcut-set-key! s key-sequence)
+  (qt_shortcut_set_key s key-sequence))
+
+(def (qt-shortcut-set-enabled! s enabled)
+  (qt_shortcut_set_enabled s (if enabled 1 0)))
+
+(def (qt-shortcut-enabled? s)
+  (not (= (qt_shortcut_is_enabled s) 0)))
+
+(def (qt-on-shortcut-activated! s handler)
+  (let ((id (register-qt-void-handler! handler)))
+    (raw_qt_shortcut_on_activated s id)))
+
+(def (qt-shortcut-destroy! s)
+  (qt_shortcut_destroy s))
+
+;;; ---- Text Browser ----
+
+(def (qt-text-browser-create parent: (parent #f))
+  (qt_text_browser_create parent))
+
+(def (qt-text-browser-set-html! tb html)
+  (qt_text_browser_set_html tb html))
+
+(def (qt-text-browser-set-plain-text! tb text)
+  (qt_text_browser_set_plain_text tb text))
+
+(def (qt-text-browser-plain-text tb)
+  (qt_text_browser_plain_text tb))
+
+(def (qt-text-browser-set-open-external-links! tb enabled)
+  (qt_text_browser_set_open_external_links tb (if enabled 1 0)))
+
+(def (qt-text-browser-set-source! tb url)
+  (qt_text_browser_set_source tb url))
+
+(def (qt-text-browser-source tb)
+  (qt_text_browser_source tb))
+
+(def (qt-on-anchor-clicked! tb handler)
+  (let ((id (register-qt-string-handler! handler)))
+    (raw_qt_text_browser_on_anchor_clicked tb id)))
+
+;;; ---- Dialog Button Box ----
+
+(def (qt-button-box-create buttons parent: (parent #f))
+  (qt_button_box_create buttons parent))
+
+(def (qt-button-box-button bb standard-button)
+  (qt_button_box_button bb standard-button))
+
+(def (qt-button-box-add-button! bb button role)
+  (qt_button_box_add_button bb button role))
+
+(def (qt-on-accepted! bb handler)
+  (let ((id (register-qt-void-handler! handler)))
+    (raw_qt_button_box_on_accepted bb id)))
+
+(def (qt-on-rejected! bb handler)
+  (let ((id (register-qt-void-handler! handler)))
+    (raw_qt_button_box_on_rejected bb id)))
+
+(def (qt-on-button-clicked! bb handler)
+  (let ((id (register-qt-void-handler! handler)))
+    (raw_qt_button_box_on_clicked bb id)))
+
+;;; ---- Calendar Widget ----
+
+(def (qt-calendar-create parent: (parent #f))
+  (qt_calendar_create parent))
+
+(def (qt-calendar-set-selected-date! c year month day)
+  (qt_calendar_set_selected_date c year month day))
+
+(def (qt-calendar-selected-year c)
+  (qt_calendar_selected_year c))
+
+(def (qt-calendar-selected-month c)
+  (qt_calendar_selected_month c))
+
+(def (qt-calendar-selected-day c)
+  (qt_calendar_selected_day c))
+
+(def (qt-calendar-selected-date-string c)
+  (qt_calendar_selected_date_string c))
+
+(def (qt-calendar-set-minimum-date! c year month day)
+  (qt_calendar_set_minimum_date c year month day))
+
+(def (qt-calendar-set-maximum-date! c year month day)
+  (qt_calendar_set_maximum_date c year month day))
+
+(def (qt-calendar-set-first-day-of-week! c day)
+  (qt_calendar_set_first_day_of_week c day))
+
+(def (qt-calendar-set-grid-visible! c visible)
+  (qt_calendar_set_grid_visible c (if visible 1 0)))
+
+(def (qt-calendar-grid-visible? c)
+  (not (= (qt_calendar_is_grid_visible c) 0)))
+
+(def (qt-calendar-set-navigation-bar-visible! c visible)
+  (qt_calendar_set_navigation_bar_visible c (if visible 1 0)))
+
+(def (qt-on-selection-changed! c handler)
+  (let ((id (register-qt-void-handler! handler)))
+    (raw_qt_calendar_on_selection_changed c id)))
+
+(def (qt-on-calendar-clicked! c handler)
+  (let ((id (register-qt-string-handler! handler)))
+    (raw_qt_calendar_on_clicked c id)))

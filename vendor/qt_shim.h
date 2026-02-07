@@ -702,6 +702,119 @@ void        qt_slider_on_value_changed(qt_slider_t s,
                                         qt_callback_int callback,
                                         long callback_id);
 
+/* ========== Phase 10: Forms, Dialogs, Shortcuts, Calendar, Rich Text ========== */
+
+typedef void* qt_button_box_t;
+typedef void* qt_shortcut_t;
+typedef void* qt_calendar_t;
+typedef void* qt_text_browser_t;
+
+/* QDialogButtonBox standard button flags */
+#define QT_BUTTON_OK        0x00000400
+#define QT_BUTTON_CANCEL    0x00400000
+#define QT_BUTTON_APPLY     0x02000000
+#define QT_BUTTON_CLOSE     0x00200000
+#define QT_BUTTON_YES       0x00004000
+#define QT_BUTTON_NO        0x00010000
+#define QT_BUTTON_RESET     0x04000000
+#define QT_BUTTON_HELP      0x01000000
+#define QT_BUTTON_SAVE      0x00000800
+#define QT_BUTTON_DISCARD   0x00800000
+
+/* QDialogButtonBox button roles */
+#define QT_BUTTON_ROLE_INVALID       -1
+#define QT_BUTTON_ROLE_ACCEPT         0
+#define QT_BUTTON_ROLE_REJECT         1
+#define QT_BUTTON_ROLE_DESTRUCTIVE    2
+#define QT_BUTTON_ROLE_ACTION         3
+#define QT_BUTTON_ROLE_HELP           4
+#define QT_BUTTON_ROLE_YES            5
+#define QT_BUTTON_ROLE_NO             6
+#define QT_BUTTON_ROLE_APPLY          8
+#define QT_BUTTON_ROLE_RESET          7
+
+/* Day-of-week constants (Qt::DayOfWeek) */
+#define QT_MONDAY     1
+#define QT_TUESDAY    2
+#define QT_WEDNESDAY  3
+#define QT_THURSDAY   4
+#define QT_FRIDAY     5
+#define QT_SATURDAY   6
+#define QT_SUNDAY     7
+
+/* --- Form Layout --- */
+qt_layout_t qt_form_layout_create(qt_widget_t parent);
+void        qt_form_layout_add_row(qt_layout_t layout, const char* label,
+                                   qt_widget_t field);
+void        qt_form_layout_add_row_widget(qt_layout_t layout,
+                                          qt_widget_t label_widget,
+                                          qt_widget_t field);
+void        qt_form_layout_add_spanning_widget(qt_layout_t layout,
+                                                qt_widget_t widget);
+int         qt_form_layout_row_count(qt_layout_t layout);
+
+/* --- Shortcut --- */
+qt_shortcut_t qt_shortcut_create(const char* key_sequence, qt_widget_t parent);
+void        qt_shortcut_set_key(qt_shortcut_t s, const char* key_sequence);
+void        qt_shortcut_set_enabled(qt_shortcut_t s, int enabled);
+int         qt_shortcut_is_enabled(qt_shortcut_t s);
+void        qt_shortcut_on_activated(qt_shortcut_t s,
+                                     qt_callback_void callback,
+                                     long callback_id);
+void        qt_shortcut_destroy(qt_shortcut_t s);
+
+/* --- Text Browser --- */
+qt_text_browser_t qt_text_browser_create(qt_widget_t parent);
+void        qt_text_browser_set_html(qt_text_browser_t tb, const char* html);
+void        qt_text_browser_set_plain_text(qt_text_browser_t tb,
+                                            const char* text);
+const char* qt_text_browser_plain_text(qt_text_browser_t tb);
+void        qt_text_browser_set_open_external_links(qt_text_browser_t tb,
+                                                     int enabled);
+void        qt_text_browser_set_source(qt_text_browser_t tb, const char* url);
+const char* qt_text_browser_source(qt_text_browser_t tb);
+void        qt_text_browser_on_anchor_clicked(qt_text_browser_t tb,
+                                               qt_callback_string callback,
+                                               long callback_id);
+
+/* --- Dialog Button Box --- */
+qt_button_box_t qt_button_box_create(int standard_buttons, qt_widget_t parent);
+qt_push_button_t qt_button_box_button(qt_button_box_t bb, int standard_button);
+void        qt_button_box_add_button(qt_button_box_t bb,
+                                      qt_push_button_t button, int role);
+void        qt_button_box_on_accepted(qt_button_box_t bb,
+                                       qt_callback_void callback,
+                                       long callback_id);
+void        qt_button_box_on_rejected(qt_button_box_t bb,
+                                       qt_callback_void callback,
+                                       long callback_id);
+void        qt_button_box_on_clicked(qt_button_box_t bb,
+                                      qt_callback_void callback,
+                                      long callback_id);
+
+/* --- Calendar Widget --- */
+qt_calendar_t qt_calendar_create(qt_widget_t parent);
+void        qt_calendar_set_selected_date(qt_calendar_t c,
+                                           int year, int month, int day);
+int         qt_calendar_selected_year(qt_calendar_t c);
+int         qt_calendar_selected_month(qt_calendar_t c);
+int         qt_calendar_selected_day(qt_calendar_t c);
+const char* qt_calendar_selected_date_string(qt_calendar_t c);
+void        qt_calendar_set_minimum_date(qt_calendar_t c,
+                                          int year, int month, int day);
+void        qt_calendar_set_maximum_date(qt_calendar_t c,
+                                          int year, int month, int day);
+void        qt_calendar_set_first_day_of_week(qt_calendar_t c, int day);
+void        qt_calendar_set_grid_visible(qt_calendar_t c, int visible);
+int         qt_calendar_is_grid_visible(qt_calendar_t c);
+void        qt_calendar_set_navigation_bar_visible(qt_calendar_t c, int visible);
+void        qt_calendar_on_selection_changed(qt_calendar_t c,
+                                              qt_callback_void callback,
+                                              long callback_id);
+void        qt_calendar_on_clicked(qt_calendar_t c,
+                                    qt_callback_string callback,
+                                    long callback_id);
+
 #ifdef __cplusplus
 }
 #endif

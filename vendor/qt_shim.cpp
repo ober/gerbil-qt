@@ -61,6 +61,11 @@
 #include <QFrame>
 #include <QProgressDialog>
 #include <QInputDialog>
+#include <QFormLayout>
+#include <QShortcut>
+#include <QTextBrowser>
+#include <QDialogButtonBox>
+#include <QCalendarWidget>
 #include <string>
 #include <cstdio>
 
@@ -2408,4 +2413,262 @@ extern "C" const char* qt_input_dialog_get_item(
 
 extern "C" int qt_input_dialog_was_accepted(void) {
     return s_last_input_ok ? 1 : 0;
+}
+
+// ============================================================
+// Phase 10: Form Layout
+// ============================================================
+
+extern "C" qt_layout_t qt_form_layout_create(qt_widget_t parent) {
+    return new QFormLayout(static_cast<QWidget*>(parent));
+}
+
+extern "C" void qt_form_layout_add_row(qt_layout_t layout, const char* label,
+                                        qt_widget_t field) {
+    static_cast<QFormLayout*>(layout)->addRow(
+        QString::fromUtf8(label), static_cast<QWidget*>(field));
+}
+
+extern "C" void qt_form_layout_add_row_widget(qt_layout_t layout,
+                                               qt_widget_t label_widget,
+                                               qt_widget_t field) {
+    static_cast<QFormLayout*>(layout)->addRow(
+        static_cast<QWidget*>(label_widget), static_cast<QWidget*>(field));
+}
+
+extern "C" void qt_form_layout_add_spanning_widget(qt_layout_t layout,
+                                                     qt_widget_t widget) {
+    static_cast<QFormLayout*>(layout)->addRow(static_cast<QWidget*>(widget));
+}
+
+extern "C" int qt_form_layout_row_count(qt_layout_t layout) {
+    return static_cast<QFormLayout*>(layout)->rowCount();
+}
+
+// ============================================================
+// Phase 10: Shortcut
+// ============================================================
+
+extern "C" qt_shortcut_t qt_shortcut_create(const char* key_sequence,
+                                             qt_widget_t parent) {
+    return new QShortcut(QKeySequence(QString::fromUtf8(key_sequence)),
+                         static_cast<QWidget*>(parent));
+}
+
+extern "C" void qt_shortcut_set_key(qt_shortcut_t s,
+                                     const char* key_sequence) {
+    static_cast<QShortcut*>(s)->setKey(
+        QKeySequence(QString::fromUtf8(key_sequence)));
+}
+
+extern "C" void qt_shortcut_set_enabled(qt_shortcut_t s, int enabled) {
+    static_cast<QShortcut*>(s)->setEnabled(enabled != 0);
+}
+
+extern "C" int qt_shortcut_is_enabled(qt_shortcut_t s) {
+    return static_cast<QShortcut*>(s)->isEnabled() ? 1 : 0;
+}
+
+extern "C" void qt_shortcut_on_activated(qt_shortcut_t s,
+                                          qt_callback_void callback,
+                                          long callback_id) {
+    QObject::connect(static_cast<QShortcut*>(s), &QShortcut::activated,
+                     [callback, callback_id]() {
+                         callback(callback_id);
+                     });
+}
+
+extern "C" void qt_shortcut_destroy(qt_shortcut_t s) {
+    delete static_cast<QShortcut*>(s);
+}
+
+// ============================================================
+// Phase 10: Text Browser
+// ============================================================
+
+extern "C" qt_text_browser_t qt_text_browser_create(qt_widget_t parent) {
+    return new QTextBrowser(static_cast<QWidget*>(parent));
+}
+
+extern "C" void qt_text_browser_set_html(qt_text_browser_t tb,
+                                          const char* html) {
+    static_cast<QTextBrowser*>(tb)->setHtml(QString::fromUtf8(html));
+}
+
+extern "C" void qt_text_browser_set_plain_text(qt_text_browser_t tb,
+                                                const char* text) {
+    static_cast<QTextBrowser*>(tb)->setPlainText(QString::fromUtf8(text));
+}
+
+extern "C" const char* qt_text_browser_plain_text(qt_text_browser_t tb) {
+    s_return_buf = static_cast<QTextBrowser*>(tb)->toPlainText()
+                       .toUtf8().toStdString();
+    return s_return_buf.c_str();
+}
+
+extern "C" void qt_text_browser_set_open_external_links(qt_text_browser_t tb,
+                                                          int enabled) {
+    static_cast<QTextBrowser*>(tb)->setOpenExternalLinks(enabled != 0);
+}
+
+extern "C" void qt_text_browser_set_source(qt_text_browser_t tb,
+                                            const char* url) {
+    static_cast<QTextBrowser*>(tb)->setSource(
+        QUrl(QString::fromUtf8(url)));
+}
+
+extern "C" const char* qt_text_browser_source(qt_text_browser_t tb) {
+    s_return_buf = static_cast<QTextBrowser*>(tb)->source()
+                       .toString().toUtf8().toStdString();
+    return s_return_buf.c_str();
+}
+
+extern "C" void qt_text_browser_on_anchor_clicked(qt_text_browser_t tb,
+                                                    qt_callback_string callback,
+                                                    long callback_id) {
+    static_cast<QTextBrowser*>(tb)->setOpenLinks(false);
+    QObject::connect(static_cast<QTextBrowser*>(tb),
+                     &QTextBrowser::anchorClicked,
+                     [callback, callback_id](const QUrl& url) {
+                         std::string s = url.toString().toUtf8().toStdString();
+                         callback(callback_id, s.c_str());
+                     });
+}
+
+// ============================================================
+// Phase 10: Dialog Button Box
+// ============================================================
+
+extern "C" qt_button_box_t qt_button_box_create(int standard_buttons,
+                                                  qt_widget_t parent) {
+    return new QDialogButtonBox(
+        static_cast<QDialogButtonBox::StandardButtons>(standard_buttons),
+        static_cast<QWidget*>(parent));
+}
+
+extern "C" qt_push_button_t qt_button_box_button(qt_button_box_t bb,
+                                                   int standard_button) {
+    return static_cast<QDialogButtonBox*>(bb)->button(
+        static_cast<QDialogButtonBox::StandardButton>(standard_button));
+}
+
+extern "C" void qt_button_box_add_button(qt_button_box_t bb,
+                                          qt_push_button_t button, int role) {
+    static_cast<QDialogButtonBox*>(bb)->addButton(
+        static_cast<QPushButton*>(button),
+        static_cast<QDialogButtonBox::ButtonRole>(role));
+}
+
+extern "C" void qt_button_box_on_accepted(qt_button_box_t bb,
+                                           qt_callback_void callback,
+                                           long callback_id) {
+    QObject::connect(static_cast<QDialogButtonBox*>(bb),
+                     &QDialogButtonBox::accepted,
+                     [callback, callback_id]() {
+                         callback(callback_id);
+                     });
+}
+
+extern "C" void qt_button_box_on_rejected(qt_button_box_t bb,
+                                           qt_callback_void callback,
+                                           long callback_id) {
+    QObject::connect(static_cast<QDialogButtonBox*>(bb),
+                     &QDialogButtonBox::rejected,
+                     [callback, callback_id]() {
+                         callback(callback_id);
+                     });
+}
+
+extern "C" void qt_button_box_on_clicked(qt_button_box_t bb,
+                                          qt_callback_void callback,
+                                          long callback_id) {
+    QObject::connect(static_cast<QDialogButtonBox*>(bb),
+                     &QDialogButtonBox::clicked,
+                     [callback, callback_id](QAbstractButton*) {
+                         callback(callback_id);
+                     });
+}
+
+// ============================================================
+// Phase 10: Calendar Widget
+// ============================================================
+
+extern "C" qt_calendar_t qt_calendar_create(qt_widget_t parent) {
+    return new QCalendarWidget(static_cast<QWidget*>(parent));
+}
+
+extern "C" void qt_calendar_set_selected_date(qt_calendar_t c,
+                                               int year, int month, int day) {
+    static_cast<QCalendarWidget*>(c)->setSelectedDate(
+        QDate(year, month, day));
+}
+
+extern "C" int qt_calendar_selected_year(qt_calendar_t c) {
+    return static_cast<QCalendarWidget*>(c)->selectedDate().year();
+}
+
+extern "C" int qt_calendar_selected_month(qt_calendar_t c) {
+    return static_cast<QCalendarWidget*>(c)->selectedDate().month();
+}
+
+extern "C" int qt_calendar_selected_day(qt_calendar_t c) {
+    return static_cast<QCalendarWidget*>(c)->selectedDate().day();
+}
+
+extern "C" const char* qt_calendar_selected_date_string(qt_calendar_t c) {
+    s_return_buf = static_cast<QCalendarWidget*>(c)->selectedDate()
+                       .toString(Qt::ISODate).toUtf8().toStdString();
+    return s_return_buf.c_str();
+}
+
+extern "C" void qt_calendar_set_minimum_date(qt_calendar_t c,
+                                              int year, int month, int day) {
+    static_cast<QCalendarWidget*>(c)->setMinimumDate(
+        QDate(year, month, day));
+}
+
+extern "C" void qt_calendar_set_maximum_date(qt_calendar_t c,
+                                              int year, int month, int day) {
+    static_cast<QCalendarWidget*>(c)->setMaximumDate(
+        QDate(year, month, day));
+}
+
+extern "C" void qt_calendar_set_first_day_of_week(qt_calendar_t c, int day) {
+    static_cast<QCalendarWidget*>(c)->setFirstDayOfWeek(
+        static_cast<Qt::DayOfWeek>(day));
+}
+
+extern "C" void qt_calendar_set_grid_visible(qt_calendar_t c, int visible) {
+    static_cast<QCalendarWidget*>(c)->setGridVisible(visible != 0);
+}
+
+extern "C" int qt_calendar_is_grid_visible(qt_calendar_t c) {
+    return static_cast<QCalendarWidget*>(c)->isGridVisible() ? 1 : 0;
+}
+
+extern "C" void qt_calendar_set_navigation_bar_visible(qt_calendar_t c,
+                                                         int visible) {
+    static_cast<QCalendarWidget*>(c)->setNavigationBarVisible(visible != 0);
+}
+
+extern "C" void qt_calendar_on_selection_changed(qt_calendar_t c,
+                                                   qt_callback_void callback,
+                                                   long callback_id) {
+    QObject::connect(static_cast<QCalendarWidget*>(c),
+                     &QCalendarWidget::selectionChanged,
+                     [callback, callback_id]() {
+                         callback(callback_id);
+                     });
+}
+
+extern "C" void qt_calendar_on_clicked(qt_calendar_t c,
+                                        qt_callback_string callback,
+                                        long callback_id) {
+    QObject::connect(static_cast<QCalendarWidget*>(c),
+                     &QCalendarWidget::clicked,
+                     [callback, callback_id](const QDate& date) {
+                         std::string iso = date.toString(Qt::ISODate)
+                                               .toUtf8().toStdString();
+                         callback(callback_id, iso.c_str());
+                     });
 }

@@ -364,6 +364,52 @@
      qt_input_dialog_get_double qt_input_dialog_get_item
      qt_input_dialog_was_accepted
 
+     ;; Form Layout
+     qt_form_layout_create qt_form_layout_add_row
+     qt_form_layout_add_row_widget qt_form_layout_add_spanning_widget
+     qt_form_layout_row_count
+
+     ;; Shortcut
+     qt_shortcut_create qt_shortcut_set_key
+     qt_shortcut_set_enabled qt_shortcut_is_enabled
+     raw_qt_shortcut_on_activated qt_shortcut_destroy
+
+     ;; Text Browser
+     qt_text_browser_create qt_text_browser_set_html
+     qt_text_browser_set_plain_text qt_text_browser_plain_text
+     qt_text_browser_set_open_external_links
+     qt_text_browser_set_source qt_text_browser_source
+     raw_qt_text_browser_on_anchor_clicked
+
+     ;; Dialog Button Box
+     qt_button_box_create qt_button_box_button
+     qt_button_box_add_button
+     raw_qt_button_box_on_accepted raw_qt_button_box_on_rejected
+     raw_qt_button_box_on_clicked
+
+     ;; Dialog Button Box constants
+     QT_BUTTON_OK QT_BUTTON_CANCEL QT_BUTTON_APPLY QT_BUTTON_CLOSE
+     QT_BUTTON_YES QT_BUTTON_NO QT_BUTTON_RESET QT_BUTTON_HELP
+     QT_BUTTON_SAVE QT_BUTTON_DISCARD
+     QT_BUTTON_ROLE_INVALID QT_BUTTON_ROLE_ACCEPT QT_BUTTON_ROLE_REJECT
+     QT_BUTTON_ROLE_DESTRUCTIVE QT_BUTTON_ROLE_ACTION QT_BUTTON_ROLE_HELP
+     QT_BUTTON_ROLE_YES QT_BUTTON_ROLE_NO
+     QT_BUTTON_ROLE_APPLY QT_BUTTON_ROLE_RESET
+
+     ;; Calendar Widget
+     qt_calendar_create qt_calendar_set_selected_date
+     qt_calendar_selected_year qt_calendar_selected_month
+     qt_calendar_selected_day qt_calendar_selected_date_string
+     qt_calendar_set_minimum_date qt_calendar_set_maximum_date
+     qt_calendar_set_first_day_of_week
+     qt_calendar_set_grid_visible qt_calendar_is_grid_visible
+     qt_calendar_set_navigation_bar_visible
+     raw_qt_calendar_on_selection_changed raw_qt_calendar_on_clicked
+
+     ;; Day-of-week constants
+     QT_MONDAY QT_TUESDAY QT_WEDNESDAY QT_THURSDAY
+     QT_FRIDAY QT_SATURDAY QT_SUNDAY
+
      ;; Callback management
      *qt-void-handlers* *qt-string-handlers*
      *qt-int-handlers* *qt-bool-handlers*
@@ -802,6 +848,79 @@ static char* ffi_qt_input_dialog_get_item(void* parent, const char* title,
 #define QT_FRAME_PLAIN        0x0010
 #define QT_FRAME_RAISED       0x0020
 #define QT_FRAME_SUNKEN       0x0030
+
+/* ---- Phase 10: form layout / shortcut / text browser / button box / calendar wrappers ---- */
+
+/* Shortcut — activated uses void trampoline */
+static void ffi_qt_shortcut_on_activated(void* s, long callback_id) {
+    qt_shortcut_on_activated(s, ffi_void_trampoline, callback_id);
+}
+
+/* Text Browser — cast away const, anchor clicked uses string trampoline */
+static char* ffi_qt_text_browser_plain_text(void* tb) {
+    return (char*)qt_text_browser_plain_text(tb);
+}
+static char* ffi_qt_text_browser_source(void* tb) {
+    return (char*)qt_text_browser_source(tb);
+}
+static void ffi_qt_text_browser_on_anchor_clicked(void* tb, long callback_id) {
+    qt_text_browser_on_anchor_clicked(tb, ffi_string_trampoline, callback_id);
+}
+
+/* Dialog Button Box — accepted/rejected/clicked use void trampoline */
+static void ffi_qt_button_box_on_accepted(void* bb, long callback_id) {
+    qt_button_box_on_accepted(bb, ffi_void_trampoline, callback_id);
+}
+static void ffi_qt_button_box_on_rejected(void* bb, long callback_id) {
+    qt_button_box_on_rejected(bb, ffi_void_trampoline, callback_id);
+}
+static void ffi_qt_button_box_on_clicked(void* bb, long callback_id) {
+    qt_button_box_on_clicked(bb, ffi_void_trampoline, callback_id);
+}
+
+/* Calendar Widget — selection changed uses void trampoline, clicked uses string */
+static void ffi_qt_calendar_on_selection_changed(void* c, long callback_id) {
+    qt_calendar_on_selection_changed(c, ffi_void_trampoline, callback_id);
+}
+static void ffi_qt_calendar_on_clicked(void* c, long callback_id) {
+    qt_calendar_on_clicked(c, ffi_string_trampoline, callback_id);
+}
+static char* ffi_qt_calendar_selected_date_string(void* c) {
+    return (char*)qt_calendar_selected_date_string(c);
+}
+
+/* Button box constants */
+#define QT_BUTTON_OK        0x00000400
+#define QT_BUTTON_CANCEL    0x00400000
+#define QT_BUTTON_APPLY     0x02000000
+#define QT_BUTTON_CLOSE     0x00200000
+#define QT_BUTTON_YES       0x00004000
+#define QT_BUTTON_NO        0x00010000
+#define QT_BUTTON_RESET     0x04000000
+#define QT_BUTTON_HELP      0x01000000
+#define QT_BUTTON_SAVE      0x00000800
+#define QT_BUTTON_DISCARD   0x00800000
+
+/* Button box role constants */
+#define QT_BUTTON_ROLE_INVALID       -1
+#define QT_BUTTON_ROLE_ACCEPT         0
+#define QT_BUTTON_ROLE_REJECT         1
+#define QT_BUTTON_ROLE_DESTRUCTIVE    2
+#define QT_BUTTON_ROLE_ACTION         3
+#define QT_BUTTON_ROLE_HELP           4
+#define QT_BUTTON_ROLE_YES            5
+#define QT_BUTTON_ROLE_NO             6
+#define QT_BUTTON_ROLE_APPLY          8
+#define QT_BUTTON_ROLE_RESET          7
+
+/* Day-of-week constants */
+#define QT_MONDAY     1
+#define QT_TUESDAY    2
+#define QT_WEDNESDAY  3
+#define QT_THURSDAY   4
+#define QT_FRIDAY     5
+#define QT_SATURDAY   6
+#define QT_SUNDAY     7
 
 END-C
   )
@@ -1911,6 +2030,133 @@ END-C
     "ffi_qt_input_dialog_get_item")
   (define-c-lambda qt_input_dialog_was_accepted () int
     "qt_input_dialog_was_accepted")
+
+  ;; ---- Form Layout ----
+  (define-c-lambda qt_form_layout_create ((pointer void)) (pointer void)
+    "qt_form_layout_create")
+  (define-c-lambda qt_form_layout_add_row
+    ((pointer void) UTF-8-string (pointer void)) void
+    "qt_form_layout_add_row")
+  (define-c-lambda qt_form_layout_add_row_widget
+    ((pointer void) (pointer void) (pointer void)) void
+    "qt_form_layout_add_row_widget")
+  (define-c-lambda qt_form_layout_add_spanning_widget
+    ((pointer void) (pointer void)) void
+    "qt_form_layout_add_spanning_widget")
+  (define-c-lambda qt_form_layout_row_count ((pointer void)) int
+    "qt_form_layout_row_count")
+
+  ;; ---- Shortcut ----
+  (define-c-lambda qt_shortcut_create
+    (UTF-8-string (pointer void)) (pointer void)
+    "qt_shortcut_create")
+  (define-c-lambda qt_shortcut_set_key ((pointer void) UTF-8-string) void
+    "qt_shortcut_set_key")
+  (define-c-lambda qt_shortcut_set_enabled ((pointer void) int) void
+    "qt_shortcut_set_enabled")
+  (define-c-lambda qt_shortcut_is_enabled ((pointer void)) int
+    "qt_shortcut_is_enabled")
+  (define-c-lambda raw_qt_shortcut_on_activated ((pointer void) long) void
+    "ffi_qt_shortcut_on_activated")
+  (define-c-lambda qt_shortcut_destroy ((pointer void)) void
+    "qt_shortcut_destroy")
+
+  ;; ---- Text Browser ----
+  (define-c-lambda qt_text_browser_create ((pointer void)) (pointer void)
+    "qt_text_browser_create")
+  (define-c-lambda qt_text_browser_set_html ((pointer void) UTF-8-string) void
+    "qt_text_browser_set_html")
+  (define-c-lambda qt_text_browser_set_plain_text ((pointer void) UTF-8-string) void
+    "qt_text_browser_set_plain_text")
+  (define-c-lambda qt_text_browser_plain_text ((pointer void)) UTF-8-string
+    "ffi_qt_text_browser_plain_text")
+  (define-c-lambda qt_text_browser_set_open_external_links ((pointer void) int) void
+    "qt_text_browser_set_open_external_links")
+  (define-c-lambda qt_text_browser_set_source ((pointer void) UTF-8-string) void
+    "qt_text_browser_set_source")
+  (define-c-lambda qt_text_browser_source ((pointer void)) UTF-8-string
+    "ffi_qt_text_browser_source")
+  (define-c-lambda raw_qt_text_browser_on_anchor_clicked ((pointer void) long) void
+    "ffi_qt_text_browser_on_anchor_clicked")
+
+  ;; ---- Dialog Button Box ----
+  (define-c-lambda qt_button_box_create (int (pointer void)) (pointer void)
+    "qt_button_box_create")
+  (define-c-lambda qt_button_box_button ((pointer void) int) (pointer void)
+    "qt_button_box_button")
+  (define-c-lambda qt_button_box_add_button
+    ((pointer void) (pointer void) int) void
+    "qt_button_box_add_button")
+  (define-c-lambda raw_qt_button_box_on_accepted ((pointer void) long) void
+    "ffi_qt_button_box_on_accepted")
+  (define-c-lambda raw_qt_button_box_on_rejected ((pointer void) long) void
+    "ffi_qt_button_box_on_rejected")
+  (define-c-lambda raw_qt_button_box_on_clicked ((pointer void) long) void
+    "ffi_qt_button_box_on_clicked")
+
+  ;; ---- Dialog Button Box constants ----
+  (define-const QT_BUTTON_OK)
+  (define-const QT_BUTTON_CANCEL)
+  (define-const QT_BUTTON_APPLY)
+  (define-const QT_BUTTON_CLOSE)
+  (define-const QT_BUTTON_YES)
+  (define-const QT_BUTTON_NO)
+  (define-const QT_BUTTON_RESET)
+  (define-const QT_BUTTON_HELP)
+  (define-const QT_BUTTON_SAVE)
+  (define-const QT_BUTTON_DISCARD)
+  (define-const QT_BUTTON_ROLE_INVALID)
+  (define-const QT_BUTTON_ROLE_ACCEPT)
+  (define-const QT_BUTTON_ROLE_REJECT)
+  (define-const QT_BUTTON_ROLE_DESTRUCTIVE)
+  (define-const QT_BUTTON_ROLE_ACTION)
+  (define-const QT_BUTTON_ROLE_HELP)
+  (define-const QT_BUTTON_ROLE_YES)
+  (define-const QT_BUTTON_ROLE_NO)
+  (define-const QT_BUTTON_ROLE_APPLY)
+  (define-const QT_BUTTON_ROLE_RESET)
+
+  ;; ---- Calendar Widget ----
+  (define-c-lambda qt_calendar_create ((pointer void)) (pointer void)
+    "qt_calendar_create")
+  (define-c-lambda qt_calendar_set_selected_date
+    ((pointer void) int int int) void
+    "qt_calendar_set_selected_date")
+  (define-c-lambda qt_calendar_selected_year ((pointer void)) int
+    "qt_calendar_selected_year")
+  (define-c-lambda qt_calendar_selected_month ((pointer void)) int
+    "qt_calendar_selected_month")
+  (define-c-lambda qt_calendar_selected_day ((pointer void)) int
+    "qt_calendar_selected_day")
+  (define-c-lambda qt_calendar_selected_date_string ((pointer void)) UTF-8-string
+    "ffi_qt_calendar_selected_date_string")
+  (define-c-lambda qt_calendar_set_minimum_date
+    ((pointer void) int int int) void
+    "qt_calendar_set_minimum_date")
+  (define-c-lambda qt_calendar_set_maximum_date
+    ((pointer void) int int int) void
+    "qt_calendar_set_maximum_date")
+  (define-c-lambda qt_calendar_set_first_day_of_week ((pointer void) int) void
+    "qt_calendar_set_first_day_of_week")
+  (define-c-lambda qt_calendar_set_grid_visible ((pointer void) int) void
+    "qt_calendar_set_grid_visible")
+  (define-c-lambda qt_calendar_is_grid_visible ((pointer void)) int
+    "qt_calendar_is_grid_visible")
+  (define-c-lambda qt_calendar_set_navigation_bar_visible ((pointer void) int) void
+    "qt_calendar_set_navigation_bar_visible")
+  (define-c-lambda raw_qt_calendar_on_selection_changed ((pointer void) long) void
+    "ffi_qt_calendar_on_selection_changed")
+  (define-c-lambda raw_qt_calendar_on_clicked ((pointer void) long) void
+    "ffi_qt_calendar_on_clicked")
+
+  ;; ---- Day-of-week constants ----
+  (define-const QT_MONDAY)
+  (define-const QT_TUESDAY)
+  (define-const QT_WEDNESDAY)
+  (define-const QT_THURSDAY)
+  (define-const QT_FRIDAY)
+  (define-const QT_SATURDAY)
+  (define-const QT_SUNDAY)
 
   ;; ---- Callback dispatch tables ----
   (define *qt-void-handlers* (make-hash-table))
