@@ -1,0 +1,7 @@
+# Build artifacts
+.gerbil/
+vendor/*.so
+
+# Planning/session notes
+plan.md
+resume.md

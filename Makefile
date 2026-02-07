@@ -1,7 +1,7 @@
 export PKG_CONFIG_PATH := /usr/lib/x86_64-linux-gnu/pkgconfig:$(PKG_CONFIG_PATH)
 export GERBIL_LOADPATH := $(HOME)/.gerbil/lib
 
-.PHONY: build test clean demo-hello demo-counter demo-form demo-editor demo-dashboard demo-filebrowser demo-styled demo-settings demo-painter demo-datainput demo-planner
+.PHONY: build test clean demo-hello demo-counter demo-form demo-editor demo-dashboard demo-filebrowser demo-styled demo-settings demo-painter demo-datainput demo-planner demo-autocomplete demo-modelviewer demo-polished demo-diagram demo-terminal demo-widgets
 
 build:
 	gerbil build
@@ -50,3 +50,21 @@ demo-datainput: build
 
 demo-planner: build
 	GERBIL_LOADPATH=$(CURDIR)/.gerbil/lib:$(GERBIL_LOADPATH) LD_LIBRARY_PATH=$(CURDIR)/vendor:$$LD_LIBRARY_PATH gxi examples/planner.ss
+
+demo-autocomplete: build
+	GERBIL_LOADPATH=$(CURDIR)/.gerbil/lib:$(GERBIL_LOADPATH) LD_LIBRARY_PATH=$(CURDIR)/vendor:$$LD_LIBRARY_PATH gxi examples/autocomplete.ss
+
+demo-modelviewer: build
+	GERBIL_LOADPATH=$(CURDIR)/.gerbil/lib:$(GERBIL_LOADPATH) LD_LIBRARY_PATH=$(CURDIR)/vendor:$$LD_LIBRARY_PATH gxi examples/modelviewer.ss
+
+demo-polished: build
+	GERBIL_LOADPATH=$(CURDIR)/.gerbil/lib:$(GERBIL_LOADPATH) LD_LIBRARY_PATH=$(CURDIR)/vendor:$$LD_LIBRARY_PATH gxi examples/polished.ss
+
+demo-diagram: build
+	GERBIL_LOADPATH=$(CURDIR)/.gerbil/lib:$(GERBIL_LOADPATH) LD_LIBRARY_PATH=$(CURDIR)/vendor:$$LD_LIBRARY_PATH gxi examples/diagram.ss
+
+demo-terminal: build
+	GERBIL_LOADPATH=$(CURDIR)/.gerbil/lib:$(GERBIL_LOADPATH) LD_LIBRARY_PATH=$(CURDIR)/vendor:$$LD_LIBRARY_PATH gxi examples/terminal.ss
+
+demo-widgets: build
+	GERBIL_LOADPATH=$(CURDIR)/.gerbil/lib:$(GERBIL_LOADPATH) LD_LIBRARY_PATH=$(CURDIR)/vendor:$$LD_LIBRARY_PATH gxi examples/widgets.ss

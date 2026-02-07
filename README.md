@@ -90,6 +90,7 @@ make demo-settings
 make demo-painter
 make demo-datainput
 make demo-planner
+make demo-autocomplete
 ```
 
 ## API Reference
@@ -871,6 +872,550 @@ Combine standard buttons with `bitwise-ior`: `(bitwise-ior QT_BUTTON_OK QT_BUTTO
 
 **Day-of-week constants:** `QT_MONDAY`, `QT_TUESDAY`, `QT_WEDNESDAY`, `QT_THURSDAY`, `QT_FRIDAY`, `QT_SATURDAY`, `QT_SUNDAY`
 
+### QSettings
+
+| Function | Description |
+|----------|-------------|
+| `(qt-settings-create org app)` | Create settings for organization/application |
+| `(qt-settings-create-file path format:)` | Create settings backed by a file (default: INI) |
+| `(qt-settings-set-string! s key value)` | Store a string value |
+| `(qt-settings-string s key default: "")` | Read a string value |
+| `(qt-settings-set-int! s key value)` | Store an integer value |
+| `(qt-settings-int s key default: 0)` | Read an integer value |
+| `(qt-settings-set-double! s key value)` | Store a double value |
+| `(qt-settings-double s key default: 0.0)` | Read a double value |
+| `(qt-settings-set-bool! s key value)` | Store a boolean value |
+| `(qt-settings-bool s key default: #f)` | Read a boolean value |
+| `(qt-settings-set! s key value)` | Store any value (auto-dispatches on type) |
+| `(qt-settings-value s key default: "")` | Read a value as string |
+| `(qt-settings-contains? s key)` | Check if key exists |
+| `(qt-settings-remove! s key)` | Remove a key |
+| `(qt-settings-all-keys s)` | List of all keys |
+| `(qt-settings-child-keys s)` | List of keys in current group |
+| `(qt-settings-child-groups s)` | List of subgroups in current group |
+| `(qt-settings-begin-group! s prefix)` | Enter a settings group |
+| `(qt-settings-end-group! s)` | Leave current group |
+| `(qt-settings-group s)` | Current group name |
+| `(qt-settings-sync! s)` | Flush to storage |
+| `(qt-settings-clear! s)` | Remove all keys |
+| `(qt-settings-file-name s)` | Path to storage file |
+| `(qt-settings-writable? s)` | Can write to storage? |
+| `(qt-settings-destroy! s)` | Destroy settings (QObject, not QWidget) |
+
+**Format constants:** `QT_SETTINGS_NATIVE`, `QT_SETTINGS_INI`
+
+### QCompleter
+
+| Function | Description |
+|----------|-------------|
+| `(qt-completer-create items)` | Create completer from a list of strings |
+| `(qt-completer-set-model-strings! c items)` | Update completion list |
+| `(qt-completer-set-case-sensitivity! c sensitive?)` | Case-sensitive matching (`#t`/`#f`) |
+| `(qt-completer-set-completion-mode! c mode)` | Set popup/inline/unfiltered mode |
+| `(qt-completer-set-filter-mode! c mode)` | Set starts-with/contains/ends-with |
+| `(qt-completer-set-max-visible-items! c count)` | Max visible popup items |
+| `(qt-completer-completion-count c)` | Number of current completions |
+| `(qt-completer-current-completion c)` | Current completion text |
+| `(qt-completer-set-completion-prefix! c prefix)` | Set prefix to match against |
+| `(qt-on-completer-activated! c handler)` | Completion selected: `(lambda (text) ...)` |
+| `(qt-line-edit-set-completer! e c)` | Attach completer to line edit (transfers ownership) |
+| `(qt-completer-destroy! c)` | Destroy completer (only if not attached) |
+
+**Mode constants:** `QT_COMPLETER_POPUP`, `QT_COMPLETER_INLINE`, `QT_COMPLETER_UNFILTERED_POPUP`
+
+**Case constants:** `QT_CASE_INSENSITIVE`, `QT_CASE_SENSITIVE`
+
+**Filter constants:** `QT_MATCH_STARTS_WITH`, `QT_MATCH_CONTAINS`, `QT_MATCH_ENDS_WITH`
+
+### QToolTip / QWhatsThis
+
+| Function | Description |
+|----------|-------------|
+| `(qt-tooltip-show-text! x y text widget: #f)` | Show tooltip at screen position |
+| `(qt-tooltip-hide-text!)` | Hide current tooltip |
+| `(qt-tooltip-visible?)` | Is a tooltip visible? |
+| `(qt-widget-tooltip w)` | Get widget's tooltip text |
+| `(qt-widget-set-whats-this! w text)` | Set widget's "What's This?" text |
+| `(qt-widget-whats-this w)` | Get widget's "What's This?" text |
+
+### QStandardItemModel
+
+| Function | Description |
+|----------|-------------|
+| `(qt-standard-model-create rows: 0 cols: 0 parent: #f)` | Create a standard item model |
+| `(qt-standard-model-destroy! m)` | Destroy model (QObject, not QWidget) |
+| `(qt-standard-model-row-count m)` | Number of rows |
+| `(qt-standard-model-column-count m)` | Number of columns |
+| `(qt-standard-model-set-row-count! m rows)` | Set number of rows |
+| `(qt-standard-model-set-column-count! m cols)` | Set number of columns |
+| `(qt-standard-model-set-item! m row col item)` | Set item at position (transfers ownership) |
+| `(qt-standard-model-item m row col)` | Get item at position |
+| `(qt-standard-model-insert-row! m row)` | Insert row, returns `#t` on success |
+| `(qt-standard-model-insert-column! m col)` | Insert column, returns `#t` on success |
+| `(qt-standard-model-remove-row! m row)` | Remove row, returns `#t` on success |
+| `(qt-standard-model-remove-column! m col)` | Remove column, returns `#t` on success |
+| `(qt-standard-model-clear! m)` | Remove all items |
+| `(qt-standard-model-set-horizontal-header! m col text)` | Set column header text |
+| `(qt-standard-model-set-vertical-header! m row text)` | Set row header text |
+
+### QStandardItem
+
+| Function | Description |
+|----------|-------------|
+| `(qt-standard-item-create text: "")` | Create a standard item |
+| `(qt-standard-item-text item)` | Get item text |
+| `(qt-standard-item-set-text! item text)` | Set item text |
+| `(qt-standard-item-tooltip item)` | Get item tooltip |
+| `(qt-standard-item-set-tooltip! item text)` | Set item tooltip |
+| `(qt-standard-item-set-editable! item val)` | Set editable flag |
+| `(qt-standard-item-editable? item)` | Is item editable? |
+| `(qt-standard-item-set-enabled! item val)` | Set enabled flag |
+| `(qt-standard-item-enabled? item)` | Is item enabled? |
+| `(qt-standard-item-set-selectable! item val)` | Set selectable flag |
+| `(qt-standard-item-selectable? item)` | Is item selectable? |
+| `(qt-standard-item-set-checkable! item val)` | Set checkable flag |
+| `(qt-standard-item-checkable? item)` | Is item checkable? |
+| `(qt-standard-item-set-check-state! item state)` | Set check state (`QT_UNCHECKED`/`QT_CHECKED`/`QT_PARTIALLY_CHECKED`) |
+| `(qt-standard-item-check-state item)` | Get check state |
+| `(qt-standard-item-set-icon! item icon)` | Set item icon |
+| `(qt-standard-item-append-row! parent child)` | Add child item (tree hierarchy) |
+| `(qt-standard-item-row-count item)` | Number of child rows |
+| `(qt-standard-item-column-count item)` | Number of child columns |
+| `(qt-standard-item-child item row col: 0)` | Get child item |
+
+**Note:** Items transfer ownership to the model after `set-item!` or `append-row!`. Do not destroy items manually.
+
+### QStringListModel
+
+| Function | Description |
+|----------|-------------|
+| `(qt-string-list-model-create items: '())` | Create from list of strings |
+| `(qt-string-list-model-destroy! m)` | Destroy model |
+| `(qt-string-list-model-set-strings! m items)` | Replace all strings |
+| `(qt-string-list-model-strings m)` | Get all strings as list |
+| `(qt-string-list-model-row-count m)` | Number of items |
+
+### Views (QListView, QTableView, QTreeView)
+
+| Function | Description |
+|----------|-------------|
+| `(qt-list-view-create parent: #f)` | Create a list view |
+| `(qt-table-view-create parent: #f)` | Create a table view |
+| `(qt-tree-view-create parent: #f)` | Create a tree view |
+| `(qt-view-set-model! view model)` | Set the data model |
+| `(qt-view-set-selection-mode! view mode)` | Set selection mode |
+| `(qt-view-set-selection-behavior! view behavior)` | Set selection behavior |
+| `(qt-view-set-alternating-row-colors! view val)` | Enable alternating row colors |
+| `(qt-view-set-sorting-enabled! view val)` | Enable column sorting |
+| `(qt-view-set-edit-triggers! view triggers)` | Set edit triggers |
+| `(qt-list-view-set-flow! v flow)` | Set list view flow direction |
+| `(qt-table-view-set-column-width! v col w)` | Set column width |
+| `(qt-table-view-set-row-height! v row h)` | Set row height |
+| `(qt-table-view-hide-column! v col)` | Hide a column |
+| `(qt-table-view-show-column! v col)` | Show a column |
+| `(qt-table-view-hide-row! v row)` | Hide a row |
+| `(qt-table-view-show-row! v row)` | Show a row |
+| `(qt-table-view-resize-columns-to-contents! v)` | Auto-fit column widths |
+| `(qt-table-view-resize-rows-to-contents! v)` | Auto-fit row heights |
+| `(qt-tree-view-expand-all! v)` | Expand all tree nodes |
+| `(qt-tree-view-collapse-all! v)` | Collapse all tree nodes |
+| `(qt-tree-view-set-indentation! v indent)` | Set tree indentation |
+| `(qt-tree-view-indentation v)` | Get tree indentation |
+| `(qt-tree-view-set-root-is-decorated! v val)` | Show/hide root decoration |
+| `(qt-tree-view-set-header-hidden! v val)` | Show/hide header |
+| `(qt-tree-view-set-column-width! v col w)` | Set column width |
+
+### QHeaderView (via view)
+
+| Function | Description |
+|----------|-------------|
+| `(qt-view-header-set-stretch-last-section! view val horizontal: #t)` | Stretch last section to fill |
+| `(qt-view-header-set-section-resize-mode! view mode horizontal: #t)` | Set resize mode |
+| `(qt-view-header-hide! view horizontal: #t)` | Hide header |
+| `(qt-view-header-show! view horizontal: #t)` | Show header |
+| `(qt-view-header-set-default-section-size! view size horizontal: #t)` | Set default section size |
+
+### QSortFilterProxyModel
+
+| Function | Description |
+|----------|-------------|
+| `(qt-sort-filter-proxy-create parent: #f)` | Create a sort/filter proxy |
+| `(qt-sort-filter-proxy-destroy! p)` | Destroy proxy |
+| `(qt-sort-filter-proxy-set-source-model! p model)` | Set source model to filter |
+| `(qt-sort-filter-proxy-set-filter-regex! p pattern)` | Set filter regex pattern |
+| `(qt-sort-filter-proxy-set-filter-column! p col)` | Set which column to filter on |
+| `(qt-sort-filter-proxy-set-filter-case-sensitivity! p cs)` | Set case sensitivity |
+| `(qt-sort-filter-proxy-set-filter-role! p role)` | Set data role for filtering |
+| `(qt-sort-filter-proxy-sort! p col order: QT_SORT_ASCENDING)` | Sort by column |
+| `(qt-sort-filter-proxy-set-sort-role! p role)` | Set data role for sorting |
+| `(qt-sort-filter-proxy-set-dynamic-sort-filter! p val)` | Auto-re-sort/filter on changes |
+| `(qt-sort-filter-proxy-invalidate-filter! p)` | Force re-filter |
+| `(qt-sort-filter-proxy-row-count p)` | Number of visible rows |
+
+### View Signals + Selection
+
+| Function | Description |
+|----------|-------------|
+| `(qt-on-view-clicked! view handler)` | Item clicked: `(lambda () ...)` — query row/col after |
+| `(qt-on-view-double-clicked! view handler)` | Item double-clicked |
+| `(qt-on-view-activated! view handler)` | Item activated (Enter/double-click) |
+| `(qt-on-view-selection-changed! view handler)` | Selection changed |
+| `(qt-view-last-clicked-row)` | Row of last clicked item |
+| `(qt-view-last-clicked-col)` | Column of last clicked item |
+| `(qt-view-selected-rows view)` | List of selected row indices |
+| `(qt-view-current-row view)` | Current row index (-1 if none) |
+
+**Selection mode constants:** `QT_SELECT_NONE`, `QT_SELECT_SINGLE`, `QT_SELECT_MULTI`, `QT_SELECT_EXTENDED`, `QT_SELECT_CONTIGUOUS`
+
+**Selection behavior constants:** `QT_SELECT_ITEMS`, `QT_SELECT_ROWS`, `QT_SELECT_COLUMNS`
+
+**Sort order constants:** `QT_SORT_ASCENDING`, `QT_SORT_DESCENDING`
+
+**Check state constants:** `QT_UNCHECKED`, `QT_PARTIALLY_CHECKED`, `QT_CHECKED`
+
+**Header resize mode constants:** `QT_HEADER_INTERACTIVE`, `QT_HEADER_FIXED`, `QT_HEADER_STRETCH`, `QT_HEADER_RESIZE_TO_CONTENTS`
+
+**Edit trigger constants:** `QT_EDIT_NONE`, `QT_EDIT_DOUBLE_CLICKED`, `QT_EDIT_ALL_INPUT`
+
+**Data role constants:** `QT_DISPLAY_ROLE`, `QT_EDIT_ROLE`, `QT_TOOLTIP_ROLE`, `QT_CHECK_STATE_ROLE`, `QT_USER_ROLE`
+
+### Phase 13: Practical Polish
+
+#### QValidator
+
+Attach validators to QLineEdit widgets for input constraints. Validators are QObjects (not QWidgets) and need explicit destroy.
+
+| Function | Description |
+|---|---|
+| `(qt-int-validator-create min max [parent:])` | Integer range validator |
+| `(qt-double-validator-create bottom top [decimals: 2] [parent:])` | Decimal range validator |
+| `(qt-regex-validator-create pattern [parent:])` | Regular expression validator |
+| `(qt-validator-destroy! v)` | Destroy a validator |
+| `(qt-validator-validate v input)` | Validate a string, returns state constant |
+| `(qt-line-edit-set-validator! edit validator)` | Attach validator to a line edit |
+| `(qt-line-edit-acceptable-input? edit)` | Check if current input passes validation |
+
+**Validator state constants:** `QT_VALIDATOR_INVALID` (0), `QT_VALIDATOR_INTERMEDIATE` (1), `QT_VALIDATOR_ACCEPTABLE` (2)
+
+#### QPlainTextEdit
+
+Efficient plain text editor optimized for large documents. QWidget — parent-child ownership applies.
+
+| Function | Description |
+|---|---|
+| `(qt-plain-text-edit-create [parent:])` | Create a plain text editor |
+| `(qt-plain-text-edit-set-text! e text)` | Set the full text content |
+| `(qt-plain-text-edit-text e)` | Get the full text content |
+| `(qt-plain-text-edit-append! e text)` | Append a line of text |
+| `(qt-plain-text-edit-clear! e)` | Clear all text |
+| `(qt-plain-text-edit-set-read-only! e bool)` | Set read-only mode |
+| `(qt-plain-text-edit-read-only? e)` | Check if read-only |
+| `(qt-plain-text-edit-set-placeholder! e text)` | Set placeholder text |
+| `(qt-plain-text-edit-line-count e)` | Get number of text blocks (lines) |
+| `(qt-plain-text-edit-set-max-block-count! e n)` | Limit max lines (useful for log views) |
+| `(qt-plain-text-edit-cursor-line e)` | Get cursor line number (0-based) |
+| `(qt-plain-text-edit-cursor-column e)` | Get cursor column number (0-based) |
+| `(qt-plain-text-edit-set-line-wrap! e mode)` | Set line wrap mode |
+| `(qt-on-plain-text-edit-text-changed! e handler)` | Connect text changed signal |
+
+**Line wrap mode constants:** `QT_PLAIN_NO_WRAP` (0), `QT_PLAIN_WIDGET_WRAP` (1)
+
+#### QToolButton
+
+Button with optional dropdown menu and arrow indicators. QWidget — parent-child ownership applies.
+
+| Function | Description |
+|---|---|
+| `(qt-tool-button-create [parent:])` | Create a tool button |
+| `(qt-tool-button-set-text! b text)` | Set button text |
+| `(qt-tool-button-text b)` | Get button text |
+| `(qt-tool-button-set-icon! b path)` | Set icon from file path |
+| `(qt-tool-button-set-menu! b menu)` | Attach a dropdown menu |
+| `(qt-tool-button-set-popup-mode! b mode)` | Set popup mode |
+| `(qt-tool-button-set-auto-raise! b bool)` | Enable flat/auto-raise appearance |
+| `(qt-tool-button-set-arrow-type! b arrow)` | Set arrow indicator |
+| `(qt-tool-button-set-tool-button-style! b style)` | Set display style |
+| `(qt-on-tool-button-clicked! b handler)` | Connect clicked signal |
+
+**Popup mode constants:** `QT_DELAYED_POPUP` (0), `QT_MENU_BUTTON_POPUP` (1), `QT_INSTANT_POPUP` (2)
+
+**Arrow type constants:** `QT_NO_ARROW` (0), `QT_UP_ARROW` (1), `QT_DOWN_ARROW` (2), `QT_LEFT_ARROW` (3), `QT_RIGHT_ARROW` (4)
+
+**Tool button style constants:** `QT_TOOL_BUTTON_ICON_ONLY` (0), `QT_TOOL_BUTTON_TEXT_ONLY` (1), `QT_TOOL_BUTTON_TEXT_BESIDE_ICON` (2), `QT_TOOL_BUTTON_TEXT_UNDER_ICON` (3)
+
+#### Layout Spacers
+
+| Function | Description |
+|---|---|
+| `(qt-layout-add-spacing! layout pixels)` | Add fixed pixel spacing to a box layout |
+
+#### QSizePolicy
+
+Control how widgets resize within layouts.
+
+| Function | Description |
+|---|---|
+| `(qt-widget-set-size-policy! w h-policy v-policy)` | Set horizontal and vertical size policy |
+| `(qt-layout-set-stretch-factor! layout widget stretch)` | Set relative stretch factor for a widget in a box layout |
+
+**Size policy constants:** `QT_SIZE_FIXED` (0), `QT_SIZE_MINIMUM` (1), `QT_SIZE_MINIMUM_EXPANDING` (3), `QT_SIZE_MAXIMUM` (4), `QT_SIZE_PREFERRED` (5), `QT_SIZE_EXPANDING` (7), `QT_SIZE_IGNORED` (13)
+
+### Phase 14: Graphics Scene & Custom Painting
+
+#### QGraphicsScene
+
+2D scene graph for interactive diagrams with movable, selectable items.
+
+| Function | Description |
+|---|---|
+| `(qt-graphics-scene-create x y w h)` | Create scene with rectangle bounds |
+| `(qt-graphics-scene-add-rect! scene x y w h)` | Add rectangle, returns item handle |
+| `(qt-graphics-scene-add-ellipse! scene x y w h)` | Add ellipse, returns item handle |
+| `(qt-graphics-scene-add-line! scene x1 y1 x2 y2)` | Add line, returns item handle |
+| `(qt-graphics-scene-add-text! scene text)` | Add text item, returns item handle |
+| `(qt-graphics-scene-add-pixmap! scene pixmap)` | Add pixmap image, returns item handle |
+| `(qt-graphics-scene-remove-item! scene item)` | Remove and delete an item |
+| `(qt-graphics-scene-clear! scene)` | Remove all items |
+| `(qt-graphics-scene-items-count scene)` | Number of items in scene |
+| `(qt-graphics-scene-set-background! scene r g b)` | Set background color |
+| `(qt-graphics-scene-destroy! scene)` | Destroy the scene (and all items) |
+
+QGraphicsScene owns its items. Destroying the scene destroys all items. Items are NOT QWidgets.
+
+#### QGraphicsView
+
+Widget that displays a QGraphicsScene with panning, zooming, and selection.
+
+| Function | Description |
+|---|---|
+| `(qt-graphics-view-create scene [parent])` | Create view for a scene |
+| `(qt-graphics-view-set-render-hint! view hint [on])` | Enable/disable render hints |
+| `(qt-graphics-view-set-drag-mode! view mode)` | Set drag behavior |
+| `(qt-graphics-view-fit-in-view! view)` | Fit scene rect to view |
+| `(qt-graphics-view-scale! view sx sy)` | Apply scale transform (zoom) |
+| `(qt-graphics-view-center-on! view x y)` | Center view on scene coordinates |
+
+QGraphicsView is a QWidget -- parent-child ownership.
+
+#### QGraphicsItem
+
+Shared API for all items returned by the scene add functions.
+
+| Function | Description |
+|---|---|
+| `(qt-graphics-item-set-pos! item x y)` | Set item position |
+| `(qt-graphics-item-x item)` | Get item X position |
+| `(qt-graphics-item-y item)` | Get item Y position |
+| `(qt-graphics-item-set-pen! item r g b [width])` | Set outline pen (default width: 1) |
+| `(qt-graphics-item-set-brush! item r g b)` | Set fill color |
+| `(qt-graphics-item-set-flags! item flags)` | Set interaction flags (movable, selectable, focusable) |
+| `(qt-graphics-item-set-tooltip! item text)` | Set tooltip text |
+| `(qt-graphics-item-set-zvalue! item z)` | Set stacking order |
+| `(qt-graphics-item-zvalue item)` | Get stacking order |
+| `(qt-graphics-item-set-rotation! item angle)` | Set rotation in degrees |
+| `(qt-graphics-item-set-scale! item factor)` | Set scale factor |
+| `(qt-graphics-item-set-visible! item visible)` | Show/hide item |
+
+**Item flag constants:** `QT_ITEM_MOVABLE` (0x1), `QT_ITEM_SELECTABLE` (0x2), `QT_ITEM_FOCUSABLE` (0x4). Combine with `bitwise-ior`.
+
+**Drag mode constants:** `QT_DRAG_NONE` (0), `QT_DRAG_SCROLL` (1), `QT_DRAG_RUBBER_BAND` (2)
+
+**Render hint constants:** `QT_RENDER_ANTIALIASING` (0x01), `QT_RENDER_SMOOTH_PIXMAP` (0x02), `QT_RENDER_TEXT_ANTIALIASING` (0x04)
+
+#### PaintWidget (custom paintEvent)
+
+A QWidget subclass that fires a callback during `paintEvent()`, enabling fully custom Scheme-driven painting that responds to resize.
+
+| Function | Description |
+|---|---|
+| `(qt-paint-widget-create [parent])` | Create custom paint widget |
+| `(qt-paint-widget-on-paint! widget handler)` | Register paint callback (fires during paintEvent) |
+| `(qt-paint-widget-painter widget)` | Get active QPainter (only valid inside paint callback) |
+| `(qt-paint-widget-update! widget)` | Request repaint |
+| `(qt-paint-widget-width widget)` | Current widget width |
+| `(qt-paint-widget-height widget)` | Current widget height |
+
+Inside the paint callback, call `qt-paint-widget-painter` to get the active QPainter, then use the existing QPainter API (`qt-painter-draw-rect!`, `qt-painter-set-brush-color!`, etc.). The painter is only valid during the callback -- do not store it.
+
+### QProcess
+
+Launch and control external processes -- read stdout/stderr, write stdin, get exit code.
+
+| Function | Description |
+|---|---|
+| `(qt-process-create [parent])` | Create a new QProcess |
+| `(qt-process-start! proc program [args])` | Start process with program and argument list |
+| `(qt-process-write! proc data)` | Write string to process stdin |
+| `(qt-process-close-write! proc)` | Close stdin (signal EOF to child) |
+| `(qt-process-read-stdout proc)` | Read available stdout as string |
+| `(qt-process-read-stderr proc)` | Read available stderr as string |
+| `(qt-process-wait-for-finished proc [msecs])` | Wait for process to finish (default 30s), returns `#t` if finished |
+| `(qt-process-exit-code proc)` | Get process exit code (valid after wait-for-finished) |
+| `(qt-process-state proc)` | Get process state: `QT_PROCESS_NOT_RUNNING`, `QT_PROCESS_STARTING`, `QT_PROCESS_RUNNING` |
+| `(qt-process-kill! proc)` | Kill the process (SIGKILL) |
+| `(qt-process-terminate! proc)` | Terminate the process (SIGTERM) |
+| `(qt-process-on-finished! proc handler)` | Register callback `(lambda (exit-code) ...)` |
+| `(qt-process-on-ready-read! proc handler)` | Register callback `(lambda () ...)` for new stdout data |
+| `(qt-process-destroy! proc)` | Destroy process (explicit, QObject not QWidget) |
+
+**Constants:** `QT_PROCESS_NOT_RUNNING` (0), `QT_PROCESS_STARTING` (1), `QT_PROCESS_RUNNING` (2)
+
+```scheme
+;; Run a command and capture output
+(let ((proc (qt-process-create)))
+  (qt-process-start! proc "/bin/echo" ["hello world"])
+  (qt-process-wait-for-finished proc)
+  (displayln (qt-process-read-stdout proc))  ;; "hello world\n"
+  (displayln (qt-process-exit-code proc))     ;; 0
+  (qt-process-destroy! proc))
+```
+
+### QWizard / QWizardPage
+
+Multi-step wizard dialog for setup flows, onboarding, and multi-page forms.
+
+| Function | Description |
+|---|---|
+| `(qt-wizard-create [parent])` | Create wizard dialog |
+| `(qt-wizard-add-page! wizard page)` | Add page, returns page ID |
+| `(qt-wizard-set-start-id! wizard id)` | Set starting page |
+| `(qt-wizard-current-id wizard)` | Current page ID |
+| `(qt-wizard-set-title! wizard title)` | Set window title |
+| `(qt-wizard-exec! wizard)` | Run modal wizard (returns accept/reject) |
+| `(qt-wizard-page-create [parent])` | Create wizard page |
+| `(qt-wizard-page-set-title! page title)` | Set page title |
+| `(qt-wizard-page-set-subtitle! page subtitle)` | Set page subtitle |
+| `(qt-wizard-page-set-layout! page layout)` | Set page layout |
+| `(qt-wizard-on-current-changed! wizard handler)` | Register callback `(lambda (page-id) ...)` |
+
+QWizard and QWizardPage are QWidgets -- parent-child ownership applies.
+
+### QMdiArea / QMdiSubWindow
+
+Multi-document interface for tabbed or windowed child document views.
+
+| Function | Description |
+|---|---|
+| `(qt-mdi-area-create [parent])` | Create MDI area |
+| `(qt-mdi-area-add-sub-window! area widget)` | Add widget as sub-window, returns sub-window handle |
+| `(qt-mdi-area-remove-sub-window! area sub)` | Remove sub-window |
+| `(qt-mdi-area-active-sub-window area)` | Get active sub-window (or `#f`) |
+| `(qt-mdi-area-sub-window-count area)` | Number of sub-windows |
+| `(qt-mdi-area-cascade! area)` | Cascade sub-windows |
+| `(qt-mdi-area-tile! area)` | Tile sub-windows |
+| `(qt-mdi-area-set-view-mode! area mode)` | Set view mode |
+| `(qt-mdi-sub-window-set-title! sub title)` | Set sub-window title |
+| `(qt-mdi-area-on-sub-window-activated! area handler)` | Register activation callback `(lambda () ...)` |
+
+**Constants:** `QT_MDI_SUBWINDOW` (0), `QT_MDI_TABBED` (1)
+
+### QDial
+
+Circular slider (knob control) for value selection.
+
+| Function | Description |
+|---|---|
+| `(qt-dial-create [parent])` | Create a dial widget |
+| `(qt-dial-set-value! dial value)` | Set current value |
+| `(qt-dial-value dial)` | Get current value |
+| `(qt-dial-set-range! dial min max)` | Set value range |
+| `(qt-dial-set-notches-visible! dial visible)` | Show/hide tick marks |
+| `(qt-dial-set-wrapping! dial wrap)` | Enable wrap-around |
+| `(qt-dial-on-value-changed! dial handler)` | Register callback `(lambda (value) ...)` |
+
+QDial is a QWidget -- parent-child ownership applies.
+
+### QLCDNumber
+
+Retro digit display for counters, clocks, and dashboards.
+
+| Function | Description |
+|---|---|
+| `(qt-lcd-create [digits] [parent])` | Create LCD display (default 5 digits) |
+| `(qt-lcd-display-int! lcd value)` | Display integer value |
+| `(qt-lcd-display-double! lcd value)` | Display floating-point value |
+| `(qt-lcd-display-string! lcd text)` | Display string |
+| `(qt-lcd-set-mode! lcd mode)` | Set display mode (dec/hex/oct/bin) |
+| `(qt-lcd-set-segment-style! lcd style)` | Set segment style (outline/filled/flat) |
+
+**Constants:** `QT_LCD_DEC` (0), `QT_LCD_HEX` (1), `QT_LCD_OCT` (2), `QT_LCD_BIN` (3); `QT_LCD_OUTLINE` (0), `QT_LCD_FILLED` (1), `QT_LCD_FLAT` (2)
+
+QLCDNumber is a QWidget -- parent-child ownership applies.
+
+### QToolBox
+
+Accordion-style stacked tabs -- a vertical tab widget alternative.
+
+| Function | Description |
+|---|---|
+| `(qt-tool-box-create [parent])` | Create tool box |
+| `(qt-tool-box-add-item! toolbox widget text)` | Add page, returns index |
+| `(qt-tool-box-set-current-index! toolbox idx)` | Switch to page |
+| `(qt-tool-box-current-index toolbox)` | Current page index |
+| `(qt-tool-box-count toolbox)` | Number of pages |
+| `(qt-tool-box-set-item-text! toolbox idx text)` | Change page label |
+| `(qt-tool-box-on-current-changed! toolbox handler)` | Register callback `(lambda (index) ...)` |
+
+QToolBox is a QWidget -- parent-child ownership applies.
+
+### QUndoStack / QUndoCommand
+
+Undo/redo framework for editors and document applications.
+
+| Function | Description |
+|---|---|
+| `(qt-undo-stack-create [parent])` | Create undo stack |
+| `(qt-undo-stack-push! stack text undo-handler redo-handler)` | Push command with undo/redo callbacks |
+| `(qt-undo-stack-undo! stack)` | Undo last command |
+| `(qt-undo-stack-redo! stack)` | Redo last undone command |
+| `(qt-undo-stack-can-undo? stack)` | Can undo? |
+| `(qt-undo-stack-can-redo? stack)` | Can redo? |
+| `(qt-undo-stack-undo-text stack)` | Text of next undo command |
+| `(qt-undo-stack-redo-text stack)` | Text of next redo command |
+| `(qt-undo-stack-clear! stack)` | Clear undo history |
+| `(qt-undo-stack-create-undo-action stack [parent])` | Create QAction for undo (for menus/toolbars) |
+| `(qt-undo-stack-create-redo-action stack [parent])` | Create QAction for redo (for menus/toolbars) |
+| `(qt-undo-stack-destroy! stack)` | Destroy stack (explicit, QObject not QWidget) |
+
+QUndoStack is a QObject -- needs explicit destroy. Each pushed command stores undo/redo Scheme closures. `push!` immediately calls the redo handler.
+
+```scheme
+;; Undo/redo counter
+(qt-undo-stack-push! stack "Increment"
+  (lambda () (set! counter (- counter 1)))  ;; undo
+  (lambda () (set! counter (+ counter 1)))) ;; redo (called immediately)
+(qt-undo-stack-undo! stack)  ;; counter goes back
+(qt-undo-stack-redo! stack)  ;; counter goes forward again
+```
+
+### QFileSystemModel
+
+Read-only filesystem model for use with QTreeView to build file browsers.
+
+| Function | Description |
+|---|---|
+| `(qt-file-system-model-create [parent])` | Create filesystem model |
+| `(qt-file-system-model-set-root-path! model path)` | Set root directory to watch |
+| `(qt-file-system-model-set-filter! model filters)` | Set directory filters (bitwise-ior of constants) |
+| `(qt-file-system-model-set-name-filters! model patterns)` | Set glob name filters (list of strings) |
+| `(qt-file-system-model-file-path model row [column])` | Get file path for item |
+| `(qt-tree-view-set-file-system-root! view model path)` | Set tree view root to directory |
+| `(qt-file-system-model-destroy! model)` | Destroy model (explicit, QObject not QWidget) |
+
+**Constants:** `QT_DIR_DIRS`, `QT_DIR_FILES`, `QT_DIR_HIDDEN`, `QT_DIR_NO_DOT_AND_DOT_DOT`
+
+QFileSystemModel is async -- directory scanning happens in a background thread. Use with QTreeView:
+
+```scheme
+(let ((model (qt-file-system-model-create))
+      (view (qt-tree-view-create)))
+  (qt-file-system-model-set-root-path! model "/home")
+  (qt-file-system-model-set-filter! model
+    (bitwise-ior QT_DIR_DIRS QT_DIR_FILES QT_DIR_NO_DOT_AND_DOT_DOT))
+  (qt-tree-view-set-model! view model)
+  (qt-tree-view-set-file-system-root! view model "/home"))
+```
+
 ## Architecture
 
 The binding uses a three-layer architecture:
@@ -909,6 +1454,12 @@ Qt uses parent-child ownership: destroying a parent automatically destroys all c
 - `examples/painter.ss` -- QPainter demo with shapes, text, transforms, compositing
 - `examples/datainput.ss` -- Data input with double spin box, date/time pickers, frames, progress dialog, input dialogs
 - `examples/planner.ss` -- Event planner with form layout, calendar, rich text preview, dialog buttons, shortcuts
+- `examples/autocomplete.ss` -- Search with auto-complete, persistent history (QSettings), tooltips
+- `examples/modelviewer.ss` -- Model/View with sortable table, live text filter, tree hierarchy
+- `examples/polished.ss` -- Polished form with validated inputs, tool buttons, log area, size policies
+- `examples/diagram.ss` -- Interactive diagram with QGraphicsScene/View and custom PaintWidget
+- `examples/terminal.ss` -- Simple terminal with QProcess, command input, streaming output
+- `examples/widgets.ss` -- Niche widgets: QDial + QLCDNumber, QToolBox accordion, QUndoStack undo/redo
 
 ## License
 

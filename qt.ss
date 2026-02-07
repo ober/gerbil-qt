@@ -372,7 +372,254 @@
   QT_BUTTON_ROLE_YES QT_BUTTON_ROLE_NO
   QT_BUTTON_ROLE_APPLY QT_BUTTON_ROLE_RESET
   QT_MONDAY QT_TUESDAY QT_WEDNESDAY QT_THURSDAY
-  QT_FRIDAY QT_SATURDAY QT_SUNDAY)
+  QT_FRIDAY QT_SATURDAY QT_SUNDAY
+
+  ;; QSettings
+  qt-settings-create qt-settings-create-file
+  qt-settings-set-string! qt-settings-string
+  qt-settings-set-int! qt-settings-int
+  qt-settings-set-double! qt-settings-double
+  qt-settings-set-bool! qt-settings-bool
+  qt-settings-set! qt-settings-value
+  qt-settings-contains? qt-settings-remove!
+  qt-settings-all-keys qt-settings-child-keys qt-settings-child-groups
+  qt-settings-begin-group! qt-settings-end-group! qt-settings-group
+  qt-settings-sync! qt-settings-clear!
+  qt-settings-file-name qt-settings-writable?
+  qt-settings-destroy!
+
+  ;; QCompleter
+  qt-completer-create qt-completer-set-model-strings!
+  qt-completer-set-case-sensitivity! qt-completer-set-completion-mode!
+  qt-completer-set-filter-mode! qt-completer-set-max-visible-items!
+  qt-completer-completion-count qt-completer-current-completion
+  qt-completer-set-completion-prefix!
+  qt-on-completer-activated!
+  qt-line-edit-set-completer! qt-completer-destroy!
+
+  ;; QToolTip / QWhatsThis
+  qt-tooltip-show-text! qt-tooltip-hide-text! qt-tooltip-visible?
+  qt-widget-tooltip qt-widget-set-whats-this! qt-widget-whats-this
+
+  ;; Phase 11 constants
+  QT_SETTINGS_NATIVE QT_SETTINGS_INI
+  QT_COMPLETER_POPUP QT_COMPLETER_INLINE QT_COMPLETER_UNFILTERED_POPUP
+  QT_CASE_INSENSITIVE QT_CASE_SENSITIVE
+  QT_MATCH_STARTS_WITH QT_MATCH_CONTAINS QT_MATCH_ENDS_WITH
+
+  ;; QStandardItemModel
+  qt-standard-model-create qt-standard-model-destroy!
+  qt-standard-model-row-count qt-standard-model-column-count
+  qt-standard-model-set-row-count! qt-standard-model-set-column-count!
+  qt-standard-model-set-item! qt-standard-model-item
+  qt-standard-model-insert-row! qt-standard-model-insert-column!
+  qt-standard-model-remove-row! qt-standard-model-remove-column!
+  qt-standard-model-clear!
+  qt-standard-model-set-horizontal-header!
+  qt-standard-model-set-vertical-header!
+
+  ;; QStandardItem
+  qt-standard-item-create qt-standard-item-text qt-standard-item-set-text!
+  qt-standard-item-tooltip qt-standard-item-set-tooltip!
+  qt-standard-item-set-editable! qt-standard-item-editable?
+  qt-standard-item-set-enabled! qt-standard-item-enabled?
+  qt-standard-item-set-selectable! qt-standard-item-selectable?
+  qt-standard-item-set-checkable! qt-standard-item-checkable?
+  qt-standard-item-set-check-state! qt-standard-item-check-state
+  qt-standard-item-set-icon!
+  qt-standard-item-append-row! qt-standard-item-row-count
+  qt-standard-item-column-count qt-standard-item-child
+
+  ;; QStringListModel
+  qt-string-list-model-create qt-string-list-model-destroy!
+  qt-string-list-model-set-strings! qt-string-list-model-strings
+  qt-string-list-model-row-count
+
+  ;; Views (common)
+  qt-view-set-model! qt-view-set-selection-mode!
+  qt-view-set-selection-behavior! qt-view-set-alternating-row-colors!
+  qt-view-set-sorting-enabled! qt-view-set-edit-triggers!
+
+  ;; QListView
+  qt-list-view-create qt-list-view-set-flow!
+
+  ;; QTableView
+  qt-table-view-create qt-table-view-set-column-width!
+  qt-table-view-set-row-height!
+  qt-table-view-hide-column! qt-table-view-show-column!
+  qt-table-view-hide-row! qt-table-view-show-row!
+  qt-table-view-resize-columns-to-contents!
+  qt-table-view-resize-rows-to-contents!
+
+  ;; QTreeView
+  qt-tree-view-create qt-tree-view-expand-all! qt-tree-view-collapse-all!
+  qt-tree-view-set-indentation! qt-tree-view-indentation
+  qt-tree-view-set-root-is-decorated! qt-tree-view-set-header-hidden!
+  qt-tree-view-set-column-width!
+
+  ;; QHeaderView (via view)
+  qt-view-header-set-stretch-last-section!
+  qt-view-header-set-section-resize-mode!
+  qt-view-header-hide! qt-view-header-show!
+  qt-view-header-set-default-section-size!
+
+  ;; QSortFilterProxyModel
+  qt-sort-filter-proxy-create qt-sort-filter-proxy-destroy!
+  qt-sort-filter-proxy-set-source-model!
+  qt-sort-filter-proxy-set-filter-regex!
+  qt-sort-filter-proxy-set-filter-column!
+  qt-sort-filter-proxy-set-filter-case-sensitivity!
+  qt-sort-filter-proxy-set-filter-role!
+  qt-sort-filter-proxy-sort! qt-sort-filter-proxy-set-sort-role!
+  qt-sort-filter-proxy-set-dynamic-sort-filter!
+  qt-sort-filter-proxy-invalidate-filter!
+  qt-sort-filter-proxy-row-count
+
+  ;; View signals + selection
+  qt-on-view-clicked! qt-on-view-double-clicked!
+  qt-on-view-activated! qt-on-view-selection-changed!
+  qt-view-last-clicked-row qt-view-last-clicked-col
+  qt-view-selected-rows qt-view-current-row
+
+  ;; Phase 12 constants
+  QT_DISPLAY_ROLE QT_EDIT_ROLE QT_TOOLTIP_ROLE
+  QT_CHECK_STATE_ROLE QT_USER_ROLE
+  QT_SELECT_NONE QT_SELECT_SINGLE QT_SELECT_MULTI
+  QT_SELECT_EXTENDED QT_SELECT_CONTIGUOUS
+  QT_SELECT_ITEMS QT_SELECT_ROWS QT_SELECT_COLUMNS
+  QT_SORT_ASCENDING QT_SORT_DESCENDING
+  QT_UNCHECKED QT_PARTIALLY_CHECKED QT_CHECKED
+  QT_HEADER_INTERACTIVE QT_HEADER_FIXED
+  QT_HEADER_STRETCH QT_HEADER_RESIZE_TO_CONTENTS
+  QT_EDIT_NONE QT_EDIT_DOUBLE_CLICKED QT_EDIT_ALL_INPUT
+
+  ;; Phase 13: QValidator
+  qt-int-validator-create qt-double-validator-create
+  qt-regex-validator-create qt-validator-destroy!
+  qt-validator-validate qt-line-edit-set-validator!
+  qt-line-edit-acceptable-input?
+
+  ;; Phase 13: QPlainTextEdit
+  qt-plain-text-edit-create qt-plain-text-edit-set-text!
+  qt-plain-text-edit-text qt-plain-text-edit-append!
+  qt-plain-text-edit-clear! qt-plain-text-edit-set-read-only!
+  qt-plain-text-edit-read-only? qt-plain-text-edit-set-placeholder!
+  qt-plain-text-edit-line-count qt-plain-text-edit-set-max-block-count!
+  qt-plain-text-edit-cursor-line qt-plain-text-edit-cursor-column
+  qt-plain-text-edit-set-line-wrap!
+  qt-on-plain-text-edit-text-changed!
+
+  ;; Phase 13: QToolButton
+  qt-tool-button-create qt-tool-button-set-text! qt-tool-button-text
+  qt-tool-button-set-icon! qt-tool-button-set-menu!
+  qt-tool-button-set-popup-mode! qt-tool-button-set-auto-raise!
+  qt-tool-button-set-arrow-type! qt-tool-button-set-tool-button-style!
+  qt-on-tool-button-clicked!
+
+  ;; Phase 13: Layout spacers
+  qt-layout-add-spacing!
+
+  ;; Phase 13: QSizePolicy
+  qt-widget-set-size-policy! qt-layout-set-stretch-factor!
+
+  ;; Phase 13 constants
+  QT_VALIDATOR_INVALID QT_VALIDATOR_INTERMEDIATE QT_VALIDATOR_ACCEPTABLE
+  QT_PLAIN_NO_WRAP QT_PLAIN_WIDGET_WRAP
+  QT_DELAYED_POPUP QT_MENU_BUTTON_POPUP QT_INSTANT_POPUP
+  QT_NO_ARROW QT_UP_ARROW QT_DOWN_ARROW QT_LEFT_ARROW QT_RIGHT_ARROW
+  QT_TOOL_BUTTON_ICON_ONLY QT_TOOL_BUTTON_TEXT_ONLY
+  QT_TOOL_BUTTON_TEXT_BESIDE_ICON QT_TOOL_BUTTON_TEXT_UNDER_ICON
+  QT_SIZE_FIXED QT_SIZE_MINIMUM QT_SIZE_MINIMUM_EXPANDING
+  QT_SIZE_MAXIMUM QT_SIZE_PREFERRED QT_SIZE_EXPANDING QT_SIZE_IGNORED
+
+  ;; Phase 14: QGraphicsScene
+  qt-graphics-scene-create qt-graphics-scene-add-rect!
+  qt-graphics-scene-add-ellipse! qt-graphics-scene-add-line!
+  qt-graphics-scene-add-text! qt-graphics-scene-add-pixmap!
+  qt-graphics-scene-remove-item! qt-graphics-scene-clear!
+  qt-graphics-scene-items-count qt-graphics-scene-set-background!
+  qt-graphics-scene-destroy!
+
+  ;; Phase 14: QGraphicsView
+  qt-graphics-view-create qt-graphics-view-set-render-hint!
+  qt-graphics-view-set-drag-mode! qt-graphics-view-fit-in-view!
+  qt-graphics-view-scale! qt-graphics-view-center-on!
+
+  ;; Phase 14: QGraphicsItem
+  qt-graphics-item-set-pos! qt-graphics-item-x qt-graphics-item-y
+  qt-graphics-item-set-pen! qt-graphics-item-set-brush!
+  qt-graphics-item-set-flags! qt-graphics-item-set-tooltip!
+  qt-graphics-item-set-zvalue! qt-graphics-item-zvalue
+  qt-graphics-item-set-rotation! qt-graphics-item-set-scale!
+  qt-graphics-item-set-visible!
+
+  ;; Phase 14: PaintWidget
+  qt-paint-widget-create qt-paint-widget-on-paint!
+  qt-paint-widget-painter qt-paint-widget-update!
+  qt-paint-widget-width qt-paint-widget-height
+
+  ;; Phase 14 constants
+  QT_ITEM_MOVABLE QT_ITEM_SELECTABLE QT_ITEM_FOCUSABLE
+  QT_DRAG_NONE QT_DRAG_SCROLL QT_DRAG_RUBBER_BAND
+  QT_RENDER_ANTIALIASING QT_RENDER_SMOOTH_PIXMAP QT_RENDER_TEXT_ANTIALIASING
+
+  ;; Phase 15: QProcess
+  qt-process-create qt-process-start! qt-process-write!
+  qt-process-close-write! qt-process-read-stdout qt-process-read-stderr
+  qt-process-wait-for-finished qt-process-exit-code qt-process-state
+  qt-process-kill! qt-process-terminate!
+  qt-process-on-finished! qt-process-on-ready-read!
+  qt-process-destroy!
+
+  ;; Phase 15: QWizard / QWizardPage
+  qt-wizard-create qt-wizard-add-page! qt-wizard-set-start-id!
+  qt-wizard-current-id qt-wizard-set-title! qt-wizard-exec!
+  qt-wizard-page-create qt-wizard-page-set-title!
+  qt-wizard-page-set-subtitle! qt-wizard-page-set-layout!
+  qt-wizard-on-current-changed!
+
+  ;; Phase 15: QMdiArea / QMdiSubWindow
+  qt-mdi-area-create qt-mdi-area-add-sub-window!
+  qt-mdi-area-remove-sub-window! qt-mdi-area-active-sub-window
+  qt-mdi-area-sub-window-count qt-mdi-area-cascade!
+  qt-mdi-area-tile! qt-mdi-area-set-view-mode!
+  qt-mdi-sub-window-set-title! qt-mdi-area-on-sub-window-activated!
+
+  ;; Phase 16: QDial
+  qt-dial-create qt-dial-set-value! qt-dial-value qt-dial-set-range!
+  qt-dial-set-notches-visible! qt-dial-set-wrapping! qt-dial-on-value-changed!
+
+  ;; Phase 16: QLCDNumber
+  qt-lcd-create qt-lcd-display-int! qt-lcd-display-double!
+  qt-lcd-display-string! qt-lcd-set-mode! qt-lcd-set-segment-style!
+
+  ;; Phase 16: QToolBox
+  qt-tool-box-create qt-tool-box-add-item! qt-tool-box-set-current-index!
+  qt-tool-box-current-index qt-tool-box-count qt-tool-box-set-item-text!
+  qt-tool-box-on-current-changed!
+
+  ;; Phase 16: QUndoStack
+  qt-undo-stack-create qt-undo-stack-push!
+  qt-undo-stack-undo! qt-undo-stack-redo!
+  qt-undo-stack-can-undo? qt-undo-stack-can-redo?
+  qt-undo-stack-undo-text qt-undo-stack-redo-text
+  qt-undo-stack-clear! qt-undo-stack-create-undo-action
+  qt-undo-stack-create-redo-action qt-undo-stack-destroy!
+
+  ;; Phase 16: QFileSystemModel
+  qt-file-system-model-create qt-file-system-model-set-root-path!
+  qt-file-system-model-set-filter! qt-file-system-model-set-name-filters!
+  qt-file-system-model-file-path qt-tree-view-set-file-system-root!
+  qt-file-system-model-destroy!
+
+  ;; Phase 15 constants
+  QT_PROCESS_NOT_RUNNING QT_PROCESS_STARTING QT_PROCESS_RUNNING
+  QT_MDI_SUBWINDOW QT_MDI_TABBED
+
+  ;; Phase 16 constants
+  QT_LCD_DEC QT_LCD_HEX QT_LCD_OCT QT_LCD_BIN
+  QT_LCD_OUTLINE QT_LCD_FILLED QT_LCD_FLAT
+  QT_DIR_DIRS QT_DIR_FILES QT_DIR_HIDDEN QT_DIR_NO_DOT_AND_DOT_DOT)
 
 (import :gerbil-qt/libqt
         :std/srfi/13)
@@ -1877,3 +2124,941 @@
 (def (qt-on-calendar-clicked! c handler)
   (let ((id (register-qt-string-handler! handler)))
     (raw_qt_calendar_on_clicked c id)))
+
+;;; ---- QSettings ----
+
+(def (qt-settings-create org app)
+  (qt_settings_create org app))
+
+(def (qt-settings-create-file path format: (format QT_SETTINGS_INI))
+  (qt_settings_create_file path format))
+
+(def (qt-settings-set-string! s key value)
+  (qt_settings_set_string s key value))
+
+(def (qt-settings-string s key default: (default ""))
+  (qt_settings_value_string s key default))
+
+(def (qt-settings-set-int! s key value)
+  (qt_settings_set_int s key value))
+
+(def (qt-settings-int s key default: (default 0))
+  (qt_settings_value_int s key default))
+
+(def (qt-settings-set-double! s key value)
+  (qt_settings_set_double s key value))
+
+(def (qt-settings-double s key default: (default 0.0))
+  (qt_settings_value_double s key default))
+
+(def (qt-settings-set-bool! s key value)
+  (qt_settings_set_bool s key (if value 1 0)))
+
+(def (qt-settings-bool s key default: (default #f))
+  (not (= (qt_settings_value_bool s key (if default 1 0)) 0)))
+
+;; Generic set — dispatches on value type
+(def (qt-settings-set! s key value)
+  (cond
+    ((string? value) (qt-settings-set-string! s key value))
+    ((boolean? value) (qt-settings-set-bool! s key value))
+    ((integer? value) (qt-settings-set-int! s key value))
+    ((real? value) (qt-settings-set-double! s key (exact->inexact value)))
+    (else (qt-settings-set-string! s key (object->string value)))))
+
+;; Generic value — returns string by default (caller must know type for typed access)
+(def (qt-settings-value s key default: (default ""))
+  (qt_settings_value_string s key default))
+
+(def (qt-settings-contains? s key)
+  (not (= (qt_settings_contains s key) 0)))
+
+(def (qt-settings-remove! s key)
+  (qt_settings_remove s key))
+
+(def (qt-settings-all-keys s)
+  (let ((raw (qt_settings_all_keys s)))
+    (if (string=? raw "") '()
+        (string-split raw #\newline))))
+
+(def (qt-settings-child-keys s)
+  (let ((raw (qt_settings_child_keys s)))
+    (if (string=? raw "") '()
+        (string-split raw #\newline))))
+
+(def (qt-settings-child-groups s)
+  (let ((raw (qt_settings_child_groups s)))
+    (if (string=? raw "") '()
+        (string-split raw #\newline))))
+
+(def (qt-settings-begin-group! s prefix)
+  (qt_settings_begin_group s prefix))
+
+(def (qt-settings-end-group! s)
+  (qt_settings_end_group s))
+
+(def (qt-settings-group s)
+  (qt_settings_group s))
+
+(def (qt-settings-sync! s)
+  (qt_settings_sync s))
+
+(def (qt-settings-clear! s)
+  (qt_settings_clear s))
+
+(def (qt-settings-file-name s)
+  (qt_settings_file_name s))
+
+(def (qt-settings-writable? s)
+  (not (= (qt_settings_is_writable s) 0)))
+
+(def (qt-settings-destroy! s)
+  (qt_settings_destroy s))
+
+;;; ---- QCompleter ----
+
+(def (qt-completer-create items)
+  (qt_completer_create (string-join items "\n")))
+
+(def (qt-completer-set-model-strings! c items)
+  (qt_completer_set_model_strings c (string-join items "\n")))
+
+(def (qt-completer-set-case-sensitivity! c sensitive?)
+  (qt_completer_set_case_sensitivity c (if sensitive? 1 0)))
+
+(def (qt-completer-set-completion-mode! c mode)
+  (qt_completer_set_completion_mode c mode))
+
+(def (qt-completer-set-filter-mode! c mode)
+  (qt_completer_set_filter_mode c mode))
+
+(def (qt-completer-set-max-visible-items! c count)
+  (qt_completer_set_max_visible_items c count))
+
+(def (qt-completer-completion-count c)
+  (qt_completer_completion_count c))
+
+(def (qt-completer-current-completion c)
+  (qt_completer_current_completion c))
+
+(def (qt-completer-set-completion-prefix! c prefix)
+  (qt_completer_set_completion_prefix c prefix))
+
+(def (qt-on-completer-activated! c handler)
+  (let ((id (register-qt-string-handler! handler)))
+    (raw_qt_completer_on_activated c id)))
+
+(def (qt-line-edit-set-completer! e c)
+  (qt_line_edit_set_completer e c))
+
+(def (qt-completer-destroy! c)
+  (qt_completer_destroy c))
+
+;;; ---- QToolTip / QWhatsThis ----
+
+(def (qt-tooltip-show-text! x y text widget: (widget #f))
+  (qt_tooltip_show_text x y text widget))
+
+(def (qt-tooltip-hide-text!)
+  (qt_tooltip_hide_text))
+
+(def (qt-tooltip-visible?)
+  (not (= (qt_tooltip_is_visible) 0)))
+
+(def (qt-widget-tooltip w)
+  (qt_widget_tooltip w))
+
+(def (qt-widget-set-whats-this! w text)
+  (qt_widget_set_whats_this w text))
+
+(def (qt-widget-whats-this w)
+  (qt_widget_whats_this w))
+
+;;; ---- Phase 12: Model/View Framework ----
+
+;;; QStandardItemModel
+
+(def (qt-standard-model-create rows: (rows 0) cols: (cols 0) parent: (parent #f))
+  (qt_standard_model_create rows cols parent))
+
+(def (qt-standard-model-destroy! m)
+  (qt_standard_model_destroy m))
+
+(def (qt-standard-model-row-count m)
+  (qt_standard_model_row_count m))
+
+(def (qt-standard-model-column-count m)
+  (qt_standard_model_column_count m))
+
+(def (qt-standard-model-set-row-count! m rows)
+  (qt_standard_model_set_row_count m rows))
+
+(def (qt-standard-model-set-column-count! m cols)
+  (qt_standard_model_set_column_count m cols))
+
+(def (qt-standard-model-set-item! m row col item)
+  (qt_standard_model_set_item m row col item))
+
+(def (qt-standard-model-item m row col)
+  (qt_standard_model_item m row col))
+
+(def (qt-standard-model-insert-row! m row)
+  (not (= (qt_standard_model_insert_row m row) 0)))
+
+(def (qt-standard-model-insert-column! m col)
+  (not (= (qt_standard_model_insert_column m col) 0)))
+
+(def (qt-standard-model-remove-row! m row)
+  (not (= (qt_standard_model_remove_row m row) 0)))
+
+(def (qt-standard-model-remove-column! m col)
+  (not (= (qt_standard_model_remove_column m col) 0)))
+
+(def (qt-standard-model-clear! m)
+  (qt_standard_model_clear m))
+
+(def (qt-standard-model-set-horizontal-header! m col text)
+  (qt_standard_model_set_horizontal_header m col text))
+
+(def (qt-standard-model-set-vertical-header! m row text)
+  (qt_standard_model_set_vertical_header m row text))
+
+;;; QStandardItem
+
+(def (qt-standard-item-create text: (text ""))
+  (qt_standard_item_create text))
+
+(def (qt-standard-item-text item)
+  (qt_standard_item_text item))
+
+(def (qt-standard-item-set-text! item text)
+  (qt_standard_item_set_text item text))
+
+(def (qt-standard-item-tooltip item)
+  (qt_standard_item_tooltip item))
+
+(def (qt-standard-item-set-tooltip! item text)
+  (qt_standard_item_set_tooltip item text))
+
+(def (qt-standard-item-set-editable! item val)
+  (qt_standard_item_set_editable item (if val 1 0)))
+
+(def (qt-standard-item-editable? item)
+  (not (= (qt_standard_item_is_editable item) 0)))
+
+(def (qt-standard-item-set-enabled! item val)
+  (qt_standard_item_set_enabled item (if val 1 0)))
+
+(def (qt-standard-item-enabled? item)
+  (not (= (qt_standard_item_is_enabled item) 0)))
+
+(def (qt-standard-item-set-selectable! item val)
+  (qt_standard_item_set_selectable item (if val 1 0)))
+
+(def (qt-standard-item-selectable? item)
+  (not (= (qt_standard_item_is_selectable item) 0)))
+
+(def (qt-standard-item-set-checkable! item val)
+  (qt_standard_item_set_checkable item (if val 1 0)))
+
+(def (qt-standard-item-checkable? item)
+  (not (= (qt_standard_item_is_checkable item) 0)))
+
+(def (qt-standard-item-set-check-state! item state)
+  (qt_standard_item_set_check_state item state))
+
+(def (qt-standard-item-check-state item)
+  (qt_standard_item_check_state item))
+
+(def (qt-standard-item-set-icon! item icon)
+  (qt_standard_item_set_icon item icon))
+
+(def (qt-standard-item-append-row! parent child)
+  (qt_standard_item_append_row parent child))
+
+(def (qt-standard-item-row-count item)
+  (qt_standard_item_row_count item))
+
+(def (qt-standard-item-column-count item)
+  (qt_standard_item_column_count item))
+
+(def (qt-standard-item-child item row col: (col 0))
+  (qt_standard_item_child item row col))
+
+;;; QStringListModel
+
+(def (qt-string-list-model-create items: (items '()))
+  (let ((str (if (null? items) "" (string-join items "\n"))))
+    (qt_string_list_model_create str)))
+
+(def (qt-string-list-model-destroy! m)
+  (qt_string_list_model_destroy m))
+
+(def (qt-string-list-model-set-strings! m items)
+  (let ((str (if (null? items) "" (string-join items "\n"))))
+    (qt_string_list_model_set_strings m str)))
+
+(def (qt-string-list-model-strings m)
+  (let ((raw (qt_string_list_model_strings m)))
+    (if (string=? raw "") '() (string-split raw #\newline))))
+
+(def (qt-string-list-model-row-count m)
+  (qt_string_list_model_row_count m))
+
+;;; Views (common)
+
+(def (qt-view-set-model! view model)
+  (qt_view_set_model view model))
+
+(def (qt-view-set-selection-mode! view mode)
+  (qt_view_set_selection_mode view mode))
+
+(def (qt-view-set-selection-behavior! view behavior)
+  (qt_view_set_selection_behavior view behavior))
+
+(def (qt-view-set-alternating-row-colors! view val)
+  (qt_view_set_alternating_row_colors view (if val 1 0)))
+
+(def (qt-view-set-sorting-enabled! view val)
+  (qt_view_set_sorting_enabled view (if val 1 0)))
+
+(def (qt-view-set-edit-triggers! view triggers)
+  (qt_view_set_edit_triggers view triggers))
+
+;;; QListView
+
+(def (qt-list-view-create parent: (parent #f))
+  (qt_list_view_create parent))
+
+(def (qt-list-view-set-flow! v flow)
+  (qt_list_view_set_flow v flow))
+
+;;; QTableView
+
+(def (qt-table-view-create parent: (parent #f))
+  (qt_table_view_create parent))
+
+(def (qt-table-view-set-column-width! v col w)
+  (qt_table_view_set_column_width v col w))
+
+(def (qt-table-view-set-row-height! v row h)
+  (qt_table_view_set_row_height v row h))
+
+(def (qt-table-view-hide-column! v col)
+  (qt_table_view_hide_column v col))
+
+(def (qt-table-view-show-column! v col)
+  (qt_table_view_show_column v col))
+
+(def (qt-table-view-hide-row! v row)
+  (qt_table_view_hide_row v row))
+
+(def (qt-table-view-show-row! v row)
+  (qt_table_view_show_row v row))
+
+(def (qt-table-view-resize-columns-to-contents! v)
+  (qt_table_view_resize_columns_to_contents v))
+
+(def (qt-table-view-resize-rows-to-contents! v)
+  (qt_table_view_resize_rows_to_contents v))
+
+;;; QTreeView
+
+(def (qt-tree-view-create parent: (parent #f))
+  (qt_tree_view_create parent))
+
+(def (qt-tree-view-expand-all! v)
+  (qt_tree_view_expand_all v))
+
+(def (qt-tree-view-collapse-all! v)
+  (qt_tree_view_collapse_all v))
+
+(def (qt-tree-view-set-indentation! v indent)
+  (qt_tree_view_set_indentation v indent))
+
+(def (qt-tree-view-indentation v)
+  (qt_tree_view_indentation v))
+
+(def (qt-tree-view-set-root-is-decorated! v val)
+  (qt_tree_view_set_root_is_decorated v (if val 1 0)))
+
+(def (qt-tree-view-set-header-hidden! v val)
+  (qt_tree_view_set_header_hidden v (if val 1 0)))
+
+(def (qt-tree-view-set-column-width! v col w)
+  (qt_tree_view_set_column_width v col w))
+
+;;; QHeaderView (via view)
+
+(def (qt-view-header-set-stretch-last-section! view val horizontal: (horizontal #t))
+  (qt_view_header_set_stretch_last_section view (if horizontal 1 0) (if val 1 0)))
+
+(def (qt-view-header-set-section-resize-mode! view mode horizontal: (horizontal #t))
+  (qt_view_header_set_section_resize_mode view (if horizontal 1 0) mode))
+
+(def (qt-view-header-hide! view horizontal: (horizontal #t))
+  (qt_view_header_hide view (if horizontal 1 0)))
+
+(def (qt-view-header-show! view horizontal: (horizontal #t))
+  (qt_view_header_show view (if horizontal 1 0)))
+
+(def (qt-view-header-set-default-section-size! view size horizontal: (horizontal #t))
+  (qt_view_header_set_default_section_size view (if horizontal 1 0) size))
+
+;;; QSortFilterProxyModel
+
+(def (qt-sort-filter-proxy-create parent: (parent #f))
+  (qt_sort_filter_proxy_create parent))
+
+(def (qt-sort-filter-proxy-destroy! p)
+  (qt_sort_filter_proxy_destroy p))
+
+(def (qt-sort-filter-proxy-set-source-model! p model)
+  (qt_sort_filter_proxy_set_source_model p model))
+
+(def (qt-sort-filter-proxy-set-filter-regex! p pattern)
+  (qt_sort_filter_proxy_set_filter_regex p pattern))
+
+(def (qt-sort-filter-proxy-set-filter-column! p col)
+  (qt_sort_filter_proxy_set_filter_column p col))
+
+(def (qt-sort-filter-proxy-set-filter-case-sensitivity! p cs)
+  (qt_sort_filter_proxy_set_filter_case_sensitivity p cs))
+
+(def (qt-sort-filter-proxy-set-filter-role! p role)
+  (qt_sort_filter_proxy_set_filter_role p role))
+
+(def (qt-sort-filter-proxy-sort! p col order: (order QT_SORT_ASCENDING))
+  (qt_sort_filter_proxy_sort p col order))
+
+(def (qt-sort-filter-proxy-set-sort-role! p role)
+  (qt_sort_filter_proxy_set_sort_role p role))
+
+(def (qt-sort-filter-proxy-set-dynamic-sort-filter! p val)
+  (qt_sort_filter_proxy_set_dynamic_sort_filter p (if val 1 0)))
+
+(def (qt-sort-filter-proxy-invalidate-filter! p)
+  (qt_sort_filter_proxy_invalidate_filter p))
+
+(def (qt-sort-filter-proxy-row-count p)
+  (qt_sort_filter_proxy_row_count p))
+
+;;; View signals + selection
+
+(def (qt-on-view-clicked! view handler)
+  (let ((id (register-qt-void-handler! handler)))
+    (raw_qt_view_on_clicked view id)))
+
+(def (qt-on-view-double-clicked! view handler)
+  (let ((id (register-qt-void-handler! handler)))
+    (raw_qt_view_on_double_clicked view id)))
+
+(def (qt-on-view-activated! view handler)
+  (let ((id (register-qt-void-handler! handler)))
+    (raw_qt_view_on_activated view id)))
+
+(def (qt-on-view-selection-changed! view handler)
+  (let ((id (register-qt-void-handler! handler)))
+    (raw_qt_view_on_selection_changed view id)))
+
+(def (qt-view-last-clicked-row)
+  (qt_view_last_clicked_row))
+
+(def (qt-view-last-clicked-col)
+  (qt_view_last_clicked_col))
+
+(def (qt-view-selected-rows view)
+  (let ((raw (qt_view_selected_rows view)))
+    (if (string=? raw "")
+      '()
+      (map string->number (string-split raw #\newline)))))
+
+(def (qt-view-current-row view)
+  (qt_view_current_row view))
+
+;;; ---- Phase 13: Practical Polish ----
+
+;; QValidator
+
+(def (qt-int-validator-create minimum maximum parent: (parent #f))
+  (qt_int_validator_create minimum maximum parent))
+
+(def (qt-double-validator-create bottom top decimals: (decimals 2)
+                                 parent: (parent #f))
+  (qt_double_validator_create bottom top decimals parent))
+
+(def (qt-regex-validator-create pattern parent: (parent #f))
+  (qt_regex_validator_create pattern parent))
+
+(def (qt-validator-destroy! v)
+  (qt_validator_destroy v))
+
+(def (qt-validator-validate v input)
+  (qt_validator_validate v input))
+
+(def (qt-line-edit-set-validator! edit validator)
+  (qt_line_edit_set_validator edit validator))
+
+(def (qt-line-edit-acceptable-input? edit)
+  (not (= (qt_line_edit_has_acceptable_input edit) 0)))
+
+;; QPlainTextEdit
+
+(def (qt-plain-text-edit-create parent: (parent #f))
+  (qt_plain_text_edit_create parent))
+
+(def (qt-plain-text-edit-set-text! edit text)
+  (qt_plain_text_edit_set_text edit text))
+
+(def (qt-plain-text-edit-text edit)
+  (qt_plain_text_edit_text edit))
+
+(def (qt-plain-text-edit-append! edit text)
+  (qt_plain_text_edit_append edit text))
+
+(def (qt-plain-text-edit-clear! edit)
+  (qt_plain_text_edit_clear edit))
+
+(def (qt-plain-text-edit-set-read-only! edit read-only)
+  (qt_plain_text_edit_set_read_only edit (if read-only 1 0)))
+
+(def (qt-plain-text-edit-read-only? edit)
+  (not (= (qt_plain_text_edit_is_read_only edit) 0)))
+
+(def (qt-plain-text-edit-set-placeholder! edit text)
+  (qt_plain_text_edit_set_placeholder edit text))
+
+(def (qt-plain-text-edit-line-count edit)
+  (qt_plain_text_edit_line_count edit))
+
+(def (qt-plain-text-edit-set-max-block-count! edit count)
+  (qt_plain_text_edit_set_max_block_count edit count))
+
+(def (qt-plain-text-edit-cursor-line edit)
+  (qt_plain_text_edit_cursor_line edit))
+
+(def (qt-plain-text-edit-cursor-column edit)
+  (qt_plain_text_edit_cursor_column edit))
+
+(def (qt-plain-text-edit-set-line-wrap! edit mode)
+  (qt_plain_text_edit_set_line_wrap edit mode))
+
+(def (qt-on-plain-text-edit-text-changed! edit handler)
+  (let ((id (register-qt-void-handler! handler)))
+    (raw_qt_plain_text_edit_on_text_changed edit id)))
+
+;; QToolButton
+
+(def (qt-tool-button-create parent: (parent #f))
+  (qt_tool_button_create parent))
+
+(def (qt-tool-button-set-text! btn text)
+  (qt_tool_button_set_text btn text))
+
+(def (qt-tool-button-text btn)
+  (qt_tool_button_text btn))
+
+(def (qt-tool-button-set-icon! btn path)
+  (qt_tool_button_set_icon btn path))
+
+(def (qt-tool-button-set-menu! btn menu)
+  (qt_tool_button_set_menu btn menu))
+
+(def (qt-tool-button-set-popup-mode! btn mode)
+  (qt_tool_button_set_popup_mode btn mode))
+
+(def (qt-tool-button-set-auto-raise! btn auto-raise)
+  (qt_tool_button_set_auto_raise btn (if auto-raise 1 0)))
+
+(def (qt-tool-button-set-arrow-type! btn arrow)
+  (qt_tool_button_set_arrow_type btn arrow))
+
+(def (qt-tool-button-set-tool-button-style! btn style)
+  (qt_tool_button_set_tool_button_style btn style))
+
+(def (qt-on-tool-button-clicked! btn handler)
+  (let ((id (register-qt-void-handler! handler)))
+    (raw_qt_tool_button_on_clicked btn id)))
+
+;; Layout spacers
+
+(def (qt-layout-add-spacing! layout size)
+  (qt_layout_add_spacing layout size))
+
+;; QSizePolicy
+
+(def (qt-widget-set-size-policy! widget h-policy v-policy)
+  (qt_widget_set_size_policy widget h-policy v-policy))
+
+(def (qt-layout-set-stretch-factor! layout widget stretch)
+  (qt_layout_set_stretch_factor layout widget stretch))
+
+;; ========== Phase 14: Graphics Scene & Custom Painting ==========
+
+;; QGraphicsScene
+
+(def (qt-graphics-scene-create x y w h)
+  (qt_graphics_scene_create (exact->inexact x) (exact->inexact y)
+                            (exact->inexact w) (exact->inexact h)))
+
+(def (qt-graphics-scene-add-rect! scene x y w h)
+  (qt_graphics_scene_add_rect scene (exact->inexact x) (exact->inexact y)
+                              (exact->inexact w) (exact->inexact h)))
+
+(def (qt-graphics-scene-add-ellipse! scene x y w h)
+  (qt_graphics_scene_add_ellipse scene (exact->inexact x) (exact->inexact y)
+                                 (exact->inexact w) (exact->inexact h)))
+
+(def (qt-graphics-scene-add-line! scene x1 y1 x2 y2)
+  (qt_graphics_scene_add_line scene (exact->inexact x1) (exact->inexact y1)
+                              (exact->inexact x2) (exact->inexact y2)))
+
+(def (qt-graphics-scene-add-text! scene text)
+  (qt_graphics_scene_add_text scene text))
+
+(def (qt-graphics-scene-add-pixmap! scene pixmap)
+  (qt_graphics_scene_add_pixmap scene pixmap))
+
+(def (qt-graphics-scene-remove-item! scene item)
+  (qt_graphics_scene_remove_item scene item))
+
+(def (qt-graphics-scene-clear! scene)
+  (qt_graphics_scene_clear scene))
+
+(def (qt-graphics-scene-items-count scene)
+  (qt_graphics_scene_items_count scene))
+
+(def (qt-graphics-scene-set-background! scene r g b)
+  (qt_graphics_scene_set_background scene r g b))
+
+(def (qt-graphics-scene-destroy! scene)
+  (qt_graphics_scene_destroy scene))
+
+;; QGraphicsView
+
+(def (qt-graphics-view-create scene (parent #f))
+  (qt_graphics_view_create scene parent))
+
+(def (qt-graphics-view-set-render-hint! view hint (on #t))
+  (qt_graphics_view_set_render_hint view hint (if on 1 0)))
+
+(def (qt-graphics-view-set-drag-mode! view mode)
+  (qt_graphics_view_set_drag_mode view mode))
+
+(def (qt-graphics-view-fit-in-view! view)
+  (qt_graphics_view_fit_in_view view))
+
+(def (qt-graphics-view-scale! view sx sy)
+  (qt_graphics_view_scale view (exact->inexact sx) (exact->inexact sy)))
+
+(def (qt-graphics-view-center-on! view x y)
+  (qt_graphics_view_center_on view (exact->inexact x) (exact->inexact y)))
+
+;; QGraphicsItem
+
+(def (qt-graphics-item-set-pos! item x y)
+  (qt_graphics_item_set_pos item (exact->inexact x) (exact->inexact y)))
+
+(def (qt-graphics-item-x item)
+  (qt_graphics_item_x item))
+
+(def (qt-graphics-item-y item)
+  (qt_graphics_item_y item))
+
+(def (qt-graphics-item-set-pen! item r g b (width 1))
+  (qt_graphics_item_set_pen item r g b width))
+
+(def (qt-graphics-item-set-brush! item r g b)
+  (qt_graphics_item_set_brush item r g b))
+
+(def (qt-graphics-item-set-flags! item flags)
+  (qt_graphics_item_set_flags item flags))
+
+(def (qt-graphics-item-set-tooltip! item text)
+  (qt_graphics_item_set_tooltip item text))
+
+(def (qt-graphics-item-set-zvalue! item z)
+  (qt_graphics_item_set_zvalue item (exact->inexact z)))
+
+(def (qt-graphics-item-zvalue item)
+  (qt_graphics_item_zvalue item))
+
+(def (qt-graphics-item-set-rotation! item angle)
+  (qt_graphics_item_set_rotation item (exact->inexact angle)))
+
+(def (qt-graphics-item-set-scale! item factor)
+  (qt_graphics_item_set_scale item (exact->inexact factor)))
+
+(def (qt-graphics-item-set-visible! item visible)
+  (qt_graphics_item_set_visible item (if visible 1 0)))
+
+;; PaintWidget
+
+(def (qt-paint-widget-create (parent #f))
+  (qt_paint_widget_create parent))
+
+(def (qt-paint-widget-on-paint! widget handler)
+  (let ((id (register-qt-void-handler! handler)))
+    (raw_qt_paint_widget_on_paint widget id)))
+
+(def (qt-paint-widget-painter widget)
+  (qt_paint_widget_painter widget))
+
+(def (qt-paint-widget-update! widget)
+  (qt_paint_widget_update widget))
+
+(def (qt-paint-widget-width widget)
+  (qt_paint_widget_width widget))
+
+(def (qt-paint-widget-height widget)
+  (qt_paint_widget_height widget))
+
+;;; ========== Phase 15: Process, Wizard, MDI ==========
+
+;;; ---- QProcess ----
+
+(def (qt-process-create (parent #f))
+  (qt_process_create parent))
+
+(def (qt-process-start! proc program (args []))
+  (let ((args-str (string-join args "\n")))
+    (qt_process_start proc program args-str)))
+
+(def (qt-process-write! proc data)
+  (qt_process_write proc data))
+
+(def (qt-process-close-write! proc)
+  (qt_process_close_write proc))
+
+(def (qt-process-read-stdout proc)
+  (qt_process_read_stdout proc))
+
+(def (qt-process-read-stderr proc)
+  (qt_process_read_stderr proc))
+
+(def (qt-process-wait-for-finished proc (msecs 30000))
+  (not (= 0 (qt_process_wait_for_finished proc msecs))))
+
+(def (qt-process-exit-code proc)
+  (qt_process_exit_code proc))
+
+(def (qt-process-state proc)
+  (qt_process_state proc))
+
+(def (qt-process-kill! proc)
+  (qt_process_kill proc))
+
+(def (qt-process-terminate! proc)
+  (qt_process_terminate proc))
+
+(def (qt-process-on-finished! proc handler)
+  (let ((id (register-qt-int-handler! handler)))
+    (raw_qt_process_on_finished proc id)))
+
+(def (qt-process-on-ready-read! proc handler)
+  (let ((id (register-qt-void-handler! handler)))
+    (raw_qt_process_on_ready_read proc id)))
+
+(def (qt-process-destroy! proc)
+  (qt_process_destroy proc))
+
+;;; ---- QWizard / QWizardPage ----
+
+(def (qt-wizard-create (parent #f))
+  (qt_wizard_create parent))
+
+(def (qt-wizard-add-page! wizard page)
+  (qt_wizard_add_page wizard page))
+
+(def (qt-wizard-set-start-id! wizard id)
+  (qt_wizard_set_start_id wizard id))
+
+(def (qt-wizard-current-id wizard)
+  (qt_wizard_current_id wizard))
+
+(def (qt-wizard-set-title! wizard title)
+  (qt_wizard_set_title wizard title))
+
+(def (qt-wizard-exec! wizard)
+  (qt_wizard_exec wizard))
+
+(def (qt-wizard-page-create (parent #f))
+  (qt_wizard_page_create parent))
+
+(def (qt-wizard-page-set-title! page title)
+  (qt_wizard_page_set_title page title))
+
+(def (qt-wizard-page-set-subtitle! page subtitle)
+  (qt_wizard_page_set_subtitle page subtitle))
+
+(def (qt-wizard-page-set-layout! page layout)
+  (qt_wizard_page_set_layout page layout))
+
+(def (qt-wizard-on-current-changed! wizard handler)
+  (let ((id (register-qt-int-handler! handler)))
+    (raw_qt_wizard_on_current_changed wizard id)))
+
+;;; ---- QMdiArea / QMdiSubWindow ----
+
+(def (qt-mdi-area-create (parent #f))
+  (qt_mdi_area_create parent))
+
+(def (qt-mdi-area-add-sub-window! area widget)
+  (qt_mdi_area_add_sub_window area widget))
+
+(def (qt-mdi-area-remove-sub-window! area sub)
+  (qt_mdi_area_remove_sub_window area sub))
+
+(def (qt-mdi-area-active-sub-window area)
+  (qt_mdi_area_active_sub_window area))
+
+(def (qt-mdi-area-sub-window-count area)
+  (qt_mdi_area_sub_window_count area))
+
+(def (qt-mdi-area-cascade! area)
+  (qt_mdi_area_cascade area))
+
+(def (qt-mdi-area-tile! area)
+  (qt_mdi_area_tile area))
+
+(def (qt-mdi-area-set-view-mode! area mode)
+  (qt_mdi_area_set_view_mode area mode))
+
+(def (qt-mdi-sub-window-set-title! sub title)
+  (qt_mdi_sub_window_set_title sub title))
+
+(def (qt-mdi-area-on-sub-window-activated! area handler)
+  (let ((id (register-qt-void-handler! handler)))
+    (raw_qt_mdi_area_on_sub_window_activated area id)))
+
+;;; ---- QDial ----
+
+(def (qt-dial-create (parent #f))
+  (qt_dial_create parent))
+
+(def (qt-dial-set-value! dial value)
+  (qt_dial_set_value dial value))
+
+(def (qt-dial-value dial)
+  (qt_dial_value dial))
+
+(def (qt-dial-set-range! dial min max)
+  (qt_dial_set_range dial min max))
+
+(def (qt-dial-set-notches-visible! dial visible)
+  (qt_dial_set_notches_visible dial (if visible 1 0)))
+
+(def (qt-dial-set-wrapping! dial wrap)
+  (qt_dial_set_wrapping dial (if wrap 1 0)))
+
+(def (qt-dial-on-value-changed! dial handler)
+  (let ((id (register-qt-int-handler! handler)))
+    (raw_qt_dial_on_value_changed dial id)))
+
+;;; ---- QLCDNumber ----
+
+(def (qt-lcd-create (digits 5) (parent #f))
+  (qt_lcd_create digits parent))
+
+(def (qt-lcd-display-int! lcd value)
+  (qt_lcd_display_int lcd value))
+
+(def (qt-lcd-display-double! lcd value)
+  (qt_lcd_display_double lcd (exact->inexact value)))
+
+(def (qt-lcd-display-string! lcd text)
+  (qt_lcd_display_string lcd text))
+
+(def (qt-lcd-set-mode! lcd mode)
+  (qt_lcd_set_mode lcd mode))
+
+(def (qt-lcd-set-segment-style! lcd style)
+  (qt_lcd_set_segment_style lcd style))
+
+;;; ---- QToolBox ----
+
+(def (qt-tool-box-create (parent #f))
+  (qt_tool_box_create parent))
+
+(def (qt-tool-box-add-item! toolbox widget text)
+  (qt_tool_box_add_item toolbox widget text))
+
+(def (qt-tool-box-set-current-index! toolbox idx)
+  (qt_tool_box_set_current_index toolbox idx))
+
+(def (qt-tool-box-current-index toolbox)
+  (qt_tool_box_current_index toolbox))
+
+(def (qt-tool-box-count toolbox)
+  (qt_tool_box_count toolbox))
+
+(def (qt-tool-box-set-item-text! toolbox idx text)
+  (qt_tool_box_set_item_text toolbox idx text))
+
+(def (qt-tool-box-on-current-changed! toolbox handler)
+  (let ((id (register-qt-int-handler! handler)))
+    (raw_qt_tool_box_on_current_changed toolbox id)))
+
+;;; ---- QUndoStack ----
+
+(def (qt-undo-stack-create (parent #f))
+  (qt_undo_stack_create parent))
+
+(def (qt-undo-stack-push! stack text undo-handler redo-handler)
+  (let ((undo-id (register-qt-void-handler! undo-handler))
+        (redo-id (register-qt-void-handler! redo-handler)))
+    (raw_qt_undo_stack_push stack text undo-id redo-id)))
+
+(def (qt-undo-stack-undo! stack)
+  (qt_undo_stack_undo stack))
+
+(def (qt-undo-stack-redo! stack)
+  (qt_undo_stack_redo stack))
+
+(def (qt-undo-stack-can-undo? stack)
+  (not (= 0 (qt_undo_stack_can_undo stack))))
+
+(def (qt-undo-stack-can-redo? stack)
+  (not (= 0 (qt_undo_stack_can_redo stack))))
+
+(def (qt-undo-stack-undo-text stack)
+  (qt_undo_stack_undo_text stack))
+
+(def (qt-undo-stack-redo-text stack)
+  (qt_undo_stack_redo_text stack))
+
+(def (qt-undo-stack-clear! stack)
+  (qt_undo_stack_clear stack))
+
+(def (qt-undo-stack-create-undo-action stack (parent #f))
+  (qt_undo_stack_create_undo_action stack parent))
+
+(def (qt-undo-stack-create-redo-action stack (parent #f))
+  (qt_undo_stack_create_redo_action stack parent))
+
+(def (qt-undo-stack-destroy! stack)
+  (qt_undo_stack_destroy stack))
+
+;;; ---- QFileSystemModel ----
+
+(def (qt-file-system-model-create (parent #f))
+  (qt_file_system_model_create parent))
+
+(def (qt-file-system-model-set-root-path! model path)
+  (qt_file_system_model_set_root_path model path))
+
+(def (qt-file-system-model-set-filter! model filters)
+  (qt_file_system_model_set_filter model filters))
+
+(def (qt-file-system-model-set-name-filters! model patterns)
+  (let ((patterns-str (string-join patterns "\n")))
+    (qt_file_system_model_set_name_filters model patterns-str)))
+
+(def (qt-file-system-model-file-path model row (column 0))
+  (qt_file_system_model_file_path model row column))
+
+(def (qt-tree-view-set-file-system-root! view model path)
+  (qt_tree_view_set_file_system_root view model path))
+
+(def (qt-file-system-model-destroy! model)
+  (qt_file_system_model_destroy model))

@@ -410,6 +410,267 @@
      QT_MONDAY QT_TUESDAY QT_WEDNESDAY QT_THURSDAY
      QT_FRIDAY QT_SATURDAY QT_SUNDAY
 
+     ;; QSettings
+     qt_settings_create qt_settings_create_file
+     qt_settings_set_string qt_settings_value_string
+     qt_settings_set_int qt_settings_value_int
+     qt_settings_set_double qt_settings_value_double
+     qt_settings_set_bool qt_settings_value_bool
+     qt_settings_contains qt_settings_remove
+     qt_settings_all_keys qt_settings_child_keys qt_settings_child_groups
+     qt_settings_begin_group qt_settings_end_group qt_settings_group
+     qt_settings_sync qt_settings_clear
+     qt_settings_file_name qt_settings_is_writable
+     qt_settings_destroy
+
+     ;; QCompleter
+     qt_completer_create qt_completer_set_model_strings
+     qt_completer_set_case_sensitivity qt_completer_set_completion_mode
+     qt_completer_set_filter_mode qt_completer_set_max_visible_items
+     qt_completer_completion_count qt_completer_current_completion
+     qt_completer_set_completion_prefix
+     raw_qt_completer_on_activated
+     qt_line_edit_set_completer qt_completer_destroy
+
+     ;; QToolTip / QWhatsThis
+     qt_tooltip_show_text qt_tooltip_hide_text qt_tooltip_is_visible
+     qt_widget_tooltip qt_widget_set_whats_this qt_widget_whats_this
+
+     ;; Phase 11 constants
+     QT_SETTINGS_NATIVE QT_SETTINGS_INI
+     QT_COMPLETER_POPUP QT_COMPLETER_INLINE QT_COMPLETER_UNFILTERED_POPUP
+     QT_CASE_INSENSITIVE QT_CASE_SENSITIVE
+     QT_MATCH_STARTS_WITH QT_MATCH_CONTAINS QT_MATCH_ENDS_WITH
+
+     ;; QStandardItemModel
+     qt_standard_model_create qt_standard_model_destroy
+     qt_standard_model_row_count qt_standard_model_column_count
+     qt_standard_model_set_row_count qt_standard_model_set_column_count
+     qt_standard_model_set_item qt_standard_model_item
+     qt_standard_model_insert_row qt_standard_model_insert_column
+     qt_standard_model_remove_row qt_standard_model_remove_column
+     qt_standard_model_clear
+     qt_standard_model_set_horizontal_header
+     qt_standard_model_set_vertical_header
+
+     ;; QStandardItem
+     qt_standard_item_create qt_standard_item_text qt_standard_item_set_text
+     qt_standard_item_tooltip qt_standard_item_set_tooltip
+     qt_standard_item_set_editable qt_standard_item_is_editable
+     qt_standard_item_set_enabled qt_standard_item_is_enabled
+     qt_standard_item_set_selectable qt_standard_item_is_selectable
+     qt_standard_item_set_checkable qt_standard_item_is_checkable
+     qt_standard_item_set_check_state qt_standard_item_check_state
+     qt_standard_item_set_icon
+     qt_standard_item_append_row qt_standard_item_row_count
+     qt_standard_item_column_count qt_standard_item_child
+
+     ;; QStringListModel
+     qt_string_list_model_create qt_string_list_model_destroy
+     qt_string_list_model_set_strings qt_string_list_model_strings
+     qt_string_list_model_row_count
+
+     ;; Views (common)
+     qt_view_set_model qt_view_set_selection_mode
+     qt_view_set_selection_behavior qt_view_set_alternating_row_colors
+     qt_view_set_sorting_enabled qt_view_set_edit_triggers
+
+     ;; QListView
+     qt_list_view_create qt_list_view_set_flow
+
+     ;; QTableView
+     qt_table_view_create qt_table_view_set_column_width
+     qt_table_view_set_row_height
+     qt_table_view_hide_column qt_table_view_show_column
+     qt_table_view_hide_row qt_table_view_show_row
+     qt_table_view_resize_columns_to_contents
+     qt_table_view_resize_rows_to_contents
+
+     ;; QTreeView
+     qt_tree_view_create qt_tree_view_expand_all qt_tree_view_collapse_all
+     qt_tree_view_set_indentation qt_tree_view_indentation
+     qt_tree_view_set_root_is_decorated qt_tree_view_set_header_hidden
+     qt_tree_view_set_column_width
+
+     ;; QHeaderView (via view)
+     qt_view_header_set_stretch_last_section
+     qt_view_header_set_section_resize_mode
+     qt_view_header_hide qt_view_header_show
+     qt_view_header_set_default_section_size
+
+     ;; QSortFilterProxyModel
+     qt_sort_filter_proxy_create qt_sort_filter_proxy_destroy
+     qt_sort_filter_proxy_set_source_model
+     qt_sort_filter_proxy_set_filter_regex
+     qt_sort_filter_proxy_set_filter_column
+     qt_sort_filter_proxy_set_filter_case_sensitivity
+     qt_sort_filter_proxy_set_filter_role
+     qt_sort_filter_proxy_sort qt_sort_filter_proxy_set_sort_role
+     qt_sort_filter_proxy_set_dynamic_sort_filter
+     qt_sort_filter_proxy_invalidate_filter
+     qt_sort_filter_proxy_row_count
+
+     ;; View signals + selection
+     raw_qt_view_on_clicked raw_qt_view_on_double_clicked
+     raw_qt_view_on_activated raw_qt_view_on_selection_changed
+     qt_view_last_clicked_row qt_view_last_clicked_col
+     qt_view_selected_rows qt_view_current_row
+
+     ;; Phase 12 constants
+     QT_DISPLAY_ROLE QT_EDIT_ROLE QT_TOOLTIP_ROLE
+     QT_CHECK_STATE_ROLE QT_USER_ROLE
+     QT_SELECT_NONE QT_SELECT_SINGLE QT_SELECT_MULTI
+     QT_SELECT_EXTENDED QT_SELECT_CONTIGUOUS
+     QT_SELECT_ITEMS QT_SELECT_ROWS QT_SELECT_COLUMNS
+     QT_SORT_ASCENDING QT_SORT_DESCENDING
+     QT_UNCHECKED QT_PARTIALLY_CHECKED QT_CHECKED
+     QT_HEADER_INTERACTIVE QT_HEADER_FIXED
+     QT_HEADER_STRETCH QT_HEADER_RESIZE_TO_CONTENTS
+     QT_EDIT_NONE QT_EDIT_DOUBLE_CLICKED QT_EDIT_ALL_INPUT
+
+     ;; Phase 13: Validator state constants
+     QT_VALIDATOR_INVALID QT_VALIDATOR_INTERMEDIATE QT_VALIDATOR_ACCEPTABLE
+
+     ;; Phase 13: PlainTextEdit line wrap modes
+     QT_PLAIN_NO_WRAP QT_PLAIN_WIDGET_WRAP
+
+     ;; Phase 13: ToolButton popup modes
+     QT_DELAYED_POPUP QT_MENU_BUTTON_POPUP QT_INSTANT_POPUP
+
+     ;; Phase 13: ToolButton arrow types
+     QT_NO_ARROW QT_UP_ARROW QT_DOWN_ARROW QT_LEFT_ARROW QT_RIGHT_ARROW
+
+     ;; Phase 13: ToolButton styles
+     QT_TOOL_BUTTON_ICON_ONLY QT_TOOL_BUTTON_TEXT_ONLY
+     QT_TOOL_BUTTON_TEXT_BESIDE_ICON QT_TOOL_BUTTON_TEXT_UNDER_ICON
+
+     ;; Phase 13: QSizePolicy constants
+     QT_SIZE_FIXED QT_SIZE_MINIMUM QT_SIZE_MINIMUM_EXPANDING
+     QT_SIZE_MAXIMUM QT_SIZE_PREFERRED QT_SIZE_EXPANDING QT_SIZE_IGNORED
+
+     ;; Phase 13: QValidator
+     qt_int_validator_create qt_double_validator_create
+     qt_regex_validator_create qt_validator_destroy
+     qt_validator_validate qt_line_edit_set_validator
+     qt_line_edit_has_acceptable_input
+
+     ;; Phase 13: QPlainTextEdit
+     qt_plain_text_edit_create qt_plain_text_edit_set_text
+     qt_plain_text_edit_text qt_plain_text_edit_append
+     qt_plain_text_edit_clear qt_plain_text_edit_set_read_only
+     qt_plain_text_edit_is_read_only qt_plain_text_edit_set_placeholder
+     qt_plain_text_edit_line_count qt_plain_text_edit_set_max_block_count
+     qt_plain_text_edit_cursor_line qt_plain_text_edit_cursor_column
+     qt_plain_text_edit_set_line_wrap
+     raw_qt_plain_text_edit_on_text_changed
+
+     ;; Phase 13: QToolButton
+     qt_tool_button_create qt_tool_button_set_text qt_tool_button_text
+     qt_tool_button_set_icon qt_tool_button_set_menu
+     qt_tool_button_set_popup_mode qt_tool_button_set_auto_raise
+     qt_tool_button_set_arrow_type qt_tool_button_set_tool_button_style
+     raw_qt_tool_button_on_clicked
+
+     ;; Phase 13: Layout spacers
+     qt_layout_add_spacing
+
+     ;; Phase 13: QSizePolicy
+     qt_widget_set_size_policy qt_layout_set_stretch_factor
+
+     ;; Phase 14: Graphics item flags
+     QT_ITEM_MOVABLE QT_ITEM_SELECTABLE QT_ITEM_FOCUSABLE
+     ;; Phase 14: Drag modes
+     QT_DRAG_NONE QT_DRAG_SCROLL QT_DRAG_RUBBER_BAND
+     ;; Phase 14: Render hints
+     QT_RENDER_ANTIALIASING QT_RENDER_SMOOTH_PIXMAP QT_RENDER_TEXT_ANTIALIASING
+
+     ;; Phase 14: QGraphicsScene
+     qt_graphics_scene_create qt_graphics_scene_add_rect
+     qt_graphics_scene_add_ellipse qt_graphics_scene_add_line
+     qt_graphics_scene_add_text qt_graphics_scene_add_pixmap
+     qt_graphics_scene_remove_item qt_graphics_scene_clear
+     qt_graphics_scene_items_count qt_graphics_scene_set_background
+     qt_graphics_scene_destroy
+
+     ;; Phase 14: QGraphicsView
+     qt_graphics_view_create qt_graphics_view_set_render_hint
+     qt_graphics_view_set_drag_mode qt_graphics_view_fit_in_view
+     qt_graphics_view_scale qt_graphics_view_center_on
+
+     ;; Phase 14: QGraphicsItem
+     qt_graphics_item_set_pos qt_graphics_item_x qt_graphics_item_y
+     qt_graphics_item_set_pen qt_graphics_item_set_brush
+     qt_graphics_item_set_flags qt_graphics_item_set_tooltip
+     qt_graphics_item_set_zvalue qt_graphics_item_zvalue
+     qt_graphics_item_set_rotation qt_graphics_item_set_scale
+     qt_graphics_item_set_visible
+
+     ;; Phase 14: PaintWidget
+     qt_paint_widget_create raw_qt_paint_widget_on_paint
+     qt_paint_widget_painter qt_paint_widget_update
+     qt_paint_widget_width qt_paint_widget_height
+
+     ;; Phase 15: QProcess
+     qt_process_create qt_process_start qt_process_write
+     qt_process_close_write qt_process_read_stdout qt_process_read_stderr
+     qt_process_wait_for_finished qt_process_exit_code qt_process_state
+     qt_process_kill qt_process_terminate
+     raw_qt_process_on_finished raw_qt_process_on_ready_read
+     qt_process_destroy
+
+     ;; Phase 15: QWizard / QWizardPage
+     qt_wizard_create qt_wizard_add_page qt_wizard_set_start_id
+     qt_wizard_current_id qt_wizard_set_title qt_wizard_exec
+     qt_wizard_page_create qt_wizard_page_set_title
+     qt_wizard_page_set_subtitle qt_wizard_page_set_layout
+     raw_qt_wizard_on_current_changed
+
+     ;; Phase 15: QMdiArea / QMdiSubWindow
+     qt_mdi_area_create qt_mdi_area_add_sub_window
+     qt_mdi_area_remove_sub_window qt_mdi_area_active_sub_window
+     qt_mdi_area_sub_window_count qt_mdi_area_cascade qt_mdi_area_tile
+     qt_mdi_area_set_view_mode qt_mdi_sub_window_set_title
+     raw_qt_mdi_area_on_sub_window_activated
+
+     ;; Phase 16: QDial
+     qt_dial_create qt_dial_set_value qt_dial_value
+     qt_dial_set_range qt_dial_set_notches_visible qt_dial_set_wrapping
+     raw_qt_dial_on_value_changed
+
+     ;; Phase 16: QLCDNumber
+     qt_lcd_create qt_lcd_display_int qt_lcd_display_double
+     qt_lcd_display_string qt_lcd_set_mode qt_lcd_set_segment_style
+
+     ;; Phase 16: QToolBox
+     qt_tool_box_create qt_tool_box_add_item
+     qt_tool_box_set_current_index qt_tool_box_current_index
+     qt_tool_box_count qt_tool_box_set_item_text
+     raw_qt_tool_box_on_current_changed
+
+     ;; Phase 16: QUndoStack
+     qt_undo_stack_create raw_qt_undo_stack_push
+     qt_undo_stack_undo qt_undo_stack_redo
+     qt_undo_stack_can_undo qt_undo_stack_can_redo
+     qt_undo_stack_undo_text qt_undo_stack_redo_text
+     qt_undo_stack_clear
+     qt_undo_stack_create_undo_action qt_undo_stack_create_redo_action
+     qt_undo_stack_destroy
+
+     ;; Phase 16: QFileSystemModel
+     qt_file_system_model_create qt_file_system_model_set_root_path
+     qt_file_system_model_set_filter qt_file_system_model_set_name_filters
+     qt_file_system_model_file_path qt_tree_view_set_file_system_root
+     qt_file_system_model_destroy
+
+     ;; Phase 15 constants
+     QT_PROCESS_NOT_RUNNING QT_PROCESS_STARTING QT_PROCESS_RUNNING
+     QT_MDI_SUBWINDOW QT_MDI_TABBED
+
+     ;; Phase 16 constants
+     QT_LCD_DEC QT_LCD_HEX QT_LCD_OCT QT_LCD_BIN
+     QT_LCD_OUTLINE QT_LCD_FILLED QT_LCD_FLAT
+     QT_DIR_DIRS QT_DIR_FILES QT_DIR_HIDDEN QT_DIR_NO_DOT_AND_DOT_DOT
+
      ;; Callback management
      *qt-void-handlers* *qt-string-handlers*
      *qt-int-handlers* *qt-bool-handlers*
@@ -921,6 +1182,189 @@ static char* ffi_qt_calendar_selected_date_string(void* c) {
 #define QT_FRIDAY     5
 #define QT_SATURDAY   6
 #define QT_SUNDAY     7
+
+/* ---- Phase 11: QSettings / QCompleter / QToolTip wrappers ---- */
+
+/* QSettings — cast away const for string returns */
+static char* ffi_qt_settings_value_string(void* s, const char* key,
+                                           const char* default_value) {
+    return (char*)qt_settings_value_string(s, key, default_value);
+}
+static char* ffi_qt_settings_all_keys(void* s) {
+    return (char*)qt_settings_all_keys(s);
+}
+static char* ffi_qt_settings_child_keys(void* s) {
+    return (char*)qt_settings_child_keys(s);
+}
+static char* ffi_qt_settings_child_groups(void* s) {
+    return (char*)qt_settings_child_groups(s);
+}
+static char* ffi_qt_settings_group(void* s) {
+    return (char*)qt_settings_group(s);
+}
+static char* ffi_qt_settings_file_name(void* s) {
+    return (char*)qt_settings_file_name(s);
+}
+
+/* QCompleter — cast away const, hook up string trampoline */
+static char* ffi_qt_completer_current_completion(void* c) {
+    return (char*)qt_completer_current_completion(c);
+}
+static void ffi_qt_completer_on_activated(void* c, long callback_id) {
+    qt_completer_on_activated(c, ffi_string_trampoline, callback_id);
+}
+
+/* QToolTip / QWhatsThis — cast away const */
+static char* ffi_qt_widget_tooltip(void* w) {
+    return (char*)qt_widget_tooltip(w);
+}
+static char* ffi_qt_widget_whats_this(void* w) {
+    return (char*)qt_widget_whats_this(w);
+}
+
+/* Phase 11 constants */
+#define QT_SETTINGS_NATIVE  0
+#define QT_SETTINGS_INI     1
+#define QT_COMPLETER_POPUP              0
+#define QT_COMPLETER_INLINE             1
+#define QT_COMPLETER_UNFILTERED_POPUP   2
+#define QT_CASE_INSENSITIVE  0
+#define QT_CASE_SENSITIVE    1
+#define QT_MATCH_STARTS_WITH  0
+#define QT_MATCH_CONTAINS     1
+#define QT_MATCH_ENDS_WITH    2
+
+/* Phase 12: Model/View constants */
+#define QT_DISPLAY_ROLE      0
+#define QT_EDIT_ROLE         2
+#define QT_TOOLTIP_ROLE      3
+#define QT_CHECK_STATE_ROLE  10
+#define QT_USER_ROLE         0x100
+
+#define QT_SELECT_NONE       0
+#define QT_SELECT_SINGLE     1
+#define QT_SELECT_MULTI      2
+#define QT_SELECT_EXTENDED   3
+#define QT_SELECT_CONTIGUOUS 4
+
+#define QT_SELECT_ITEMS      0
+#define QT_SELECT_ROWS       1
+#define QT_SELECT_COLUMNS    2
+
+#define QT_SORT_ASCENDING    0
+#define QT_SORT_DESCENDING   1
+
+#define QT_UNCHECKED          0
+#define QT_PARTIALLY_CHECKED  1
+#define QT_CHECKED            2
+
+#define QT_HEADER_INTERACTIVE       0
+#define QT_HEADER_FIXED             1
+#define QT_HEADER_STRETCH           2
+#define QT_HEADER_RESIZE_TO_CONTENTS 3
+
+#define QT_EDIT_NONE           0
+#define QT_EDIT_DOUBLE_CLICKED 2
+#define QT_EDIT_ALL_INPUT      31
+
+/* Phase 12: const-cast wrappers */
+static char* ffi_qt_standard_item_text(void* item) {
+    return (char*)qt_standard_item_text(item);
+}
+static char* ffi_qt_standard_item_tooltip(void* item) {
+    return (char*)qt_standard_item_tooltip(item);
+}
+static char* ffi_qt_string_list_model_strings(void* m) {
+    return (char*)qt_string_list_model_strings(m);
+}
+static char* ffi_qt_view_selected_rows(void* view) {
+    return (char*)qt_view_selected_rows(view);
+}
+
+/* Phase 12: signal connection trampolines */
+static void ffi_qt_view_on_clicked(void* view, long callback_id) {
+    qt_view_on_clicked(view, ffi_void_trampoline, callback_id);
+}
+static void ffi_qt_view_on_double_clicked(void* view, long callback_id) {
+    qt_view_on_double_clicked(view, ffi_void_trampoline, callback_id);
+}
+static void ffi_qt_view_on_activated(void* view, long callback_id) {
+    qt_view_on_activated(view, ffi_void_trampoline, callback_id);
+}
+static void ffi_qt_view_on_selection_changed(void* view, long callback_id) {
+    qt_view_on_selection_changed(view, ffi_void_trampoline, callback_id);
+}
+
+/* Phase 13: const-cast wrappers */
+static char* ffi_qt_plain_text_edit_text(void* e) {
+    return (char*)qt_plain_text_edit_text(e);
+}
+static char* ffi_qt_tool_button_text(void* b) {
+    return (char*)qt_tool_button_text(b);
+}
+
+/* Phase 13: signal connection trampolines */
+static void ffi_qt_plain_text_edit_on_text_changed(void* e, long callback_id) {
+    qt_plain_text_edit_on_text_changed(e, ffi_void_trampoline, callback_id);
+}
+static void ffi_qt_tool_button_on_clicked(void* b, long callback_id) {
+    qt_tool_button_on_clicked(b, ffi_void_trampoline, callback_id);
+}
+
+/* Phase 15: QProcess wrappers */
+static char* ffi_qt_process_read_stdout(void* proc) {
+    return (char*)qt_process_read_stdout(proc);
+}
+static char* ffi_qt_process_read_stderr(void* proc) {
+    return (char*)qt_process_read_stderr(proc);
+}
+static void ffi_qt_process_on_finished(void* proc, long callback_id) {
+    qt_process_on_finished(proc, ffi_int_trampoline, callback_id);
+}
+static void ffi_qt_process_on_ready_read(void* proc, long callback_id) {
+    qt_process_on_ready_read(proc, ffi_void_trampoline, callback_id);
+}
+
+/* Phase 15: QWizard wrappers */
+static void ffi_qt_wizard_on_current_changed(void* wiz, long callback_id) {
+    qt_wizard_on_current_changed(wiz, ffi_int_trampoline, callback_id);
+}
+
+/* Phase 15: QMdiArea wrappers */
+static void ffi_qt_mdi_area_on_sub_window_activated(void* area, long callback_id) {
+    qt_mdi_area_on_sub_window_activated(area, ffi_void_trampoline, callback_id);
+}
+
+/* Phase 16: QDial wrappers */
+static void ffi_qt_dial_on_value_changed(void* d, long callback_id) {
+    qt_dial_on_value_changed(d, ffi_int_trampoline, callback_id);
+}
+
+/* Phase 16: QToolBox wrappers */
+static void ffi_qt_tool_box_on_current_changed(void* tb, long callback_id) {
+    qt_tool_box_on_current_changed(tb, ffi_int_trampoline, callback_id);
+}
+
+/* Phase 16: QUndoStack wrappers */
+static void ffi_qt_undo_stack_push(void* stack, const char* text,
+                                    long undo_id, long redo_id) {
+    qt_undo_stack_push(stack, text,
+                       ffi_void_trampoline, undo_id,
+                       ffi_void_trampoline, redo_id);
+}
+
+/* Phase 16: QUndoStack text return wrappers — cast away const to avoid Gambit ___CFUN_ASSIGN warning */
+static char* ffi_qt_undo_stack_undo_text(void* stack) {
+    return (char*)qt_undo_stack_undo_text(stack);
+}
+static char* ffi_qt_undo_stack_redo_text(void* stack) {
+    return (char*)qt_undo_stack_redo_text(stack);
+}
+
+/* Phase 16: QFileSystemModel text return wrapper */
+static char* ffi_qt_file_system_model_file_path(void* model, int row, int column) {
+    return (char*)qt_file_system_model_file_path(model, row, column);
+}
 
 END-C
   )
@@ -2157,6 +2601,798 @@ END-C
   (define-const QT_FRIDAY)
   (define-const QT_SATURDAY)
   (define-const QT_SUNDAY)
+
+  ;; ---- QSettings ----
+  (define-c-lambda qt_settings_create (UTF-8-string UTF-8-string) (pointer void)
+    "qt_settings_create")
+  (define-c-lambda qt_settings_create_file (UTF-8-string int) (pointer void)
+    "qt_settings_create_file")
+  (define-c-lambda qt_settings_set_string
+    ((pointer void) UTF-8-string UTF-8-string) void
+    "qt_settings_set_string")
+  (define-c-lambda qt_settings_value_string
+    ((pointer void) UTF-8-string UTF-8-string) UTF-8-string
+    "ffi_qt_settings_value_string")
+  (define-c-lambda qt_settings_set_int ((pointer void) UTF-8-string int) void
+    "qt_settings_set_int")
+  (define-c-lambda qt_settings_value_int ((pointer void) UTF-8-string int) int
+    "qt_settings_value_int")
+  (define-c-lambda qt_settings_set_double
+    ((pointer void) UTF-8-string double) void
+    "qt_settings_set_double")
+  (define-c-lambda qt_settings_value_double
+    ((pointer void) UTF-8-string double) double
+    "qt_settings_value_double")
+  (define-c-lambda qt_settings_set_bool ((pointer void) UTF-8-string int) void
+    "qt_settings_set_bool")
+  (define-c-lambda qt_settings_value_bool ((pointer void) UTF-8-string int) int
+    "qt_settings_value_bool")
+  (define-c-lambda qt_settings_contains ((pointer void) UTF-8-string) int
+    "qt_settings_contains")
+  (define-c-lambda qt_settings_remove ((pointer void) UTF-8-string) void
+    "qt_settings_remove")
+  (define-c-lambda qt_settings_all_keys ((pointer void)) UTF-8-string
+    "ffi_qt_settings_all_keys")
+  (define-c-lambda qt_settings_child_keys ((pointer void)) UTF-8-string
+    "ffi_qt_settings_child_keys")
+  (define-c-lambda qt_settings_child_groups ((pointer void)) UTF-8-string
+    "ffi_qt_settings_child_groups")
+  (define-c-lambda qt_settings_begin_group ((pointer void) UTF-8-string) void
+    "qt_settings_begin_group")
+  (define-c-lambda qt_settings_end_group ((pointer void)) void
+    "qt_settings_end_group")
+  (define-c-lambda qt_settings_group ((pointer void)) UTF-8-string
+    "ffi_qt_settings_group")
+  (define-c-lambda qt_settings_sync ((pointer void)) void
+    "qt_settings_sync")
+  (define-c-lambda qt_settings_clear ((pointer void)) void
+    "qt_settings_clear")
+  (define-c-lambda qt_settings_file_name ((pointer void)) UTF-8-string
+    "ffi_qt_settings_file_name")
+  (define-c-lambda qt_settings_is_writable ((pointer void)) int
+    "qt_settings_is_writable")
+  (define-c-lambda qt_settings_destroy ((pointer void)) void
+    "qt_settings_destroy")
+
+  ;; ---- QCompleter ----
+  (define-c-lambda qt_completer_create (UTF-8-string) (pointer void)
+    "qt_completer_create")
+  (define-c-lambda qt_completer_set_model_strings
+    ((pointer void) UTF-8-string) void
+    "qt_completer_set_model_strings")
+  (define-c-lambda qt_completer_set_case_sensitivity ((pointer void) int) void
+    "qt_completer_set_case_sensitivity")
+  (define-c-lambda qt_completer_set_completion_mode ((pointer void) int) void
+    "qt_completer_set_completion_mode")
+  (define-c-lambda qt_completer_set_filter_mode ((pointer void) int) void
+    "qt_completer_set_filter_mode")
+  (define-c-lambda qt_completer_set_max_visible_items ((pointer void) int) void
+    "qt_completer_set_max_visible_items")
+  (define-c-lambda qt_completer_completion_count ((pointer void)) int
+    "qt_completer_completion_count")
+  (define-c-lambda qt_completer_current_completion ((pointer void)) UTF-8-string
+    "ffi_qt_completer_current_completion")
+  (define-c-lambda qt_completer_set_completion_prefix
+    ((pointer void) UTF-8-string) void
+    "qt_completer_set_completion_prefix")
+  (define-c-lambda raw_qt_completer_on_activated ((pointer void) long) void
+    "ffi_qt_completer_on_activated")
+  (define-c-lambda qt_line_edit_set_completer
+    ((pointer void) (pointer void)) void
+    "qt_line_edit_set_completer")
+  (define-c-lambda qt_completer_destroy ((pointer void)) void
+    "qt_completer_destroy")
+
+  ;; ---- QToolTip / QWhatsThis ----
+  (define-c-lambda qt_tooltip_show_text
+    (int int UTF-8-string (pointer void)) void
+    "qt_tooltip_show_text")
+  (define-c-lambda qt_tooltip_hide_text () void
+    "qt_tooltip_hide_text")
+  (define-c-lambda qt_tooltip_is_visible () int
+    "qt_tooltip_is_visible")
+  (define-c-lambda qt_widget_tooltip ((pointer void)) UTF-8-string
+    "ffi_qt_widget_tooltip")
+  (define-c-lambda qt_widget_set_whats_this ((pointer void) UTF-8-string) void
+    "qt_widget_set_whats_this")
+  (define-c-lambda qt_widget_whats_this ((pointer void)) UTF-8-string
+    "ffi_qt_widget_whats_this")
+
+  ;; ---- Phase 11 constants ----
+  (define-const QT_SETTINGS_NATIVE)
+  (define-const QT_SETTINGS_INI)
+  (define-const QT_COMPLETER_POPUP)
+  (define-const QT_COMPLETER_INLINE)
+  (define-const QT_COMPLETER_UNFILTERED_POPUP)
+  (define-const QT_CASE_INSENSITIVE)
+  (define-const QT_CASE_SENSITIVE)
+  (define-const QT_MATCH_STARTS_WITH)
+  (define-const QT_MATCH_CONTAINS)
+  (define-const QT_MATCH_ENDS_WITH)
+
+  ;; ---- Phase 12: Model/View ----
+
+  ;; QStandardItemModel
+  (define-c-lambda qt_standard_model_create (int int (pointer void)) (pointer void)
+    "qt_standard_model_create")
+  (define-c-lambda qt_standard_model_destroy ((pointer void)) void
+    "qt_standard_model_destroy")
+  (define-c-lambda qt_standard_model_row_count ((pointer void)) int
+    "qt_standard_model_row_count")
+  (define-c-lambda qt_standard_model_column_count ((pointer void)) int
+    "qt_standard_model_column_count")
+  (define-c-lambda qt_standard_model_set_row_count ((pointer void) int) void
+    "qt_standard_model_set_row_count")
+  (define-c-lambda qt_standard_model_set_column_count ((pointer void) int) void
+    "qt_standard_model_set_column_count")
+  (define-c-lambda qt_standard_model_set_item
+    ((pointer void) int int (pointer void)) void
+    "qt_standard_model_set_item")
+  (define-c-lambda qt_standard_model_item ((pointer void) int int) (pointer void)
+    "qt_standard_model_item")
+  (define-c-lambda qt_standard_model_insert_row ((pointer void) int) int
+    "qt_standard_model_insert_row")
+  (define-c-lambda qt_standard_model_insert_column ((pointer void) int) int
+    "qt_standard_model_insert_column")
+  (define-c-lambda qt_standard_model_remove_row ((pointer void) int) int
+    "qt_standard_model_remove_row")
+  (define-c-lambda qt_standard_model_remove_column ((pointer void) int) int
+    "qt_standard_model_remove_column")
+  (define-c-lambda qt_standard_model_clear ((pointer void)) void
+    "qt_standard_model_clear")
+  (define-c-lambda qt_standard_model_set_horizontal_header
+    ((pointer void) int UTF-8-string) void
+    "qt_standard_model_set_horizontal_header")
+  (define-c-lambda qt_standard_model_set_vertical_header
+    ((pointer void) int UTF-8-string) void
+    "qt_standard_model_set_vertical_header")
+
+  ;; QStandardItem
+  (define-c-lambda qt_standard_item_create (UTF-8-string) (pointer void)
+    "qt_standard_item_create")
+  (define-c-lambda qt_standard_item_text ((pointer void)) UTF-8-string
+    "ffi_qt_standard_item_text")
+  (define-c-lambda qt_standard_item_set_text ((pointer void) UTF-8-string) void
+    "qt_standard_item_set_text")
+  (define-c-lambda qt_standard_item_tooltip ((pointer void)) UTF-8-string
+    "ffi_qt_standard_item_tooltip")
+  (define-c-lambda qt_standard_item_set_tooltip ((pointer void) UTF-8-string) void
+    "qt_standard_item_set_tooltip")
+  (define-c-lambda qt_standard_item_set_editable ((pointer void) int) void
+    "qt_standard_item_set_editable")
+  (define-c-lambda qt_standard_item_is_editable ((pointer void)) int
+    "qt_standard_item_is_editable")
+  (define-c-lambda qt_standard_item_set_enabled ((pointer void) int) void
+    "qt_standard_item_set_enabled")
+  (define-c-lambda qt_standard_item_is_enabled ((pointer void)) int
+    "qt_standard_item_is_enabled")
+  (define-c-lambda qt_standard_item_set_selectable ((pointer void) int) void
+    "qt_standard_item_set_selectable")
+  (define-c-lambda qt_standard_item_is_selectable ((pointer void)) int
+    "qt_standard_item_is_selectable")
+  (define-c-lambda qt_standard_item_set_checkable ((pointer void) int) void
+    "qt_standard_item_set_checkable")
+  (define-c-lambda qt_standard_item_is_checkable ((pointer void)) int
+    "qt_standard_item_is_checkable")
+  (define-c-lambda qt_standard_item_set_check_state ((pointer void) int) void
+    "qt_standard_item_set_check_state")
+  (define-c-lambda qt_standard_item_check_state ((pointer void)) int
+    "qt_standard_item_check_state")
+  (define-c-lambda qt_standard_item_set_icon ((pointer void) (pointer void)) void
+    "qt_standard_item_set_icon")
+  (define-c-lambda qt_standard_item_append_row
+    ((pointer void) (pointer void)) void
+    "qt_standard_item_append_row")
+  (define-c-lambda qt_standard_item_row_count ((pointer void)) int
+    "qt_standard_item_row_count")
+  (define-c-lambda qt_standard_item_column_count ((pointer void)) int
+    "qt_standard_item_column_count")
+  (define-c-lambda qt_standard_item_child ((pointer void) int int) (pointer void)
+    "qt_standard_item_child")
+
+  ;; QStringListModel
+  (define-c-lambda qt_string_list_model_create (UTF-8-string) (pointer void)
+    "qt_string_list_model_create")
+  (define-c-lambda qt_string_list_model_destroy ((pointer void)) void
+    "qt_string_list_model_destroy")
+  (define-c-lambda qt_string_list_model_set_strings
+    ((pointer void) UTF-8-string) void
+    "qt_string_list_model_set_strings")
+  (define-c-lambda qt_string_list_model_strings ((pointer void)) UTF-8-string
+    "ffi_qt_string_list_model_strings")
+  (define-c-lambda qt_string_list_model_row_count ((pointer void)) int
+    "qt_string_list_model_row_count")
+
+  ;; Views (common)
+  (define-c-lambda qt_view_set_model ((pointer void) (pointer void)) void
+    "qt_view_set_model")
+  (define-c-lambda qt_view_set_selection_mode ((pointer void) int) void
+    "qt_view_set_selection_mode")
+  (define-c-lambda qt_view_set_selection_behavior ((pointer void) int) void
+    "qt_view_set_selection_behavior")
+  (define-c-lambda qt_view_set_alternating_row_colors ((pointer void) int) void
+    "qt_view_set_alternating_row_colors")
+  (define-c-lambda qt_view_set_sorting_enabled ((pointer void) int) void
+    "qt_view_set_sorting_enabled")
+  (define-c-lambda qt_view_set_edit_triggers ((pointer void) int) void
+    "qt_view_set_edit_triggers")
+
+  ;; QListView
+  (define-c-lambda qt_list_view_create ((pointer void)) (pointer void)
+    "qt_list_view_create")
+  (define-c-lambda qt_list_view_set_flow ((pointer void) int) void
+    "qt_list_view_set_flow")
+
+  ;; QTableView
+  (define-c-lambda qt_table_view_create ((pointer void)) (pointer void)
+    "qt_table_view_create")
+  (define-c-lambda qt_table_view_set_column_width ((pointer void) int int) void
+    "qt_table_view_set_column_width")
+  (define-c-lambda qt_table_view_set_row_height ((pointer void) int int) void
+    "qt_table_view_set_row_height")
+  (define-c-lambda qt_table_view_hide_column ((pointer void) int) void
+    "qt_table_view_hide_column")
+  (define-c-lambda qt_table_view_show_column ((pointer void) int) void
+    "qt_table_view_show_column")
+  (define-c-lambda qt_table_view_hide_row ((pointer void) int) void
+    "qt_table_view_hide_row")
+  (define-c-lambda qt_table_view_show_row ((pointer void) int) void
+    "qt_table_view_show_row")
+  (define-c-lambda qt_table_view_resize_columns_to_contents ((pointer void)) void
+    "qt_table_view_resize_columns_to_contents")
+  (define-c-lambda qt_table_view_resize_rows_to_contents ((pointer void)) void
+    "qt_table_view_resize_rows_to_contents")
+
+  ;; QTreeView
+  (define-c-lambda qt_tree_view_create ((pointer void)) (pointer void)
+    "qt_tree_view_create")
+  (define-c-lambda qt_tree_view_expand_all ((pointer void)) void
+    "qt_tree_view_expand_all")
+  (define-c-lambda qt_tree_view_collapse_all ((pointer void)) void
+    "qt_tree_view_collapse_all")
+  (define-c-lambda qt_tree_view_set_indentation ((pointer void) int) void
+    "qt_tree_view_set_indentation")
+  (define-c-lambda qt_tree_view_indentation ((pointer void)) int
+    "qt_tree_view_indentation")
+  (define-c-lambda qt_tree_view_set_root_is_decorated ((pointer void) int) void
+    "qt_tree_view_set_root_is_decorated")
+  (define-c-lambda qt_tree_view_set_header_hidden ((pointer void) int) void
+    "qt_tree_view_set_header_hidden")
+  (define-c-lambda qt_tree_view_set_column_width ((pointer void) int int) void
+    "qt_tree_view_set_column_width")
+
+  ;; QHeaderView (via view)
+  (define-c-lambda qt_view_header_set_stretch_last_section
+    ((pointer void) int int) void
+    "qt_view_header_set_stretch_last_section")
+  (define-c-lambda qt_view_header_set_section_resize_mode
+    ((pointer void) int int) void
+    "qt_view_header_set_section_resize_mode")
+  (define-c-lambda qt_view_header_hide ((pointer void) int) void
+    "qt_view_header_hide")
+  (define-c-lambda qt_view_header_show ((pointer void) int) void
+    "qt_view_header_show")
+  (define-c-lambda qt_view_header_set_default_section_size
+    ((pointer void) int int) void
+    "qt_view_header_set_default_section_size")
+
+  ;; QSortFilterProxyModel
+  (define-c-lambda qt_sort_filter_proxy_create ((pointer void)) (pointer void)
+    "qt_sort_filter_proxy_create")
+  (define-c-lambda qt_sort_filter_proxy_destroy ((pointer void)) void
+    "qt_sort_filter_proxy_destroy")
+  (define-c-lambda qt_sort_filter_proxy_set_source_model
+    ((pointer void) (pointer void)) void
+    "qt_sort_filter_proxy_set_source_model")
+  (define-c-lambda qt_sort_filter_proxy_set_filter_regex
+    ((pointer void) UTF-8-string) void
+    "qt_sort_filter_proxy_set_filter_regex")
+  (define-c-lambda qt_sort_filter_proxy_set_filter_column
+    ((pointer void) int) void
+    "qt_sort_filter_proxy_set_filter_column")
+  (define-c-lambda qt_sort_filter_proxy_set_filter_case_sensitivity
+    ((pointer void) int) void
+    "qt_sort_filter_proxy_set_filter_case_sensitivity")
+  (define-c-lambda qt_sort_filter_proxy_set_filter_role
+    ((pointer void) int) void
+    "qt_sort_filter_proxy_set_filter_role")
+  (define-c-lambda qt_sort_filter_proxy_sort ((pointer void) int int) void
+    "qt_sort_filter_proxy_sort")
+  (define-c-lambda qt_sort_filter_proxy_set_sort_role ((pointer void) int) void
+    "qt_sort_filter_proxy_set_sort_role")
+  (define-c-lambda qt_sort_filter_proxy_set_dynamic_sort_filter
+    ((pointer void) int) void
+    "qt_sort_filter_proxy_set_dynamic_sort_filter")
+  (define-c-lambda qt_sort_filter_proxy_invalidate_filter ((pointer void)) void
+    "qt_sort_filter_proxy_invalidate_filter")
+  (define-c-lambda qt_sort_filter_proxy_row_count ((pointer void)) int
+    "qt_sort_filter_proxy_row_count")
+
+  ;; View signals + selection
+  (define-c-lambda raw_qt_view_on_clicked ((pointer void) long) void
+    "ffi_qt_view_on_clicked")
+  (define-c-lambda raw_qt_view_on_double_clicked ((pointer void) long) void
+    "ffi_qt_view_on_double_clicked")
+  (define-c-lambda raw_qt_view_on_activated ((pointer void) long) void
+    "ffi_qt_view_on_activated")
+  (define-c-lambda raw_qt_view_on_selection_changed ((pointer void) long) void
+    "ffi_qt_view_on_selection_changed")
+  (define-c-lambda qt_view_last_clicked_row () int
+    "qt_view_last_clicked_row")
+  (define-c-lambda qt_view_last_clicked_col () int
+    "qt_view_last_clicked_col")
+  (define-c-lambda qt_view_selected_rows ((pointer void)) UTF-8-string
+    "ffi_qt_view_selected_rows")
+  (define-c-lambda qt_view_current_row ((pointer void)) int
+    "qt_view_current_row")
+
+  ;; Phase 12 constants
+  (define-const QT_DISPLAY_ROLE)
+  (define-const QT_EDIT_ROLE)
+  (define-const QT_TOOLTIP_ROLE)
+  (define-const QT_CHECK_STATE_ROLE)
+  (define-const QT_USER_ROLE)
+  (define-const QT_SELECT_NONE)
+  (define-const QT_SELECT_SINGLE)
+  (define-const QT_SELECT_MULTI)
+  (define-const QT_SELECT_EXTENDED)
+  (define-const QT_SELECT_CONTIGUOUS)
+  (define-const QT_SELECT_ITEMS)
+  (define-const QT_SELECT_ROWS)
+  (define-const QT_SELECT_COLUMNS)
+  (define-const QT_SORT_ASCENDING)
+  (define-const QT_SORT_DESCENDING)
+  (define-const QT_UNCHECKED)
+  (define-const QT_PARTIALLY_CHECKED)
+  (define-const QT_CHECKED)
+  (define-const QT_HEADER_INTERACTIVE)
+  (define-const QT_HEADER_FIXED)
+  (define-const QT_HEADER_STRETCH)
+  (define-const QT_HEADER_RESIZE_TO_CONTENTS)
+  (define-const QT_EDIT_NONE)
+  (define-const QT_EDIT_DOUBLE_CLICKED)
+  (define-const QT_EDIT_ALL_INPUT)
+
+  ;; Phase 13 constants
+  (define-const QT_VALIDATOR_INVALID)
+  (define-const QT_VALIDATOR_INTERMEDIATE)
+  (define-const QT_VALIDATOR_ACCEPTABLE)
+
+  (define-const QT_PLAIN_NO_WRAP)
+  (define-const QT_PLAIN_WIDGET_WRAP)
+
+  (define-const QT_DELAYED_POPUP)
+  (define-const QT_MENU_BUTTON_POPUP)
+  (define-const QT_INSTANT_POPUP)
+
+  (define-const QT_NO_ARROW)
+  (define-const QT_UP_ARROW)
+  (define-const QT_DOWN_ARROW)
+  (define-const QT_LEFT_ARROW)
+  (define-const QT_RIGHT_ARROW)
+
+  (define-const QT_TOOL_BUTTON_ICON_ONLY)
+  (define-const QT_TOOL_BUTTON_TEXT_ONLY)
+  (define-const QT_TOOL_BUTTON_TEXT_BESIDE_ICON)
+  (define-const QT_TOOL_BUTTON_TEXT_UNDER_ICON)
+
+  (define-const QT_SIZE_FIXED)
+  (define-const QT_SIZE_MINIMUM)
+  (define-const QT_SIZE_MINIMUM_EXPANDING)
+  (define-const QT_SIZE_MAXIMUM)
+  (define-const QT_SIZE_PREFERRED)
+  (define-const QT_SIZE_EXPANDING)
+  (define-const QT_SIZE_IGNORED)
+
+  ;; Phase 13: QValidator
+  (define-c-lambda qt_int_validator_create (int int (pointer void)) (pointer void)
+    "qt_int_validator_create")
+  (define-c-lambda qt_double_validator_create
+    (double double int (pointer void)) (pointer void)
+    "qt_double_validator_create")
+  (define-c-lambda qt_regex_validator_create
+    (UTF-8-string (pointer void)) (pointer void)
+    "qt_regex_validator_create")
+  (define-c-lambda qt_validator_destroy ((pointer void)) void
+    "qt_validator_destroy")
+  (define-c-lambda qt_validator_validate ((pointer void) UTF-8-string) int
+    "qt_validator_validate")
+  (define-c-lambda qt_line_edit_set_validator
+    ((pointer void) (pointer void)) void
+    "qt_line_edit_set_validator")
+  (define-c-lambda qt_line_edit_has_acceptable_input ((pointer void)) int
+    "qt_line_edit_has_acceptable_input")
+
+  ;; Phase 13: QPlainTextEdit
+  (define-c-lambda qt_plain_text_edit_create ((pointer void)) (pointer void)
+    "qt_plain_text_edit_create")
+  (define-c-lambda qt_plain_text_edit_set_text
+    ((pointer void) UTF-8-string) void
+    "qt_plain_text_edit_set_text")
+  (define-c-lambda qt_plain_text_edit_text ((pointer void)) UTF-8-string
+    "ffi_qt_plain_text_edit_text")
+  (define-c-lambda qt_plain_text_edit_append
+    ((pointer void) UTF-8-string) void
+    "qt_plain_text_edit_append")
+  (define-c-lambda qt_plain_text_edit_clear ((pointer void)) void
+    "qt_plain_text_edit_clear")
+  (define-c-lambda qt_plain_text_edit_set_read_only ((pointer void) int) void
+    "qt_plain_text_edit_set_read_only")
+  (define-c-lambda qt_plain_text_edit_is_read_only ((pointer void)) int
+    "qt_plain_text_edit_is_read_only")
+  (define-c-lambda qt_plain_text_edit_set_placeholder
+    ((pointer void) UTF-8-string) void
+    "qt_plain_text_edit_set_placeholder")
+  (define-c-lambda qt_plain_text_edit_line_count ((pointer void)) int
+    "qt_plain_text_edit_line_count")
+  (define-c-lambda qt_plain_text_edit_set_max_block_count
+    ((pointer void) int) void
+    "qt_plain_text_edit_set_max_block_count")
+  (define-c-lambda qt_plain_text_edit_cursor_line ((pointer void)) int
+    "qt_plain_text_edit_cursor_line")
+  (define-c-lambda qt_plain_text_edit_cursor_column ((pointer void)) int
+    "qt_plain_text_edit_cursor_column")
+  (define-c-lambda qt_plain_text_edit_set_line_wrap ((pointer void) int) void
+    "qt_plain_text_edit_set_line_wrap")
+  (define-c-lambda raw_qt_plain_text_edit_on_text_changed
+    ((pointer void) long) void
+    "ffi_qt_plain_text_edit_on_text_changed")
+
+  ;; Phase 13: QToolButton
+  (define-c-lambda qt_tool_button_create ((pointer void)) (pointer void)
+    "qt_tool_button_create")
+  (define-c-lambda qt_tool_button_set_text ((pointer void) UTF-8-string) void
+    "qt_tool_button_set_text")
+  (define-c-lambda qt_tool_button_text ((pointer void)) UTF-8-string
+    "ffi_qt_tool_button_text")
+  (define-c-lambda qt_tool_button_set_icon ((pointer void) UTF-8-string) void
+    "qt_tool_button_set_icon")
+  (define-c-lambda qt_tool_button_set_menu ((pointer void) (pointer void)) void
+    "qt_tool_button_set_menu")
+  (define-c-lambda qt_tool_button_set_popup_mode ((pointer void) int) void
+    "qt_tool_button_set_popup_mode")
+  (define-c-lambda qt_tool_button_set_auto_raise ((pointer void) int) void
+    "qt_tool_button_set_auto_raise")
+  (define-c-lambda qt_tool_button_set_arrow_type ((pointer void) int) void
+    "qt_tool_button_set_arrow_type")
+  (define-c-lambda qt_tool_button_set_tool_button_style
+    ((pointer void) int) void
+    "qt_tool_button_set_tool_button_style")
+  (define-c-lambda raw_qt_tool_button_on_clicked ((pointer void) long) void
+    "ffi_qt_tool_button_on_clicked")
+
+  ;; Phase 13: Layout spacers
+  (define-c-lambda qt_layout_add_spacing ((pointer void) int) void
+    "qt_layout_add_spacing")
+
+  ;; Phase 13: QSizePolicy
+  (define-c-lambda qt_widget_set_size_policy ((pointer void) int int) void
+    "qt_widget_set_size_policy")
+  (define-c-lambda qt_layout_set_stretch_factor
+    ((pointer void) (pointer void) int) void
+    "qt_layout_set_stretch_factor")
+
+  ;; ========== Phase 14: Graphics Scene & Custom Painting ==========
+
+  ;; --- Constants ---
+  (define-const QT_ITEM_MOVABLE)
+  (define-const QT_ITEM_SELECTABLE)
+  (define-const QT_ITEM_FOCUSABLE)
+  (define-const QT_DRAG_NONE)
+  (define-const QT_DRAG_SCROLL)
+  (define-const QT_DRAG_RUBBER_BAND)
+  (define-const QT_RENDER_ANTIALIASING)
+  (define-const QT_RENDER_SMOOTH_PIXMAP)
+  (define-const QT_RENDER_TEXT_ANTIALIASING)
+
+  ;; --- QGraphicsScene ---
+  (define-c-lambda qt_graphics_scene_create (double double double double)
+    (pointer void) "qt_graphics_scene_create")
+  (define-c-lambda qt_graphics_scene_add_rect
+    ((pointer void) double double double double) (pointer void)
+    "qt_graphics_scene_add_rect")
+  (define-c-lambda qt_graphics_scene_add_ellipse
+    ((pointer void) double double double double) (pointer void)
+    "qt_graphics_scene_add_ellipse")
+  (define-c-lambda qt_graphics_scene_add_line
+    ((pointer void) double double double double) (pointer void)
+    "qt_graphics_scene_add_line")
+  (define-c-lambda qt_graphics_scene_add_text
+    ((pointer void) UTF-8-string) (pointer void)
+    "qt_graphics_scene_add_text")
+  (define-c-lambda qt_graphics_scene_add_pixmap
+    ((pointer void) (pointer void)) (pointer void)
+    "qt_graphics_scene_add_pixmap")
+  (define-c-lambda qt_graphics_scene_remove_item
+    ((pointer void) (pointer void)) void
+    "qt_graphics_scene_remove_item")
+  (define-c-lambda qt_graphics_scene_clear ((pointer void)) void
+    "qt_graphics_scene_clear")
+  (define-c-lambda qt_graphics_scene_items_count ((pointer void)) int
+    "qt_graphics_scene_items_count")
+  (define-c-lambda qt_graphics_scene_set_background
+    ((pointer void) int int int) void
+    "qt_graphics_scene_set_background")
+  (define-c-lambda qt_graphics_scene_destroy ((pointer void)) void
+    "qt_graphics_scene_destroy")
+
+  ;; --- QGraphicsView ---
+  (define-c-lambda qt_graphics_view_create
+    ((pointer void) (pointer void)) (pointer void)
+    "qt_graphics_view_create")
+  (define-c-lambda qt_graphics_view_set_render_hint
+    ((pointer void) int int) void
+    "qt_graphics_view_set_render_hint")
+  (define-c-lambda qt_graphics_view_set_drag_mode
+    ((pointer void) int) void
+    "qt_graphics_view_set_drag_mode")
+  (define-c-lambda qt_graphics_view_fit_in_view ((pointer void)) void
+    "qt_graphics_view_fit_in_view")
+  (define-c-lambda qt_graphics_view_scale
+    ((pointer void) double double) void
+    "qt_graphics_view_scale")
+  (define-c-lambda qt_graphics_view_center_on
+    ((pointer void) double double) void
+    "qt_graphics_view_center_on")
+
+  ;; --- QGraphicsItem ---
+  (define-c-lambda qt_graphics_item_set_pos
+    ((pointer void) double double) void
+    "qt_graphics_item_set_pos")
+  (define-c-lambda qt_graphics_item_x ((pointer void)) double
+    "qt_graphics_item_x")
+  (define-c-lambda qt_graphics_item_y ((pointer void)) double
+    "qt_graphics_item_y")
+  (define-c-lambda qt_graphics_item_set_pen
+    ((pointer void) int int int int) void
+    "qt_graphics_item_set_pen")
+  (define-c-lambda qt_graphics_item_set_brush
+    ((pointer void) int int int) void
+    "qt_graphics_item_set_brush")
+  (define-c-lambda qt_graphics_item_set_flags
+    ((pointer void) int) void
+    "qt_graphics_item_set_flags")
+  (define-c-lambda qt_graphics_item_set_tooltip
+    ((pointer void) UTF-8-string) void
+    "qt_graphics_item_set_tooltip")
+  (define-c-lambda qt_graphics_item_set_zvalue
+    ((pointer void) double) void
+    "qt_graphics_item_set_zvalue")
+  (define-c-lambda qt_graphics_item_zvalue ((pointer void)) double
+    "qt_graphics_item_zvalue")
+  (define-c-lambda qt_graphics_item_set_rotation
+    ((pointer void) double) void
+    "qt_graphics_item_set_rotation")
+  (define-c-lambda qt_graphics_item_set_scale
+    ((pointer void) double) void
+    "qt_graphics_item_set_scale")
+  (define-c-lambda qt_graphics_item_set_visible
+    ((pointer void) int) void
+    "qt_graphics_item_set_visible")
+
+  ;; --- PaintWidget ---
+  (define-c-lambda qt_paint_widget_create ((pointer void)) (pointer void)
+    "qt_paint_widget_create")
+
+  (c-declare "
+static void ffi_paint_widget_trampoline(long callback_id) {
+    ffi_qt_callback_void(callback_id);
+}
+")
+
+  (define-c-lambda raw_qt_paint_widget_on_paint
+    ((pointer void) long) void
+    "qt_paint_widget_on_paint(___arg1, ffi_paint_widget_trampoline, ___arg2);")
+
+  (define-c-lambda qt_paint_widget_painter ((pointer void)) (pointer void)
+    "qt_paint_widget_painter")
+  (define-c-lambda qt_paint_widget_update ((pointer void)) void
+    "qt_paint_widget_update")
+  (define-c-lambda qt_paint_widget_width ((pointer void)) int
+    "qt_paint_widget_width")
+  (define-c-lambda qt_paint_widget_height ((pointer void)) int
+    "qt_paint_widget_height")
+
+  ;; ========== Phase 15: Process, Wizard, MDI ==========
+
+  ;; --- Constants ---
+  (define-const QT_PROCESS_NOT_RUNNING)
+  (define-const QT_PROCESS_STARTING)
+  (define-const QT_PROCESS_RUNNING)
+  (define-const QT_MDI_SUBWINDOW)
+  (define-const QT_MDI_TABBED)
+
+  ;; Phase 16 constants
+  (define-const QT_LCD_DEC)
+  (define-const QT_LCD_HEX)
+  (define-const QT_LCD_OCT)
+  (define-const QT_LCD_BIN)
+  (define-const QT_LCD_OUTLINE)
+  (define-const QT_LCD_FILLED)
+  (define-const QT_LCD_FLAT)
+  (define-const QT_DIR_DIRS)
+  (define-const QT_DIR_FILES)
+  (define-const QT_DIR_HIDDEN)
+  (define-const QT_DIR_NO_DOT_AND_DOT_DOT)
+
+  ;; --- QProcess ---
+  (define-c-lambda qt_process_create ((pointer void)) (pointer void)
+    "qt_process_create")
+  (define-c-lambda qt_process_start
+    ((pointer void) UTF-8-string UTF-8-string) void
+    "qt_process_start")
+  (define-c-lambda qt_process_write ((pointer void) UTF-8-string) void
+    "qt_process_write")
+  (define-c-lambda qt_process_close_write ((pointer void)) void
+    "qt_process_close_write")
+  (define-c-lambda qt_process_read_stdout ((pointer void)) UTF-8-string
+    "ffi_qt_process_read_stdout")
+  (define-c-lambda qt_process_read_stderr ((pointer void)) UTF-8-string
+    "ffi_qt_process_read_stderr")
+  (define-c-lambda qt_process_wait_for_finished ((pointer void) int) int
+    "qt_process_wait_for_finished")
+  (define-c-lambda qt_process_exit_code ((pointer void)) int
+    "qt_process_exit_code")
+  (define-c-lambda qt_process_state ((pointer void)) int
+    "qt_process_state")
+  (define-c-lambda qt_process_kill ((pointer void)) void
+    "qt_process_kill")
+  (define-c-lambda qt_process_terminate ((pointer void)) void
+    "qt_process_terminate")
+  (define-c-lambda raw_qt_process_on_finished ((pointer void) long) void
+    "ffi_qt_process_on_finished")
+  (define-c-lambda raw_qt_process_on_ready_read ((pointer void) long) void
+    "ffi_qt_process_on_ready_read")
+  (define-c-lambda qt_process_destroy ((pointer void)) void
+    "qt_process_destroy")
+
+  ;; --- QWizard / QWizardPage ---
+  (define-c-lambda qt_wizard_create ((pointer void)) (pointer void)
+    "qt_wizard_create")
+  (define-c-lambda qt_wizard_add_page ((pointer void) (pointer void)) int
+    "qt_wizard_add_page")
+  (define-c-lambda qt_wizard_set_start_id ((pointer void) int) void
+    "qt_wizard_set_start_id")
+  (define-c-lambda qt_wizard_current_id ((pointer void)) int
+    "qt_wizard_current_id")
+  (define-c-lambda qt_wizard_set_title ((pointer void) UTF-8-string) void
+    "qt_wizard_set_title")
+  (define-c-lambda qt_wizard_exec ((pointer void)) int
+    "qt_wizard_exec")
+  (define-c-lambda qt_wizard_page_create ((pointer void)) (pointer void)
+    "qt_wizard_page_create")
+  (define-c-lambda qt_wizard_page_set_title ((pointer void) UTF-8-string) void
+    "qt_wizard_page_set_title")
+  (define-c-lambda qt_wizard_page_set_subtitle ((pointer void) UTF-8-string) void
+    "qt_wizard_page_set_subtitle")
+  (define-c-lambda qt_wizard_page_set_layout ((pointer void) (pointer void)) void
+    "qt_wizard_page_set_layout")
+  (define-c-lambda raw_qt_wizard_on_current_changed ((pointer void) long) void
+    "ffi_qt_wizard_on_current_changed")
+
+  ;; --- QMdiArea / QMdiSubWindow ---
+  (define-c-lambda qt_mdi_area_create ((pointer void)) (pointer void)
+    "qt_mdi_area_create")
+  (define-c-lambda qt_mdi_area_add_sub_window
+    ((pointer void) (pointer void)) (pointer void)
+    "qt_mdi_area_add_sub_window")
+  (define-c-lambda qt_mdi_area_remove_sub_window
+    ((pointer void) (pointer void)) void
+    "qt_mdi_area_remove_sub_window")
+  (define-c-lambda qt_mdi_area_active_sub_window ((pointer void)) (pointer void)
+    "qt_mdi_area_active_sub_window")
+  (define-c-lambda qt_mdi_area_sub_window_count ((pointer void)) int
+    "qt_mdi_area_sub_window_count")
+  (define-c-lambda qt_mdi_area_cascade ((pointer void)) void
+    "qt_mdi_area_cascade")
+  (define-c-lambda qt_mdi_area_tile ((pointer void)) void
+    "qt_mdi_area_tile")
+  (define-c-lambda qt_mdi_area_set_view_mode ((pointer void) int) void
+    "qt_mdi_area_set_view_mode")
+  (define-c-lambda qt_mdi_sub_window_set_title
+    ((pointer void) UTF-8-string) void
+    "qt_mdi_sub_window_set_title")
+  (define-c-lambda raw_qt_mdi_area_on_sub_window_activated
+    ((pointer void) long) void
+    "ffi_qt_mdi_area_on_sub_window_activated")
+
+  ;; --- Phase 16: QDial ---
+  (define-c-lambda qt_dial_create ((pointer void)) (pointer void)
+    "qt_dial_create")
+  (define-c-lambda qt_dial_set_value ((pointer void) int) void
+    "qt_dial_set_value")
+  (define-c-lambda qt_dial_value ((pointer void)) int
+    "qt_dial_value")
+  (define-c-lambda qt_dial_set_range ((pointer void) int int) void
+    "qt_dial_set_range")
+  (define-c-lambda qt_dial_set_notches_visible ((pointer void) int) void
+    "qt_dial_set_notches_visible")
+  (define-c-lambda qt_dial_set_wrapping ((pointer void) int) void
+    "qt_dial_set_wrapping")
+  (define-c-lambda raw_qt_dial_on_value_changed ((pointer void) long) void
+    "ffi_qt_dial_on_value_changed")
+
+  ;; --- Phase 16: QLCDNumber ---
+  (define-c-lambda qt_lcd_create (int (pointer void)) (pointer void)
+    "qt_lcd_create")
+  (define-c-lambda qt_lcd_display_int ((pointer void) int) void
+    "qt_lcd_display_int")
+  (define-c-lambda qt_lcd_display_double ((pointer void) double) void
+    "qt_lcd_display_double")
+  (define-c-lambda qt_lcd_display_string ((pointer void) UTF-8-string) void
+    "qt_lcd_display_string")
+  (define-c-lambda qt_lcd_set_mode ((pointer void) int) void
+    "qt_lcd_set_mode")
+  (define-c-lambda qt_lcd_set_segment_style ((pointer void) int) void
+    "qt_lcd_set_segment_style")
+
+  ;; --- Phase 16: QToolBox ---
+  (define-c-lambda qt_tool_box_create ((pointer void)) (pointer void)
+    "qt_tool_box_create")
+  (define-c-lambda qt_tool_box_add_item
+    ((pointer void) (pointer void) UTF-8-string) int
+    "qt_tool_box_add_item")
+  (define-c-lambda qt_tool_box_set_current_index ((pointer void) int) void
+    "qt_tool_box_set_current_index")
+  (define-c-lambda qt_tool_box_current_index ((pointer void)) int
+    "qt_tool_box_current_index")
+  (define-c-lambda qt_tool_box_count ((pointer void)) int
+    "qt_tool_box_count")
+  (define-c-lambda qt_tool_box_set_item_text
+    ((pointer void) int UTF-8-string) void
+    "qt_tool_box_set_item_text")
+  (define-c-lambda raw_qt_tool_box_on_current_changed
+    ((pointer void) long) void
+    "ffi_qt_tool_box_on_current_changed")
+
+  ;; --- Phase 16: QUndoStack ---
+  (define-c-lambda qt_undo_stack_create ((pointer void)) (pointer void)
+    "qt_undo_stack_create")
+  (define-c-lambda raw_qt_undo_stack_push
+    ((pointer void) UTF-8-string long long) void
+    "ffi_qt_undo_stack_push")
+  (define-c-lambda qt_undo_stack_undo ((pointer void)) void
+    "qt_undo_stack_undo")
+  (define-c-lambda qt_undo_stack_redo ((pointer void)) void
+    "qt_undo_stack_redo")
+  (define-c-lambda qt_undo_stack_can_undo ((pointer void)) int
+    "qt_undo_stack_can_undo")
+  (define-c-lambda qt_undo_stack_can_redo ((pointer void)) int
+    "qt_undo_stack_can_redo")
+  (define-c-lambda qt_undo_stack_undo_text ((pointer void)) UTF-8-string
+    "ffi_qt_undo_stack_undo_text")
+  (define-c-lambda qt_undo_stack_redo_text ((pointer void)) UTF-8-string
+    "ffi_qt_undo_stack_redo_text")
+  (define-c-lambda qt_undo_stack_clear ((pointer void)) void
+    "qt_undo_stack_clear")
+  (define-c-lambda qt_undo_stack_create_undo_action
+    ((pointer void) (pointer void)) (pointer void)
+    "qt_undo_stack_create_undo_action")
+  (define-c-lambda qt_undo_stack_create_redo_action
+    ((pointer void) (pointer void)) (pointer void)
+    "qt_undo_stack_create_redo_action")
+  (define-c-lambda qt_undo_stack_destroy ((pointer void)) void
+    "qt_undo_stack_destroy")
+
+  ;; --- Phase 16: QFileSystemModel ---
+  (define-c-lambda qt_file_system_model_create ((pointer void)) (pointer void)
+    "qt_file_system_model_create")
+  (define-c-lambda qt_file_system_model_set_root_path
+    ((pointer void) UTF-8-string) void
+    "qt_file_system_model_set_root_path")
+  (define-c-lambda qt_file_system_model_set_filter ((pointer void) int) void
+    "qt_file_system_model_set_filter")
+  (define-c-lambda qt_file_system_model_set_name_filters
+    ((pointer void) UTF-8-string) void
+    "qt_file_system_model_set_name_filters")
+  (define-c-lambda qt_file_system_model_file_path
+    ((pointer void) int int) UTF-8-string
+    "ffi_qt_file_system_model_file_path")
+  (define-c-lambda qt_tree_view_set_file_system_root
+    ((pointer void) (pointer void) UTF-8-string) void
+    "qt_tree_view_set_file_system_root")
+  (define-c-lambda qt_file_system_model_destroy ((pointer void)) void
+    "qt_file_system_model_destroy")
 
   ;; ---- Callback dispatch tables ----
   (define *qt-void-handlers* (make-hash-table))

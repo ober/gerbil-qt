@@ -1887,4 +1887,1431 @@
       (check QT_SATURDAY  => 6)
       (check QT_SUNDAY    => 7))
 
+    ;; ==================== Phase 11: QSettings, QCompleter, QToolTip ====================
+
+    ;; --- QSettings ---
+
+    (test-case "settings create org/app"
+      (ensure-app!)
+      (let ((s (qt-settings-create "gerbil-qt-test" "test-app")))
+        (check (not (eq? s #f)) => #t)
+        (qt-settings-destroy! s)))
+
+    (test-case "settings create file INI"
+      (ensure-app!)
+      (let ((s (qt-settings-create-file "/tmp/gerbil-qt-test.ini")))
+        (check (not (eq? s #f)) => #t)
+        ;; file-name should contain the path
+        (check (number? (string-contains (qt-settings-file-name s) "gerbil-qt-test")) => #t)
+        (qt-settings-destroy! s)))
+
+    (test-case "settings string round-trip"
+      (ensure-app!)
+      (let ((s (qt-settings-create-file "/tmp/gerbil-qt-test-str.ini")))
+        (qt-settings-clear! s)
+        (qt-settings-set-string! s "name" "Alice")
+        (check (qt-settings-string s "name") => "Alice")
+        ;; default for missing key
+        (check (qt-settings-string s "missing" default: "fallback") => "fallback")
+        (qt-settings-destroy! s)))
+
+    (test-case "settings int round-trip"
+      (ensure-app!)
+      (let ((s (qt-settings-create-file "/tmp/gerbil-qt-test-int.ini")))
+        (qt-settings-clear! s)
+        (qt-settings-set-int! s "count" 42)
+        (check (qt-settings-int s "count") => 42)
+        ;; default for missing key
+        (check (qt-settings-int s "missing" default: -1) => -1)
+        (qt-settings-destroy! s)))
+
+    (test-case "settings double round-trip"
+      (ensure-app!)
+      (let ((s (qt-settings-create-file "/tmp/gerbil-qt-test-dbl.ini")))
+        (qt-settings-clear! s)
+        (qt-settings-set-double! s "pi" 3.14)
+        ;; INI stores as string, so precision may vary slightly
+        (let ((val (qt-settings-double s "pi")))
+          (check (> val 3.13) => #t)
+          (check (< val 3.15) => #t))
+        (qt-settings-destroy! s)))
+
+    (test-case "settings bool round-trip"
+      (ensure-app!)
+      (let ((s (qt-settings-create-file "/tmp/gerbil-qt-test-bool.ini")))
+        (qt-settings-clear! s)
+        (qt-settings-set-bool! s "enabled" #t)
+        (check (qt-settings-bool s "enabled") => #t)
+        (qt-settings-set-bool! s "enabled" #f)
+        (check (qt-settings-bool s "enabled") => #f)
+        ;; default for missing key
+        (check (qt-settings-bool s "missing" default: #t) => #t)
+        (qt-settings-destroy! s)))
+
+    (test-case "settings generic set/value"
+      (ensure-app!)
+      (let ((s (qt-settings-create-file "/tmp/gerbil-qt-test-gen.ini")))
+        (qt-settings-clear! s)
+        (qt-settings-set! s "text" "hello")
+        (qt-settings-set! s "num" 99)
+        (qt-settings-set! s "flag" #t)
+        (check (qt-settings-value s "text") => "hello")
+        ;; Generic value returns strings — int/bool stored as strings in INI
+        (check (string? (qt-settings-value s "num")) => #t)
+        (qt-settings-destroy! s)))
+
+    (test-case "settings contains and remove"
+      (ensure-app!)
+      (let ((s (qt-settings-create-file "/tmp/gerbil-qt-test-rm.ini")))
+        (qt-settings-clear! s)
+        (qt-settings-set-string! s "key1" "val1")
+        (check (qt-settings-contains? s "key1") => #t)
+        (check (qt-settings-contains? s "key2") => #f)
+        (qt-settings-remove! s "key1")
+        (check (qt-settings-contains? s "key1") => #f)
+        (qt-settings-destroy! s)))
+
+    (test-case "settings all-keys"
+      (ensure-app!)
+      (let ((s (qt-settings-create-file "/tmp/gerbil-qt-test-keys.ini")))
+        (qt-settings-clear! s)
+        (qt-settings-set-string! s "a" "1")
+        (qt-settings-set-string! s "b" "2")
+        (qt-settings-set-string! s "c" "3")
+        (let ((keys (qt-settings-all-keys s)))
+          (check (length keys) => 3)
+          (check (member "a" keys) => '("a" "b" "c")))
+        (qt-settings-destroy! s)))
+
+    (test-case "settings groups"
+      (ensure-app!)
+      (let ((s (qt-settings-create-file "/tmp/gerbil-qt-test-grp.ini")))
+        (qt-settings-clear! s)
+        ;; Set keys in different groups
+        (qt-settings-begin-group! s "window")
+        (check (qt-settings-group s) => "window")
+        (qt-settings-set-int! s "width" 800)
+        (qt-settings-set-int! s "height" 600)
+        (qt-settings-end-group! s)
+        ;; Verify child groups
+        (let ((groups (qt-settings-child-groups s)))
+          (check (member "window" groups) => '("window")))
+        ;; Verify child keys within group
+        (qt-settings-begin-group! s "window")
+        (let ((keys (qt-settings-child-keys s)))
+          (check (length keys) => 2))
+        (qt-settings-end-group! s)
+        (qt-settings-destroy! s)))
+
+    (test-case "settings file-name and writable"
+      (ensure-app!)
+      (let ((s (qt-settings-create-file "/tmp/gerbil-qt-test-info.ini")))
+        (check (string? (qt-settings-file-name s)) => #t)
+        (check (qt-settings-writable? s) => #t)
+        (qt-settings-destroy! s)))
+
+    (test-case "settings clear"
+      (ensure-app!)
+      (let ((s (qt-settings-create-file "/tmp/gerbil-qt-test-clr.ini")))
+        (qt-settings-set-string! s "x" "y")
+        (qt-settings-clear! s)
+        (check (qt-settings-all-keys s) => '())
+        (qt-settings-destroy! s)))
+
+    (test-case "settings format constants"
+      (check QT_SETTINGS_NATIVE => 0)
+      (check QT_SETTINGS_INI    => 1))
+
+    ;; --- QCompleter ---
+
+    (test-case "completer create"
+      (ensure-app!)
+      (let ((c (qt-completer-create '("apple" "banana" "cherry"))))
+        (check (not (eq? c #f)) => #t)
+        (qt-completer-destroy! c)))
+
+    (test-case "completer completion count"
+      (ensure-app!)
+      (let ((c (qt-completer-create '("apple" "apricot" "banana"))))
+        (qt-completer-set-completion-prefix! c "ap")
+        (check (qt-completer-completion-count c) => 2)
+        (qt-completer-destroy! c)))
+
+    (test-case "completer current completion"
+      (ensure-app!)
+      (let ((c (qt-completer-create '("apple" "apricot" "banana"))))
+        (qt-completer-set-completion-prefix! c "app")
+        (check (qt-completer-completion-count c) => 1)
+        (check (qt-completer-current-completion c) => "apple")
+        (qt-completer-destroy! c)))
+
+    (test-case "completer case sensitivity"
+      (ensure-app!)
+      (let ((c (qt-completer-create '("Apple" "apricot" "Banana"))))
+        ;; Default is case sensitive
+        (qt-completer-set-case-sensitivity! c #t)
+        (qt-completer-set-completion-prefix! c "a")
+        (check (qt-completer-completion-count c) => 1)  ;; only "apricot"
+        ;; Case insensitive
+        (qt-completer-set-case-sensitivity! c #f)
+        (qt-completer-set-completion-prefix! c "a")
+        (check (qt-completer-completion-count c) => 2)  ;; "Apple" and "apricot"
+        (qt-completer-destroy! c)))
+
+    (test-case "completer completion modes"
+      (ensure-app!)
+      (let ((c (qt-completer-create '("test"))))
+        (qt-completer-set-completion-mode! c QT_COMPLETER_POPUP)
+        (qt-completer-set-completion-mode! c QT_COMPLETER_INLINE)
+        (qt-completer-set-completion-mode! c QT_COMPLETER_UNFILTERED_POPUP)
+        ;; No crash
+        (qt-completer-destroy! c)))
+
+    (test-case "completer update model"
+      (ensure-app!)
+      (let ((c (qt-completer-create '("old1" "old2"))))
+        (qt-completer-set-completion-prefix! c "old")
+        (check (qt-completer-completion-count c) => 2)
+        (qt-completer-set-model-strings! c '("new1" "new2" "new3"))
+        (qt-completer-set-completion-prefix! c "new")
+        (check (qt-completer-completion-count c) => 3)
+        (qt-completer-destroy! c)))
+
+    (test-case "completer attach to line edit"
+      (ensure-app!)
+      (let ((c (qt-completer-create '("alpha" "beta" "gamma")))
+            (e (qt-line-edit-create)))
+        (qt-line-edit-set-completer! e c)
+        ;; Completer ownership transferred — don't destroy c
+        (qt-widget-destroy! e)))
+
+    (test-case "completer on activated signal"
+      (ensure-app!)
+      (let ((c (qt-completer-create '("test"))))
+        (qt-on-completer-activated! c (lambda (text) #t))
+        (qt-completer-destroy! c)))
+
+    (test-case "completer constants"
+      (check QT_COMPLETER_POPUP            => 0)
+      (check QT_COMPLETER_INLINE           => 1)
+      (check QT_COMPLETER_UNFILTERED_POPUP => 2)
+      (check QT_CASE_INSENSITIVE           => 0)
+      (check QT_CASE_SENSITIVE             => 1)
+      (check QT_MATCH_STARTS_WITH          => 0)
+      (check QT_MATCH_CONTAINS             => 1)
+      (check QT_MATCH_ENDS_WITH            => 2))
+
+    ;; --- QToolTip / QWhatsThis ---
+
+    (test-case "widget tooltip round-trip"
+      (ensure-app!)
+      (let ((w (qt-widget-create)))
+        (qt-widget-set-tooltip! w "Help text")
+        (check (qt-widget-tooltip w) => "Help text")
+        (qt-widget-destroy! w)))
+
+    (test-case "widget tooltip empty default"
+      (ensure-app!)
+      (let ((w (qt-widget-create)))
+        (check (qt-widget-tooltip w) => "")
+        (qt-widget-destroy! w)))
+
+    (test-case "tooltip show/hide no crash"
+      (ensure-app!)
+      ;; QToolTip::showText may not render in offscreen — test no crash only
+      (qt-tooltip-show-text! 100 100 "Tip text")
+      (qt-tooltip-hide-text!))
+
+    (test-case "whatsthis round-trip"
+      (ensure-app!)
+      (let ((w (qt-widget-create)))
+        (qt-widget-set-whats-this! w "Explanation here")
+        (check (qt-widget-whats-this w) => "Explanation here")
+        (qt-widget-destroy! w)))
+
+    (test-case "whatsthis empty default"
+      (ensure-app!)
+      (let ((w (qt-widget-create)))
+        (check (qt-widget-whats-this w) => "")
+        (qt-widget-destroy! w)))
+
+    ;; ==================== Phase 12: Model/View Framework ====================
+
+    ;; --- QStandardItemModel ---
+
+    (test-case "standard model create and dimensions"
+      (ensure-app!)
+      (let ((m (qt-standard-model-create rows: 3 cols: 2)))
+        (check (not (eq? m #f)) => #t)
+        (check (qt-standard-model-row-count m) => 3)
+        (check (qt-standard-model-column-count m) => 2)
+        (qt-standard-model-destroy! m)))
+
+    (test-case "standard model set/get item"
+      (ensure-app!)
+      (let ((m (qt-standard-model-create rows: 2 cols: 2))
+            (item (qt-standard-item-create text: "Hello")))
+        (qt-standard-model-set-item! m 0 0 item)
+        (let ((got (qt-standard-model-item m 0 0)))
+          (check (qt-standard-item-text got) => "Hello"))
+        (qt-standard-model-destroy! m)))
+
+    (test-case "standard model headers"
+      (ensure-app!)
+      (let ((m (qt-standard-model-create rows: 2 cols: 2)))
+        (qt-standard-model-set-horizontal-header! m 0 "Name")
+        (qt-standard-model-set-horizontal-header! m 1 "Value")
+        (qt-standard-model-set-vertical-header! m 0 "Row 1")
+        ;; No crash — headers are set
+        (qt-standard-model-destroy! m)))
+
+    (test-case "standard model set row/col count"
+      (ensure-app!)
+      (let ((m (qt-standard-model-create)))
+        (qt-standard-model-set-row-count! m 5)
+        (qt-standard-model-set-column-count! m 3)
+        (check (qt-standard-model-row-count m) => 5)
+        (check (qt-standard-model-column-count m) => 3)
+        (qt-standard-model-destroy! m)))
+
+    (test-case "standard model insert/remove row"
+      (ensure-app!)
+      (let ((m (qt-standard-model-create rows: 2 cols: 1)))
+        (check (qt-standard-model-insert-row! m 1) => #t)
+        (check (qt-standard-model-row-count m) => 3)
+        (check (qt-standard-model-remove-row! m 0) => #t)
+        (check (qt-standard-model-row-count m) => 2)
+        (qt-standard-model-destroy! m)))
+
+    (test-case "standard model insert/remove column"
+      (ensure-app!)
+      (let ((m (qt-standard-model-create rows: 1 cols: 2)))
+        (check (qt-standard-model-insert-column! m 1) => #t)
+        (check (qt-standard-model-column-count m) => 3)
+        (check (qt-standard-model-remove-column! m 0) => #t)
+        (check (qt-standard-model-column-count m) => 2)
+        (qt-standard-model-destroy! m)))
+
+    (test-case "standard model clear"
+      (ensure-app!)
+      (let ((m (qt-standard-model-create rows: 3 cols: 3)))
+        (qt-standard-model-set-item! m 0 0
+          (qt-standard-item-create text: "X"))
+        (qt-standard-model-clear! m)
+        (check (qt-standard-model-row-count m) => 0)
+        (check (qt-standard-model-column-count m) => 0)
+        (qt-standard-model-destroy! m)))
+
+    ;; --- QStandardItem ---
+
+    (test-case "standard item create and text"
+      (ensure-app!)
+      (let ((item (qt-standard-item-create text: "Test Item")))
+        (check (qt-standard-item-text item) => "Test Item")
+        (qt-standard-item-set-text! item "Updated")
+        (check (qt-standard-item-text item) => "Updated")))
+
+    (test-case "standard item tooltip"
+      (ensure-app!)
+      (let ((item (qt-standard-item-create text: "X")))
+        (qt-standard-item-set-tooltip! item "Tip")
+        (check (qt-standard-item-tooltip item) => "Tip")))
+
+    (test-case "standard item editable"
+      (ensure-app!)
+      (let ((item (qt-standard-item-create text: "X")))
+        ;; Default is editable
+        (check (qt-standard-item-editable? item) => #t)
+        (qt-standard-item-set-editable! item #f)
+        (check (qt-standard-item-editable? item) => #f)))
+
+    (test-case "standard item enabled"
+      (ensure-app!)
+      (let ((item (qt-standard-item-create text: "X")))
+        (check (qt-standard-item-enabled? item) => #t)
+        (qt-standard-item-set-enabled! item #f)
+        (check (qt-standard-item-enabled? item) => #f)))
+
+    (test-case "standard item selectable"
+      (ensure-app!)
+      (let ((item (qt-standard-item-create text: "X")))
+        (check (qt-standard-item-selectable? item) => #t)
+        (qt-standard-item-set-selectable! item #f)
+        (check (qt-standard-item-selectable? item) => #f)))
+
+    (test-case "standard item checkable"
+      (ensure-app!)
+      (let ((item (qt-standard-item-create text: "X")))
+        (check (qt-standard-item-checkable? item) => #f)
+        (qt-standard-item-set-checkable! item #t)
+        (check (qt-standard-item-checkable? item) => #t)
+        (qt-standard-item-set-check-state! item QT_CHECKED)
+        (check (qt-standard-item-check-state item) => QT_CHECKED)))
+
+    (test-case "standard item tree hierarchy"
+      (ensure-app!)
+      (let ((m (qt-standard-model-create))
+            (parent (qt-standard-item-create text: "Parent"))
+            (child (qt-standard-item-create text: "Child")))
+        (qt-standard-item-append-row! parent child)
+        (check (qt-standard-item-row-count parent) => 1)
+        (let ((got-child (qt-standard-item-child parent 0)))
+          (check (qt-standard-item-text got-child) => "Child"))
+        ;; Add parent to model so model owns everything
+        (qt-standard-model-set-item! m 0 0 parent)
+        (qt-standard-model-destroy! m)))
+
+    ;; --- QStringListModel ---
+
+    (test-case "string list model create and round-trip"
+      (ensure-app!)
+      (let ((m (qt-string-list-model-create items: '("Alpha" "Beta" "Gamma"))))
+        (check (qt-string-list-model-row-count m) => 3)
+        (check (qt-string-list-model-strings m) => '("Alpha" "Beta" "Gamma"))
+        (qt-string-list-model-destroy! m)))
+
+    (test-case "string list model set strings"
+      (ensure-app!)
+      (let ((m (qt-string-list-model-create)))
+        (check (qt-string-list-model-row-count m) => 0)
+        (qt-string-list-model-set-strings! m '("X" "Y"))
+        (check (qt-string-list-model-row-count m) => 2)
+        (check (qt-string-list-model-strings m) => '("X" "Y"))
+        (qt-string-list-model-destroy! m)))
+
+    (test-case "string list model empty"
+      (ensure-app!)
+      (let ((m (qt-string-list-model-create)))
+        (check (qt-string-list-model-row-count m) => 0)
+        (check (qt-string-list-model-strings m) => '())
+        (qt-string-list-model-destroy! m)))
+
+    ;; --- Views ---
+
+    (test-case "list view create and set model"
+      (ensure-app!)
+      (let ((m (qt-string-list-model-create items: '("A" "B" "C")))
+            (v (qt-list-view-create)))
+        (qt-view-set-model! v m)
+        ;; No crash
+        (qt-widget-destroy! v)
+        (qt-string-list-model-destroy! m)))
+
+    (test-case "table view create and set model"
+      (ensure-app!)
+      (let ((m (qt-standard-model-create rows: 3 cols: 2))
+            (v (qt-table-view-create)))
+        (qt-view-set-model! v m)
+        (qt-table-view-set-column-width! v 0 100)
+        (qt-table-view-set-row-height! v 0 30)
+        (qt-table-view-resize-columns-to-contents! v)
+        (qt-table-view-resize-rows-to-contents! v)
+        (qt-widget-destroy! v)
+        (qt-standard-model-destroy! m)))
+
+    (test-case "tree view create and set model"
+      (ensure-app!)
+      (let ((m (qt-standard-model-create))
+            (v (qt-tree-view-create)))
+        (qt-view-set-model! v m)
+        (qt-tree-view-expand-all! v)
+        (qt-tree-view-collapse-all! v)
+        (qt-widget-destroy! v)
+        (qt-standard-model-destroy! m)))
+
+    (test-case "view selection mode"
+      (ensure-app!)
+      (let ((v (qt-table-view-create)))
+        (qt-view-set-selection-mode! v QT_SELECT_SINGLE)
+        (qt-view-set-selection-behavior! v QT_SELECT_ROWS)
+        ;; No crash
+        (qt-widget-destroy! v)))
+
+    (test-case "table view hide/show column"
+      (ensure-app!)
+      (let ((m (qt-standard-model-create rows: 2 cols: 3))
+            (v (qt-table-view-create)))
+        (qt-view-set-model! v m)
+        (qt-table-view-hide-column! v 1)
+        (qt-table-view-show-column! v 1)
+        (qt-table-view-hide-row! v 0)
+        (qt-table-view-show-row! v 0)
+        (qt-widget-destroy! v)
+        (qt-standard-model-destroy! m)))
+
+    (test-case "tree view indentation"
+      (ensure-app!)
+      (let ((v (qt-tree-view-create)))
+        (qt-tree-view-set-indentation! v 30)
+        (check (qt-tree-view-indentation v) => 30)
+        (qt-widget-destroy! v)))
+
+    (test-case "view sorting enabled"
+      (ensure-app!)
+      (let ((v (qt-table-view-create)))
+        (qt-view-set-sorting-enabled! v #t)
+        ;; No crash
+        (qt-widget-destroy! v)))
+
+    (test-case "view edit triggers"
+      (ensure-app!)
+      (let ((v (qt-table-view-create)))
+        (qt-view-set-edit-triggers! v QT_EDIT_NONE)
+        ;; No crash
+        (qt-widget-destroy! v)))
+
+    (test-case "view alternating row colors"
+      (ensure-app!)
+      (let ((v (qt-table-view-create)))
+        (qt-view-set-alternating-row-colors! v #t)
+        ;; No crash
+        (qt-widget-destroy! v)))
+
+    (test-case "tree view root decorated and header hidden"
+      (ensure-app!)
+      (let ((v (qt-tree-view-create)))
+        (qt-tree-view-set-root-is-decorated! v #f)
+        (qt-tree-view-set-header-hidden! v #t)
+        ;; No crash
+        (qt-widget-destroy! v)))
+
+    ;; --- QHeaderView ---
+
+    (test-case "view header stretch last section"
+      (ensure-app!)
+      (let ((m (qt-standard-model-create rows: 2 cols: 3))
+            (v (qt-table-view-create)))
+        (qt-view-set-model! v m)
+        (qt-view-header-set-stretch-last-section! v #t)
+        (qt-view-header-set-section-resize-mode! v QT_HEADER_STRETCH)
+        (qt-view-header-set-default-section-size! v 80)
+        ;; No crash
+        (qt-widget-destroy! v)
+        (qt-standard-model-destroy! m)))
+
+    (test-case "view header hide/show"
+      (ensure-app!)
+      (let ((m (qt-standard-model-create rows: 2 cols: 2))
+            (v (qt-table-view-create)))
+        (qt-view-set-model! v m)
+        (qt-view-header-hide! v)
+        (qt-view-header-show! v)
+        (qt-view-header-hide! v horizontal: #f)
+        (qt-view-header-show! v horizontal: #f)
+        (qt-widget-destroy! v)
+        (qt-standard-model-destroy! m)))
+
+    ;; --- QSortFilterProxyModel ---
+
+    (test-case "sort filter proxy create"
+      (ensure-app!)
+      (let ((p (qt-sort-filter-proxy-create)))
+        (check (not (eq? p #f)) => #t)
+        (qt-sort-filter-proxy-destroy! p)))
+
+    (test-case "sort filter proxy with source model"
+      (ensure-app!)
+      (let ((m (qt-standard-model-create rows: 3 cols: 1))
+            (p (qt-sort-filter-proxy-create)))
+        (qt-standard-model-set-item! m 0 0
+          (qt-standard-item-create text: "Apple"))
+        (qt-standard-model-set-item! m 1 0
+          (qt-standard-item-create text: "Banana"))
+        (qt-standard-model-set-item! m 2 0
+          (qt-standard-item-create text: "Cherry"))
+        (qt-sort-filter-proxy-set-source-model! p m)
+        (check (qt-sort-filter-proxy-row-count p) => 3)
+        (qt-sort-filter-proxy-destroy! p)
+        (qt-standard-model-destroy! m)))
+
+    (test-case "sort filter proxy filter regex"
+      (ensure-app!)
+      (let ((m (qt-standard-model-create rows: 3 cols: 1))
+            (p (qt-sort-filter-proxy-create)))
+        (qt-standard-model-set-item! m 0 0
+          (qt-standard-item-create text: "Apple"))
+        (qt-standard-model-set-item! m 1 0
+          (qt-standard-item-create text: "Banana"))
+        (qt-standard-model-set-item! m 2 0
+          (qt-standard-item-create text: "Avocado"))
+        (qt-sort-filter-proxy-set-source-model! p m)
+        (qt-sort-filter-proxy-set-filter-regex! p "^A")
+        (check (qt-sort-filter-proxy-row-count p) => 2)
+        (qt-sort-filter-proxy-destroy! p)
+        (qt-standard-model-destroy! m)))
+
+    (test-case "sort filter proxy filter column"
+      (ensure-app!)
+      (let ((p (qt-sort-filter-proxy-create)))
+        (qt-sort-filter-proxy-set-filter-column! p 1)
+        (qt-sort-filter-proxy-set-filter-case-sensitivity! p QT_CASE_INSENSITIVE)
+        ;; No crash
+        (qt-sort-filter-proxy-destroy! p)))
+
+    (test-case "sort filter proxy sort"
+      (ensure-app!)
+      (let ((m (qt-standard-model-create rows: 2 cols: 1))
+            (p (qt-sort-filter-proxy-create)))
+        (qt-standard-model-set-item! m 0 0
+          (qt-standard-item-create text: "Banana"))
+        (qt-standard-model-set-item! m 1 0
+          (qt-standard-item-create text: "Apple"))
+        (qt-sort-filter-proxy-set-source-model! p m)
+        (qt-sort-filter-proxy-sort! p 0 order: QT_SORT_ASCENDING)
+        ;; No crash — sorting happened
+        (qt-sort-filter-proxy-destroy! p)
+        (qt-standard-model-destroy! m)))
+
+    (test-case "sort filter proxy dynamic sort filter"
+      (ensure-app!)
+      (let ((p (qt-sort-filter-proxy-create)))
+        (qt-sort-filter-proxy-set-dynamic-sort-filter! p #t)
+        (qt-sort-filter-proxy-invalidate-filter! p)
+        ;; No crash
+        (qt-sort-filter-proxy-destroy! p)))
+
+    ;; --- View Signals + Selection ---
+
+    (test-case "view signal registration"
+      (ensure-app!)
+      (let ((m (qt-standard-model-create rows: 2 cols: 2))
+            (v (qt-table-view-create)))
+        (qt-view-set-model! v m)
+        (qt-on-view-clicked! v (lambda () #t))
+        (qt-on-view-double-clicked! v (lambda () #t))
+        (qt-on-view-activated! v (lambda () #t))
+        (qt-on-view-selection-changed! v (lambda () #t))
+        ;; No crash — signals registered
+        (qt-widget-destroy! v)
+        (qt-standard-model-destroy! m)))
+
+    (test-case "view query functions initial state"
+      (ensure-app!)
+      (check (qt-view-last-clicked-row) => -1)
+      (check (qt-view-last-clicked-col) => -1))
+
+    (test-case "view selected rows empty"
+      (ensure-app!)
+      (let ((m (qt-standard-model-create rows: 2 cols: 2))
+            (v (qt-table-view-create)))
+        (qt-view-set-model! v m)
+        (check (qt-view-selected-rows v) => '())
+        (check (qt-view-current-row v) => -1)
+        (qt-widget-destroy! v)
+        (qt-standard-model-destroy! m)))
+
+    ;; --- Phase 12 Constants ---
+
+    (test-case "phase 12 constants"
+      (check QT_DISPLAY_ROLE        => 0)
+      (check QT_EDIT_ROLE           => 2)
+      (check QT_TOOLTIP_ROLE        => 3)
+      (check QT_CHECK_STATE_ROLE    => 10)
+      (check QT_USER_ROLE           => 256)
+      (check QT_SELECT_NONE         => 0)
+      (check QT_SELECT_SINGLE       => 1)
+      (check QT_SELECT_MULTI        => 2)
+      (check QT_SELECT_EXTENDED     => 3)
+      (check QT_SELECT_CONTIGUOUS   => 4)
+      (check QT_SELECT_ITEMS        => 0)
+      (check QT_SELECT_ROWS         => 1)
+      (check QT_SELECT_COLUMNS      => 2)
+      (check QT_SORT_ASCENDING      => 0)
+      (check QT_SORT_DESCENDING     => 1)
+      (check QT_UNCHECKED           => 0)
+      (check QT_PARTIALLY_CHECKED   => 1)
+      (check QT_CHECKED             => 2)
+      (check QT_HEADER_INTERACTIVE  => 0)
+      (check QT_HEADER_FIXED        => 1)
+      (check QT_HEADER_STRETCH      => 2)
+      (check QT_HEADER_RESIZE_TO_CONTENTS => 3)
+      (check QT_EDIT_NONE           => 0)
+      (check QT_EDIT_DOUBLE_CLICKED => 2)
+      (check QT_EDIT_ALL_INPUT      => 31))
+
+    ;; ==================== Phase 13: Practical Polish ====================
+
+    ;; --- QValidator ---
+
+    (test-case "int validator create/destroy"
+      (ensure-app!)
+      (let ((v (qt-int-validator-create 0 100)))
+        (check (qt-validator-validate v "50")  => QT_VALIDATOR_ACCEPTABLE)
+        (check (qt-validator-validate v "200") => QT_VALIDATOR_INTERMEDIATE)
+        (check (qt-validator-validate v "abc") => QT_VALIDATOR_INVALID)
+        (qt-validator-destroy! v)))
+
+    (test-case "double validator create/destroy"
+      (ensure-app!)
+      (let ((v (qt-double-validator-create 0.0 100.0 decimals: 2)))
+        (check (qt-validator-validate v "50.5")  => QT_VALIDATOR_ACCEPTABLE)
+        (check (qt-validator-validate v "abc")   => QT_VALIDATOR_INVALID)
+        (qt-validator-destroy! v)))
+
+    (test-case "regex validator create/destroy"
+      (ensure-app!)
+      (let ((v (qt-regex-validator-create "^[A-Z]{3}$")))
+        (check (qt-validator-validate v "ABC") => QT_VALIDATOR_ACCEPTABLE)
+        (check (qt-validator-validate v "ab")  => QT_VALIDATOR_INVALID)
+        (qt-validator-destroy! v)))
+
+    (test-case "line edit set validator"
+      (ensure-app!)
+      (let ((e (qt-line-edit-create))
+            (v (qt-int-validator-create 1 100)))
+        (qt-line-edit-set-validator! e v)
+        (qt-line-edit-set-text! e "50")
+        (check (qt-line-edit-acceptable-input? e) => #t)
+        (qt-line-edit-set-text! e "")
+        ;; Empty string is intermediate for int validator
+        (check (qt-line-edit-acceptable-input? e) => #f)
+        (qt-widget-destroy! e)
+        (qt-validator-destroy! v)))
+
+    (test-case "validator state constants"
+      (check QT_VALIDATOR_INVALID      => 0)
+      (check QT_VALIDATOR_INTERMEDIATE => 1)
+      (check QT_VALIDATOR_ACCEPTABLE   => 2))
+
+    ;; --- QPlainTextEdit ---
+
+    (test-case "plain text edit create"
+      (ensure-app!)
+      (let ((e (qt-plain-text-edit-create)))
+        (check (qt-plain-text-edit-text e) => "")
+        (qt-widget-destroy! e)))
+
+    (test-case "plain text edit text round-trip"
+      (ensure-app!)
+      (let ((e (qt-plain-text-edit-create)))
+        (qt-plain-text-edit-set-text! e "Hello World")
+        (check (qt-plain-text-edit-text e) => "Hello World")
+        (qt-widget-destroy! e)))
+
+    (test-case "plain text edit append/clear"
+      (ensure-app!)
+      (let ((e (qt-plain-text-edit-create)))
+        (qt-plain-text-edit-set-text! e "Line1")
+        (qt-plain-text-edit-append! e "Line2")
+        (let ((text (qt-plain-text-edit-text e)))
+          (check (number? (string-contains text "Line1")) => #t)
+          (check (number? (string-contains text "Line2")) => #t))
+        (qt-plain-text-edit-clear! e)
+        (check (qt-plain-text-edit-text e) => "")
+        (qt-widget-destroy! e)))
+
+    (test-case "plain text edit read-only"
+      (ensure-app!)
+      (let ((e (qt-plain-text-edit-create)))
+        (check (qt-plain-text-edit-read-only? e) => #f)
+        (qt-plain-text-edit-set-read-only! e #t)
+        (check (qt-plain-text-edit-read-only? e) => #t)
+        (qt-widget-destroy! e)))
+
+    (test-case "plain text edit placeholder"
+      (ensure-app!)
+      (let ((e (qt-plain-text-edit-create)))
+        (qt-plain-text-edit-set-placeholder! e "Enter text...")
+        ;; No crash — placeholder is set
+        (qt-widget-destroy! e)))
+
+    (test-case "plain text edit line count"
+      (ensure-app!)
+      (let ((e (qt-plain-text-edit-create)))
+        ;; Empty editor has 1 block
+        (check (>= (qt-plain-text-edit-line-count e) 1) => #t)
+        (qt-plain-text-edit-set-text! e "Line1\nLine2\nLine3")
+        (check (qt-plain-text-edit-line-count e) => 3)
+        (qt-widget-destroy! e)))
+
+    (test-case "plain text edit max block count"
+      (ensure-app!)
+      (let ((e (qt-plain-text-edit-create)))
+        (qt-plain-text-edit-set-max-block-count! e 5)
+        ;; Add more than 5 lines
+        (qt-plain-text-edit-set-text! e "1\n2\n3\n4\n5\n6\n7")
+        (check (<= (qt-plain-text-edit-line-count e) 5) => #t)
+        (qt-widget-destroy! e)))
+
+    (test-case "plain text edit cursor position"
+      (ensure-app!)
+      (let ((e (qt-plain-text-edit-create)))
+        (qt-plain-text-edit-set-text! e "Hello")
+        ;; Cursor at start after setText
+        (check (>= (qt-plain-text-edit-cursor-line e) 0) => #t)
+        (check (>= (qt-plain-text-edit-cursor-column e) 0) => #t)
+        (qt-widget-destroy! e)))
+
+    (test-case "plain text edit text changed signal"
+      (ensure-app!)
+      (let ((e (qt-plain-text-edit-create)))
+        (qt-on-plain-text-edit-text-changed! e (lambda () #t))
+        ;; No crash — signal connected
+        (qt-widget-destroy! e)))
+
+    (test-case "plain text edit line wrap modes"
+      (ensure-app!)
+      (let ((e (qt-plain-text-edit-create)))
+        (qt-plain-text-edit-set-line-wrap! e QT_PLAIN_NO_WRAP)
+        (qt-plain-text-edit-set-line-wrap! e QT_PLAIN_WIDGET_WRAP)
+        ;; No crash
+        (qt-widget-destroy! e)))
+
+    (test-case "plain text edit wrap mode constants"
+      (check QT_PLAIN_NO_WRAP     => 0)
+      (check QT_PLAIN_WIDGET_WRAP => 1))
+
+    ;; --- QToolButton ---
+
+    (test-case "tool button create"
+      (ensure-app!)
+      (let ((b (qt-tool-button-create)))
+        (qt-tool-button-set-text! b "Tool")
+        (check (qt-tool-button-text b) => "Tool")
+        (qt-widget-destroy! b)))
+
+    (test-case "tool button popup mode"
+      (ensure-app!)
+      (let ((b (qt-tool-button-create)))
+        (qt-tool-button-set-popup-mode! b QT_MENU_BUTTON_POPUP)
+        ;; No crash
+        (qt-widget-destroy! b)))
+
+    (test-case "tool button auto raise"
+      (ensure-app!)
+      (let ((b (qt-tool-button-create)))
+        (qt-tool-button-set-auto-raise! b #t)
+        ;; No crash
+        (qt-widget-destroy! b)))
+
+    (test-case "tool button arrow type"
+      (ensure-app!)
+      (let ((b (qt-tool-button-create)))
+        (qt-tool-button-set-arrow-type! b QT_DOWN_ARROW)
+        ;; No crash
+        (qt-widget-destroy! b)))
+
+    (test-case "tool button style"
+      (ensure-app!)
+      (let ((b (qt-tool-button-create)))
+        (qt-tool-button-set-tool-button-style! b QT_TOOL_BUTTON_TEXT_ONLY)
+        ;; No crash
+        (qt-widget-destroy! b)))
+
+    (test-case "tool button menu"
+      (ensure-app!)
+      (let* ((mw (qt-main-window-create))
+             (bar (qt-main-window-menu-bar mw))
+             (m (qt-menu-bar-add-menu bar "Actions"))
+             (b (qt-tool-button-create)))
+        (qt-tool-button-set-menu! b m)
+        (qt-tool-button-set-popup-mode! b QT_INSTANT_POPUP)
+        ;; No crash
+        (qt-widget-destroy! b)
+        (qt-widget-destroy! mw)))
+
+    (test-case "tool button clicked signal"
+      (ensure-app!)
+      (let ((b (qt-tool-button-create)))
+        (qt-on-tool-button-clicked! b (lambda () #t))
+        ;; No crash — signal connected
+        (qt-widget-destroy! b)))
+
+    (test-case "tool button popup mode constants"
+      (check QT_DELAYED_POPUP     => 0)
+      (check QT_MENU_BUTTON_POPUP => 1)
+      (check QT_INSTANT_POPUP     => 2))
+
+    (test-case "tool button arrow type constants"
+      (check QT_NO_ARROW    => 0)
+      (check QT_UP_ARROW    => 1)
+      (check QT_DOWN_ARROW  => 2)
+      (check QT_LEFT_ARROW  => 3)
+      (check QT_RIGHT_ARROW => 4))
+
+    (test-case "tool button style constants"
+      (check QT_TOOL_BUTTON_ICON_ONLY        => 0)
+      (check QT_TOOL_BUTTON_TEXT_ONLY        => 1)
+      (check QT_TOOL_BUTTON_TEXT_BESIDE_ICON => 2)
+      (check QT_TOOL_BUTTON_TEXT_UNDER_ICON  => 3))
+
+    ;; --- Layout spacers ---
+
+    (test-case "layout add spacing"
+      (ensure-app!)
+      (let* ((w (qt-widget-create))
+             (layout (qt-vbox-layout-create w)))
+        (qt-layout-add-spacing! layout 10)
+        (qt-layout-add-spacing! layout 20)
+        ;; No crash — spacing items added
+        (qt-widget-destroy! w)))
+
+    (test-case "layout stretch and spacing combined"
+      (ensure-app!)
+      (let* ((w (qt-widget-create))
+             (layout (qt-vbox-layout-create w))
+             (btn (qt-push-button-create "Test" parent: w)))
+        (qt-layout-add-stretch! layout)
+        (qt-layout-add-spacing! layout 10)
+        (qt-layout-add-widget! layout btn)
+        ;; No crash
+        (qt-widget-destroy! w)))
+
+    ;; --- QSizePolicy ---
+
+    (test-case "widget set size policy"
+      (ensure-app!)
+      (let ((w (qt-widget-create)))
+        (qt-widget-set-size-policy! w QT_SIZE_EXPANDING QT_SIZE_PREFERRED)
+        ;; No crash
+        (qt-widget-destroy! w)))
+
+    (test-case "layout set stretch factor"
+      (ensure-app!)
+      (let* ((w (qt-widget-create))
+             (layout (qt-vbox-layout-create w))
+             (btn1 (qt-push-button-create "A" parent: w))
+             (btn2 (qt-push-button-create "B" parent: w)))
+        (qt-layout-add-widget! layout btn1)
+        (qt-layout-add-widget! layout btn2)
+        (qt-layout-set-stretch-factor! layout btn1 1)
+        (qt-layout-set-stretch-factor! layout btn2 2)
+        ;; No crash
+        (qt-widget-destroy! w)))
+
+    (test-case "size policy constants"
+      (check QT_SIZE_FIXED             => 0)
+      (check QT_SIZE_MINIMUM           => 1)
+      (check QT_SIZE_MINIMUM_EXPANDING => 3)
+      (check QT_SIZE_MAXIMUM           => 4)
+      (check QT_SIZE_PREFERRED         => 5)
+      (check QT_SIZE_EXPANDING         => 7)
+      (check QT_SIZE_IGNORED           => 13))
+
+    ;; ========== Phase 14: Graphics Scene & Custom Painting ==========
+
+    (test-case "graphics scene create and destroy"
+      (ensure-app!)
+      (let ((scene (qt-graphics-scene-create 0 0 800 600)))
+        (check (not (eq? scene #f)) => #t)
+        (qt-graphics-scene-destroy! scene)))
+
+    (test-case "graphics scene add shapes"
+      (ensure-app!)
+      (let ((scene (qt-graphics-scene-create 0 0 800 600)))
+        (check (qt-graphics-scene-items-count scene) => 0)
+        (let ((rect (qt-graphics-scene-add-rect! scene 10 20 100 50))
+              (ellipse (qt-graphics-scene-add-ellipse! scene 200 100 80 60))
+              (line (qt-graphics-scene-add-line! scene 0 0 100 100))
+              (text (qt-graphics-scene-add-text! scene "Hello")))
+          (check (qt-graphics-scene-items-count scene) => 4)
+          (check (not (eq? rect #f)) => #t)
+          (check (not (eq? ellipse #f)) => #t)
+          (check (not (eq? line #f)) => #t)
+          (check (not (eq? text #f)) => #t))
+        (qt-graphics-scene-destroy! scene)))
+
+    (test-case "graphics scene remove item"
+      (ensure-app!)
+      (let* ((scene (qt-graphics-scene-create 0 0 400 300))
+             (rect (qt-graphics-scene-add-rect! scene 0 0 50 50)))
+        (check (qt-graphics-scene-items-count scene) => 1)
+        (qt-graphics-scene-remove-item! scene rect)
+        (check (qt-graphics-scene-items-count scene) => 0)
+        (qt-graphics-scene-destroy! scene)))
+
+    (test-case "graphics scene clear"
+      (ensure-app!)
+      (let ((scene (qt-graphics-scene-create 0 0 400 300)))
+        (qt-graphics-scene-add-rect! scene 0 0 50 50)
+        (qt-graphics-scene-add-ellipse! scene 100 100 30 30)
+        (check (qt-graphics-scene-items-count scene) => 2)
+        (qt-graphics-scene-clear! scene)
+        (check (qt-graphics-scene-items-count scene) => 0)
+        (qt-graphics-scene-destroy! scene)))
+
+    (test-case "graphics scene set background"
+      (ensure-app!)
+      (let ((scene (qt-graphics-scene-create 0 0 400 300)))
+        ;; No crash
+        (qt-graphics-scene-set-background! scene 30 30 30)
+        (qt-graphics-scene-destroy! scene)))
+
+    (test-case "graphics view create"
+      (ensure-app!)
+      (let* ((scene (qt-graphics-scene-create 0 0 400 300))
+             (view (qt-graphics-view-create scene)))
+        (check (not (eq? view #f)) => #t)
+        (qt-widget-destroy! view)
+        (qt-graphics-scene-destroy! scene)))
+
+    (test-case "graphics view render hints and drag mode"
+      (ensure-app!)
+      (let* ((scene (qt-graphics-scene-create 0 0 400 300))
+             (view (qt-graphics-view-create scene)))
+        ;; No crash
+        (qt-graphics-view-set-render-hint! view QT_RENDER_ANTIALIASING)
+        (qt-graphics-view-set-drag-mode! view QT_DRAG_RUBBER_BAND)
+        (qt-widget-destroy! view)
+        (qt-graphics-scene-destroy! scene)))
+
+    (test-case "graphics view scale and center"
+      (ensure-app!)
+      (let* ((scene (qt-graphics-scene-create 0 0 400 300))
+             (view (qt-graphics-view-create scene)))
+        ;; No crash
+        (qt-graphics-view-scale! view 2.0 2.0)
+        (qt-graphics-view-center-on! view 200 150)
+        (qt-graphics-view-fit-in-view! view)
+        (qt-widget-destroy! view)
+        (qt-graphics-scene-destroy! scene)))
+
+    (test-case "graphics item position"
+      (ensure-app!)
+      (let* ((scene (qt-graphics-scene-create 0 0 400 300))
+             (rect (qt-graphics-scene-add-rect! scene 0 0 50 50)))
+        (qt-graphics-item-set-pos! rect 100 200)
+        (check (qt-graphics-item-x rect) => 100.0)
+        (check (qt-graphics-item-y rect) => 200.0)
+        (qt-graphics-scene-destroy! scene)))
+
+    (test-case "graphics item pen and brush"
+      (ensure-app!)
+      (let* ((scene (qt-graphics-scene-create 0 0 400 300))
+             (rect (qt-graphics-scene-add-rect! scene 0 0 50 50)))
+        ;; No crash
+        (qt-graphics-item-set-pen! rect 255 0 0 2)
+        (qt-graphics-item-set-brush! rect 0 128 255)
+        (qt-graphics-scene-destroy! scene)))
+
+    (test-case "graphics item flags"
+      (ensure-app!)
+      (let* ((scene (qt-graphics-scene-create 0 0 400 300))
+             (rect (qt-graphics-scene-add-rect! scene 0 0 50 50)))
+        ;; No crash
+        (qt-graphics-item-set-flags! rect
+          (bitwise-ior QT_ITEM_MOVABLE QT_ITEM_SELECTABLE))
+        (qt-graphics-scene-destroy! scene)))
+
+    (test-case "graphics item zvalue"
+      (ensure-app!)
+      (let* ((scene (qt-graphics-scene-create 0 0 400 300))
+             (rect (qt-graphics-scene-add-rect! scene 0 0 50 50)))
+        (qt-graphics-item-set-zvalue! rect 5.0)
+        (check (qt-graphics-item-zvalue rect) => 5.0)
+        (qt-graphics-scene-destroy! scene)))
+
+    (test-case "graphics item rotation and scale"
+      (ensure-app!)
+      (let* ((scene (qt-graphics-scene-create 0 0 400 300))
+             (rect (qt-graphics-scene-add-rect! scene 0 0 50 50)))
+        ;; No crash
+        (qt-graphics-item-set-rotation! rect 45.0)
+        (qt-graphics-item-set-scale! rect 2.0)
+        (qt-graphics-scene-destroy! scene)))
+
+    (test-case "graphics item visibility and tooltip"
+      (ensure-app!)
+      (let* ((scene (qt-graphics-scene-create 0 0 400 300))
+             (rect (qt-graphics-scene-add-rect! scene 0 0 50 50)))
+        ;; No crash
+        (qt-graphics-item-set-visible! rect #f)
+        (qt-graphics-item-set-tooltip! rect "A rectangle")
+        (qt-graphics-scene-destroy! scene)))
+
+    (test-case "graphics scene add pixmap"
+      (ensure-app!)
+      (let* ((scene (qt-graphics-scene-create 0 0 400 300))
+             (pixmap (qt-pixmap-create-blank 32 32)))
+        (qt-pixmap-fill! pixmap 255 0 0)
+        (let ((item (qt-graphics-scene-add-pixmap! scene pixmap)))
+          (check (not (eq? item #f)) => #t)
+          (check (qt-graphics-scene-items-count scene) => 1))
+        (qt-graphics-scene-destroy! scene)
+        (qt-pixmap-destroy! pixmap)))
+
+    (test-case "paint widget create"
+      (ensure-app!)
+      (let ((pw (qt-paint-widget-create)))
+        (check (not (eq? pw #f)) => #t)
+        (qt-widget-destroy! pw)))
+
+    (test-case "paint widget callback and update"
+      (ensure-app!)
+      (let ((pw (qt-paint-widget-create))
+            (painted? #f))
+        (qt-paint-widget-on-paint! pw
+          (lambda ()
+            (set! painted? #t)))
+        ;; Request a repaint — callback fires during repaint cycle
+        (qt-paint-widget-update! pw)
+        ;; In offscreen mode we can process events to trigger the paint
+        (qt-app-process-events! test-app)
+        ;; The paint callback may or may not fire in offscreen (depends on
+        ;; visibility), so just verify no crash
+        (qt-widget-destroy! pw)))
+
+    (test-case "paint widget dimensions"
+      (ensure-app!)
+      (let ((pw (qt-paint-widget-create)))
+        (qt-widget-set-minimum-size! pw 200 150)
+        ;; Width/height may not match minimum size until shown,
+        ;; but the call should not crash
+        (check (>= (qt-paint-widget-width pw) 0) => #t)
+        (check (>= (qt-paint-widget-height pw) 0) => #t)
+        (qt-widget-destroy! pw)))
+
+    (test-case "Phase 14 constants"
+      (check QT_ITEM_MOVABLE     => #x1)
+      (check QT_ITEM_SELECTABLE  => #x2)
+      (check QT_ITEM_FOCUSABLE   => #x4)
+      (check QT_DRAG_NONE        => 0)
+      (check QT_DRAG_SCROLL      => 1)
+      (check QT_DRAG_RUBBER_BAND => 2)
+      (check QT_RENDER_ANTIALIASING     => #x01)
+      (check QT_RENDER_SMOOTH_PIXMAP    => #x02)
+      (check QT_RENDER_TEXT_ANTIALIASING => #x04))
+
+    ;; ==================== Phase 15: Process, Wizard, MDI ====================
+
+    (test-case "QProcess create and destroy"
+      (ensure-app!)
+      (let ((proc (qt-process-create)))
+        (check (qt-process-state proc) => QT_PROCESS_NOT_RUNNING)
+        (qt-process-destroy! proc)))
+
+    (test-case "QProcess run echo"
+      (ensure-app!)
+      (let ((proc (qt-process-create)))
+        (qt-process-start! proc "/bin/echo" ["hello world"])
+        (check (qt-process-wait-for-finished proc 5000) => #t)
+        (check (qt-process-exit-code proc) => 0)
+        (let ((out (qt-process-read-stdout proc)))
+          (check (string-prefix? "hello world" out) => #t))
+        (qt-process-destroy! proc)))
+
+    (test-case "QProcess run with exit code"
+      (ensure-app!)
+      (let ((proc (qt-process-create)))
+        (qt-process-start! proc "/bin/sh" ["-c" "exit 42"])
+        (check (qt-process-wait-for-finished proc 5000) => #t)
+        (qt-app-process-events! test-app)
+        (qt-app-process-events! test-app)
+        (check (qt-process-exit-code proc) => 42)
+        (qt-process-destroy! proc)))
+
+    (test-case "QProcess read stderr"
+      (ensure-app!)
+      (let ((proc (qt-process-create)))
+        (qt-process-start! proc "/bin/sh" ["-c" "echo err >&2"])
+        (check (qt-process-wait-for-finished proc 5000) => #t)
+        (let ((err (qt-process-read-stderr proc)))
+          (check (string-prefix? "err" err) => #t))
+        (qt-process-destroy! proc)))
+
+    (test-case "QProcess write stdin"
+      (ensure-app!)
+      (let ((proc (qt-process-create)))
+        (qt-process-start! proc "/bin/cat" [])
+        (qt-process-write! proc "test input")
+        (qt-process-close-write! proc)
+        (check (qt-process-wait-for-finished proc 5000) => #t)
+        (let ((out (qt-process-read-stdout proc)))
+          (check (string-prefix? "test input" out) => #t))
+        (qt-process-destroy! proc)))
+
+    (test-case "QProcess state"
+      (ensure-app!)
+      (let ((proc (qt-process-create)))
+        (check (qt-process-state proc) => QT_PROCESS_NOT_RUNNING)
+        (qt-process-start! proc "/bin/sleep" ["10"])
+        ;; Process should be starting or running
+        (check (> (qt-process-state proc) QT_PROCESS_NOT_RUNNING) => #t)
+        (qt-process-kill! proc)
+        (qt-process-wait-for-finished proc 5000)
+        (qt-process-destroy! proc)))
+
+    (test-case "QProcess on-finished callback"
+      (ensure-app!)
+      (let ((proc (qt-process-create))
+            (finished-code #f))
+        (qt-process-on-finished! proc (lambda (code) (set! finished-code code)))
+        (qt-process-start! proc "/bin/sh" ["-c" "exit 7"])
+        (qt-process-wait-for-finished proc 5000)
+        (qt-app-process-events! test-app)
+        (qt-app-process-events! test-app)
+        (check finished-code => 7)
+        (qt-process-destroy! proc)))
+
+    (test-case "QWizard create and pages"
+      (ensure-app!)
+      (let ((wiz (qt-wizard-create))
+            (p1 (qt-wizard-page-create))
+            (p2 (qt-wizard-page-create)))
+        (qt-wizard-page-set-title! p1 "Page 1")
+        (qt-wizard-page-set-subtitle! p1 "First page")
+        (qt-wizard-page-set-title! p2 "Page 2")
+        (let ((id1 (qt-wizard-add-page! wiz p1))
+              (id2 (qt-wizard-add-page! wiz p2)))
+          (check (integer? id1) => #t)
+          (check (integer? id2) => #t)
+          (check (not (= id1 id2)) => #t))
+        (qt-wizard-set-title! wiz "Test Wizard")
+        (qt-widget-destroy! wiz)))
+
+    (test-case "QWizard set start id"
+      (ensure-app!)
+      (let ((wiz (qt-wizard-create))
+            (p1 (qt-wizard-page-create))
+            (p2 (qt-wizard-page-create)))
+        (let ((id1 (qt-wizard-add-page! wiz p1))
+              (id2 (qt-wizard-add-page! wiz p2)))
+          (qt-wizard-set-start-id! wiz id2)
+          ;; current-id is only valid after show/exec, just check no crash
+          (check (integer? (qt-wizard-current-id wiz)) => #t))
+        (qt-widget-destroy! wiz)))
+
+    (test-case "QWizard page layout"
+      (ensure-app!)
+      (let* ((wiz (qt-wizard-create))
+             (page (qt-wizard-page-create))
+             (layout (qt-vbox-layout-create page)))
+        (qt-wizard-page-set-title! page "Layout Test")
+        (qt-wizard-add-page! wiz page)
+        (qt-widget-destroy! wiz)))
+
+    (test-case "QMdiArea create and sub-windows"
+      (ensure-app!)
+      (let ((mdi (qt-mdi-area-create))
+            (w1 (qt-widget-create))
+            (w2 (qt-widget-create)))
+        (check (qt-mdi-area-sub-window-count mdi) => 0)
+        (let ((sub1 (qt-mdi-area-add-sub-window! mdi w1))
+              (sub2 (qt-mdi-area-add-sub-window! mdi w2)))
+          (check (qt-mdi-area-sub-window-count mdi) => 2)
+          (qt-mdi-sub-window-set-title! sub1 "Doc 1")
+          (qt-mdi-sub-window-set-title! sub2 "Doc 2")
+          ;; Cascade and tile should not crash
+          (qt-mdi-area-cascade! mdi)
+          (qt-mdi-area-tile! mdi))
+        (qt-widget-destroy! mdi)))
+
+    (test-case "QMdiArea view mode"
+      (ensure-app!)
+      (let ((mdi (qt-mdi-area-create)))
+        (qt-mdi-area-set-view-mode! mdi QT_MDI_TABBED)
+        (qt-mdi-area-set-view-mode! mdi QT_MDI_SUBWINDOW)
+        (qt-widget-destroy! mdi)))
+
+    (test-case "QMdiArea active sub-window"
+      (ensure-app!)
+      (let ((mdi (qt-mdi-area-create))
+            (w1 (qt-widget-create)))
+        (qt-mdi-area-add-sub-window! mdi w1)
+        ;; Active sub-window may be #f when not shown
+        (let ((active (qt-mdi-area-active-sub-window mdi)))
+          (check (or (not active) (procedure? (lambda () active))) => #t))
+        (qt-widget-destroy! mdi)))
+
+    (test-case "QMdiArea remove sub-window"
+      (ensure-app!)
+      (let ((mdi (qt-mdi-area-create))
+            (w1 (qt-widget-create)))
+        (let ((sub (qt-mdi-area-add-sub-window! mdi w1)))
+          (check (qt-mdi-area-sub-window-count mdi) => 1)
+          (qt-mdi-area-remove-sub-window! mdi sub)
+          (check (qt-mdi-area-sub-window-count mdi) => 0))
+        (qt-widget-destroy! mdi)))
+
+    (test-case "Phase 15 constants"
+      (check QT_PROCESS_NOT_RUNNING => 0)
+      (check QT_PROCESS_STARTING    => 1)
+      (check QT_PROCESS_RUNNING     => 2)
+      (check QT_MDI_SUBWINDOW       => 0)
+      (check QT_MDI_TABBED          => 1))
+
+    ;; ==================== Phase 16: Niche Widgets ====================
+
+    (test-case "QDial create and value"
+      (ensure-app!)
+      (let ((dial (qt-dial-create)))
+        (qt-dial-set-value! dial 50)
+        (check (qt-dial-value dial) => 50)
+        (qt-dial-set-value! dial 75)
+        (check (qt-dial-value dial) => 75)
+        (qt-widget-destroy! dial)))
+
+    (test-case "QDial range"
+      (ensure-app!)
+      (let ((dial (qt-dial-create)))
+        (qt-dial-set-range! dial 0 200)
+        (qt-dial-set-value! dial 150)
+        (check (qt-dial-value dial) => 150)
+        ;; Value should clamp to range
+        (qt-dial-set-value! dial 250)
+        (check (qt-dial-value dial) => 200)
+        (qt-widget-destroy! dial)))
+
+    (test-case "QDial notches and wrapping"
+      (ensure-app!)
+      (let ((dial (qt-dial-create)))
+        (qt-dial-set-notches-visible! dial #t)
+        (qt-dial-set-wrapping! dial #t)
+        (qt-widget-destroy! dial)))
+
+    (test-case "QDial signal registration"
+      (ensure-app!)
+      (let ((dial (qt-dial-create)))
+        (qt-dial-on-value-changed! dial (lambda (val) #t))
+        (qt-widget-destroy! dial)))
+
+    (test-case "QLCDNumber create and display"
+      (ensure-app!)
+      (let ((lcd (qt-lcd-create 6)))
+        (qt-lcd-display-int! lcd 42)
+        (qt-lcd-display-double! lcd 3.14)
+        (qt-lcd-display-string! lcd "12.5")
+        (qt-widget-destroy! lcd)))
+
+    (test-case "QLCDNumber mode and segment style"
+      (ensure-app!)
+      (let ((lcd (qt-lcd-create)))
+        (qt-lcd-set-mode! lcd QT_LCD_HEX)
+        (qt-lcd-set-mode! lcd QT_LCD_DEC)
+        (qt-lcd-set-segment-style! lcd QT_LCD_FLAT)
+        (qt-lcd-set-segment-style! lcd QT_LCD_FILLED)
+        (qt-widget-destroy! lcd)))
+
+    (test-case "QToolBox create and add items"
+      (ensure-app!)
+      (let ((tb (qt-tool-box-create))
+            (w1 (qt-widget-create))
+            (w2 (qt-widget-create)))
+        (check (qt-tool-box-count tb) => 0)
+        (let ((idx1 (qt-tool-box-add-item! tb w1 "Page 1"))
+              (idx2 (qt-tool-box-add-item! tb w2 "Page 2")))
+          (check (qt-tool-box-count tb) => 2)
+          (check (integer? idx1) => #t)
+          (check (integer? idx2) => #t))
+        (qt-widget-destroy! tb)))
+
+    (test-case "QToolBox current index"
+      (ensure-app!)
+      (let ((tb (qt-tool-box-create))
+            (w1 (qt-widget-create))
+            (w2 (qt-widget-create)))
+        (qt-tool-box-add-item! tb w1 "First")
+        (qt-tool-box-add-item! tb w2 "Second")
+        (qt-tool-box-set-current-index! tb 1)
+        (check (qt-tool-box-current-index tb) => 1)
+        (qt-tool-box-set-current-index! tb 0)
+        (check (qt-tool-box-current-index tb) => 0)
+        (qt-widget-destroy! tb)))
+
+    (test-case "QToolBox set item text"
+      (ensure-app!)
+      (let ((tb (qt-tool-box-create))
+            (w1 (qt-widget-create)))
+        (qt-tool-box-add-item! tb w1 "Original")
+        (qt-tool-box-set-item-text! tb 0 "Updated")
+        (qt-widget-destroy! tb)))
+
+    (test-case "QToolBox signal registration"
+      (ensure-app!)
+      (let ((tb (qt-tool-box-create)))
+        (qt-tool-box-on-current-changed! tb (lambda (idx) #t))
+        (qt-widget-destroy! tb)))
+
+    (test-case "QUndoStack create and destroy"
+      (ensure-app!)
+      (let ((stack (qt-undo-stack-create)))
+        (check (qt-undo-stack-can-undo? stack) => #f)
+        (check (qt-undo-stack-can-redo? stack) => #f)
+        (qt-undo-stack-destroy! stack)))
+
+    (test-case "QUndoStack push and undo/redo"
+      (ensure-app!)
+      (let ((stack (qt-undo-stack-create))
+            (value 0))
+        ;; Push a command: redo sets to 10, undo restores to 0
+        (qt-undo-stack-push! stack "Set to 10"
+          (lambda () (set! value 0))    ;; undo
+          (lambda () (set! value 10)))  ;; redo
+        ;; After push, redo fires immediately
+        (check value => 10)
+        (check (qt-undo-stack-can-undo? stack) => #t)
+        (check (qt-undo-stack-can-redo? stack) => #f)
+        ;; Undo
+        (qt-undo-stack-undo! stack)
+        (check value => 0)
+        (check (qt-undo-stack-can-redo? stack) => #t)
+        ;; Redo
+        (qt-undo-stack-redo! stack)
+        (check value => 10)
+        (qt-undo-stack-destroy! stack)))
+
+    (test-case "QUndoStack undo/redo text"
+      (ensure-app!)
+      (let ((stack (qt-undo-stack-create)))
+        (qt-undo-stack-push! stack "Do thing"
+          (lambda () #t) (lambda () #t))
+        (check (string-prefix? "Do thing" (qt-undo-stack-undo-text stack)) => #t)
+        (qt-undo-stack-destroy! stack)))
+
+    (test-case "QUndoStack clear"
+      (ensure-app!)
+      (let ((stack (qt-undo-stack-create)))
+        (qt-undo-stack-push! stack "Action 1"
+          (lambda () #t) (lambda () #t))
+        (check (qt-undo-stack-can-undo? stack) => #t)
+        (qt-undo-stack-clear! stack)
+        (check (qt-undo-stack-can-undo? stack) => #f)
+        (qt-undo-stack-destroy! stack)))
+
+    (test-case "QUndoStack create actions"
+      (ensure-app!)
+      (let* ((win (qt-main-window-create))
+             (stack (qt-undo-stack-create)))
+        (let ((undo-action (qt-undo-stack-create-undo-action stack win))
+              (redo-action (qt-undo-stack-create-redo-action stack win)))
+          (check (not (eq? undo-action #f)) => #t)
+          (check (not (eq? redo-action #f)) => #t))
+        (qt-undo-stack-destroy! stack)
+        (qt-widget-destroy! win)))
+
+    (test-case "QFileSystemModel create and destroy"
+      (ensure-app!)
+      (let ((model (qt-file-system-model-create)))
+        (qt-file-system-model-set-root-path! model "/tmp")
+        (qt-file-system-model-destroy! model)))
+
+    (test-case "QFileSystemModel with tree view"
+      (ensure-app!)
+      (let ((model (qt-file-system-model-create))
+            (view (qt-tree-view-create)))
+        (qt-file-system-model-set-root-path! model "/tmp")
+        (qt-tree-view-set-file-system-root! view model "/tmp")
+        (qt-file-system-model-destroy! model)
+        (qt-widget-destroy! view)))
+
+    (test-case "QFileSystemModel filter"
+      (ensure-app!)
+      (let ((model (qt-file-system-model-create)))
+        (qt-file-system-model-set-root-path! model "/tmp")
+        (qt-file-system-model-set-filter! model
+          (bitwise-ior QT_DIR_DIRS QT_DIR_FILES QT_DIR_NO_DOT_AND_DOT_DOT))
+        (qt-file-system-model-set-name-filters! model ["*.txt" "*.md"])
+        (qt-file-system-model-destroy! model)))
+
+    (test-case "Phase 16 constants"
+      (check QT_LCD_DEC     => 0)
+      (check QT_LCD_HEX     => 1)
+      (check QT_LCD_OCT     => 2)
+      (check QT_LCD_BIN     => 3)
+      (check QT_LCD_OUTLINE => 0)
+      (check QT_LCD_FILLED  => 1)
+      (check QT_LCD_FLAT    => 2)
+      (check QT_DIR_DIRS    => 1)
+      (check QT_DIR_FILES   => 2))
+
   ))

@@ -815,6 +815,584 @@ void        qt_calendar_on_clicked(qt_calendar_t c,
                                     qt_callback_string callback,
                                     long callback_id);
 
+/* ========== Phase 11: QSettings, QCompleter, QToolTip ========== */
+
+typedef void* qt_settings_t;
+typedef void* qt_completer_t;
+
+/* QSettings format constants */
+#define QT_SETTINGS_NATIVE  0
+#define QT_SETTINGS_INI     1
+
+/* QCompleter completion mode constants */
+#define QT_COMPLETER_POPUP              0
+#define QT_COMPLETER_INLINE             1
+#define QT_COMPLETER_UNFILTERED_POPUP   2
+
+/* Case sensitivity constants */
+#define QT_CASE_INSENSITIVE  0
+#define QT_CASE_SENSITIVE    1
+
+/* Filter mode constants (simplified mapping to Qt::MatchFlags) */
+#define QT_MATCH_STARTS_WITH  0
+#define QT_MATCH_CONTAINS     1
+#define QT_MATCH_ENDS_WITH    2
+
+/* --- QSettings --- */
+qt_settings_t qt_settings_create(const char* org, const char* app);
+qt_settings_t qt_settings_create_file(const char* path, int format);
+void        qt_settings_set_string(qt_settings_t s, const char* key,
+                                   const char* value);
+const char* qt_settings_value_string(qt_settings_t s, const char* key,
+                                     const char* default_value);
+void        qt_settings_set_int(qt_settings_t s, const char* key, int value);
+int         qt_settings_value_int(qt_settings_t s, const char* key,
+                                  int default_value);
+void        qt_settings_set_double(qt_settings_t s, const char* key,
+                                   double value);
+double      qt_settings_value_double(qt_settings_t s, const char* key,
+                                     double default_value);
+void        qt_settings_set_bool(qt_settings_t s, const char* key, int value);
+int         qt_settings_value_bool(qt_settings_t s, const char* key,
+                                   int default_value);
+int         qt_settings_contains(qt_settings_t s, const char* key);
+void        qt_settings_remove(qt_settings_t s, const char* key);
+const char* qt_settings_all_keys(qt_settings_t s);
+const char* qt_settings_child_keys(qt_settings_t s);
+const char* qt_settings_child_groups(qt_settings_t s);
+void        qt_settings_begin_group(qt_settings_t s, const char* prefix);
+void        qt_settings_end_group(qt_settings_t s);
+const char* qt_settings_group(qt_settings_t s);
+void        qt_settings_sync(qt_settings_t s);
+void        qt_settings_clear(qt_settings_t s);
+const char* qt_settings_file_name(qt_settings_t s);
+int         qt_settings_is_writable(qt_settings_t s);
+void        qt_settings_destroy(qt_settings_t s);
+
+/* --- QCompleter --- */
+qt_completer_t qt_completer_create(const char* items_newline);
+void        qt_completer_set_model_strings(qt_completer_t c,
+                                           const char* items_newline);
+void        qt_completer_set_case_sensitivity(qt_completer_t c, int cs);
+void        qt_completer_set_completion_mode(qt_completer_t c, int mode);
+void        qt_completer_set_filter_mode(qt_completer_t c, int mode);
+void        qt_completer_set_max_visible_items(qt_completer_t c, int count);
+int         qt_completer_completion_count(qt_completer_t c);
+const char* qt_completer_current_completion(qt_completer_t c);
+void        qt_completer_set_completion_prefix(qt_completer_t c,
+                                               const char* prefix);
+void        qt_completer_on_activated(qt_completer_t c,
+                                      qt_callback_string callback,
+                                      long callback_id);
+void        qt_line_edit_set_completer(qt_line_edit_t e, qt_completer_t c);
+void        qt_completer_destroy(qt_completer_t c);
+
+/* --- QToolTip / QWhatsThis --- */
+void        qt_tooltip_show_text(int x, int y, const char* text,
+                                 qt_widget_t widget);
+void        qt_tooltip_hide_text(void);
+int         qt_tooltip_is_visible(void);
+const char* qt_widget_tooltip(qt_widget_t w);
+void        qt_widget_set_whats_this(qt_widget_t w, const char* text);
+const char* qt_widget_whats_this(qt_widget_t w);
+
+/* --- Phase 12: Model/View Framework --- */
+
+/* Opaque handle types */
+typedef void* qt_standard_model_t;
+typedef void* qt_standard_item_t;
+typedef void* qt_string_list_model_t;
+typedef void* qt_sort_filter_proxy_t;
+typedef void* qt_list_view_t;
+typedef void* qt_table_view_t;
+typedef void* qt_tree_view_t;
+
+/* --- QStandardItemModel --- */
+qt_standard_model_t qt_standard_model_create(int rows, int cols,
+                                              qt_widget_t parent);
+void        qt_standard_model_destroy(qt_standard_model_t m);
+int         qt_standard_model_row_count(qt_standard_model_t m);
+int         qt_standard_model_column_count(qt_standard_model_t m);
+void        qt_standard_model_set_row_count(qt_standard_model_t m, int rows);
+void        qt_standard_model_set_column_count(qt_standard_model_t m, int cols);
+void        qt_standard_model_set_item(qt_standard_model_t m, int row, int col,
+                                        qt_standard_item_t item);
+qt_standard_item_t qt_standard_model_item(qt_standard_model_t m,
+                                           int row, int col);
+int         qt_standard_model_insert_row(qt_standard_model_t m, int row);
+int         qt_standard_model_insert_column(qt_standard_model_t m, int col);
+int         qt_standard_model_remove_row(qt_standard_model_t m, int row);
+int         qt_standard_model_remove_column(qt_standard_model_t m, int col);
+void        qt_standard_model_clear(qt_standard_model_t m);
+void        qt_standard_model_set_horizontal_header(qt_standard_model_t m,
+                                                     int col, const char* text);
+void        qt_standard_model_set_vertical_header(qt_standard_model_t m,
+                                                    int row, const char* text);
+
+/* --- QStandardItem --- */
+qt_standard_item_t qt_standard_item_create(const char* text);
+const char* qt_standard_item_text(qt_standard_item_t item);
+void        qt_standard_item_set_text(qt_standard_item_t item,
+                                       const char* text);
+const char* qt_standard_item_tooltip(qt_standard_item_t item);
+void        qt_standard_item_set_tooltip(qt_standard_item_t item,
+                                          const char* text);
+void        qt_standard_item_set_editable(qt_standard_item_t item, int val);
+int         qt_standard_item_is_editable(qt_standard_item_t item);
+void        qt_standard_item_set_enabled(qt_standard_item_t item, int val);
+int         qt_standard_item_is_enabled(qt_standard_item_t item);
+void        qt_standard_item_set_selectable(qt_standard_item_t item, int val);
+int         qt_standard_item_is_selectable(qt_standard_item_t item);
+void        qt_standard_item_set_checkable(qt_standard_item_t item, int val);
+int         qt_standard_item_is_checkable(qt_standard_item_t item);
+void        qt_standard_item_set_check_state(qt_standard_item_t item, int state);
+int         qt_standard_item_check_state(qt_standard_item_t item);
+void        qt_standard_item_set_icon(qt_standard_item_t item, void* icon);
+void        qt_standard_item_append_row(qt_standard_item_t parent,
+                                         qt_standard_item_t child);
+int         qt_standard_item_row_count(qt_standard_item_t item);
+int         qt_standard_item_column_count(qt_standard_item_t item);
+qt_standard_item_t qt_standard_item_child(qt_standard_item_t item,
+                                            int row, int col);
+
+/* --- QStringListModel --- */
+qt_string_list_model_t qt_string_list_model_create(const char* items_newline);
+void        qt_string_list_model_destroy(qt_string_list_model_t m);
+void        qt_string_list_model_set_strings(qt_string_list_model_t m,
+                                              const char* items_newline);
+const char* qt_string_list_model_strings(qt_string_list_model_t m);
+int         qt_string_list_model_row_count(qt_string_list_model_t m);
+
+/* --- Common view functions (QAbstractItemView) --- */
+void        qt_view_set_model(qt_widget_t view, void* model);
+void        qt_view_set_selection_mode(qt_widget_t view, int mode);
+void        qt_view_set_selection_behavior(qt_widget_t view, int behavior);
+void        qt_view_set_alternating_row_colors(qt_widget_t view, int val);
+void        qt_view_set_sorting_enabled(qt_widget_t view, int val);
+void        qt_view_set_edit_triggers(qt_widget_t view, int triggers);
+
+/* --- QListView --- */
+qt_list_view_t qt_list_view_create(qt_widget_t parent);
+void        qt_list_view_set_flow(qt_list_view_t v, int flow);
+
+/* --- QTableView --- */
+qt_table_view_t qt_table_view_create(qt_widget_t parent);
+void        qt_table_view_set_column_width(qt_table_view_t v, int col, int w);
+void        qt_table_view_set_row_height(qt_table_view_t v, int row, int h);
+void        qt_table_view_hide_column(qt_table_view_t v, int col);
+void        qt_table_view_show_column(qt_table_view_t v, int col);
+void        qt_table_view_hide_row(qt_table_view_t v, int row);
+void        qt_table_view_show_row(qt_table_view_t v, int row);
+void        qt_table_view_resize_columns_to_contents(qt_table_view_t v);
+void        qt_table_view_resize_rows_to_contents(qt_table_view_t v);
+
+/* --- QTreeView --- */
+qt_tree_view_t qt_tree_view_create(qt_widget_t parent);
+void        qt_tree_view_expand_all(qt_tree_view_t v);
+void        qt_tree_view_collapse_all(qt_tree_view_t v);
+void        qt_tree_view_set_indentation(qt_tree_view_t v, int indent);
+int         qt_tree_view_indentation(qt_tree_view_t v);
+void        qt_tree_view_set_root_is_decorated(qt_tree_view_t v, int val);
+void        qt_tree_view_set_header_hidden(qt_tree_view_t v, int val);
+void        qt_tree_view_set_column_width(qt_tree_view_t v, int col, int w);
+
+/* --- QHeaderView (via view) --- */
+void        qt_view_header_set_stretch_last_section(qt_widget_t view,
+                                                     int horizontal, int val);
+void        qt_view_header_set_section_resize_mode(qt_widget_t view,
+                                                    int horizontal, int mode);
+void        qt_view_header_hide(qt_widget_t view, int horizontal);
+void        qt_view_header_show(qt_widget_t view, int horizontal);
+void        qt_view_header_set_default_section_size(qt_widget_t view,
+                                                     int horizontal, int size);
+
+/* --- QSortFilterProxyModel --- */
+qt_sort_filter_proxy_t qt_sort_filter_proxy_create(void* parent);
+void        qt_sort_filter_proxy_destroy(qt_sort_filter_proxy_t p);
+void        qt_sort_filter_proxy_set_source_model(qt_sort_filter_proxy_t p,
+                                                   void* model);
+void        qt_sort_filter_proxy_set_filter_regex(qt_sort_filter_proxy_t p,
+                                                   const char* pattern);
+void        qt_sort_filter_proxy_set_filter_column(qt_sort_filter_proxy_t p,
+                                                    int col);
+void        qt_sort_filter_proxy_set_filter_case_sensitivity(
+                qt_sort_filter_proxy_t p, int cs);
+void        qt_sort_filter_proxy_set_filter_role(qt_sort_filter_proxy_t p,
+                                                  int role);
+void        qt_sort_filter_proxy_sort(qt_sort_filter_proxy_t p,
+                                       int col, int order);
+void        qt_sort_filter_proxy_set_sort_role(qt_sort_filter_proxy_t p,
+                                                int role);
+void        qt_sort_filter_proxy_set_dynamic_sort_filter(
+                qt_sort_filter_proxy_t p, int val);
+void        qt_sort_filter_proxy_invalidate_filter(qt_sort_filter_proxy_t p);
+int         qt_sort_filter_proxy_row_count(qt_sort_filter_proxy_t p);
+
+/* --- View signals + selection --- */
+void        qt_view_on_clicked(qt_widget_t view, qt_callback_void callback,
+                                long callback_id);
+void        qt_view_on_double_clicked(qt_widget_t view,
+                                       qt_callback_void callback,
+                                       long callback_id);
+void        qt_view_on_activated(qt_widget_t view, qt_callback_void callback,
+                                  long callback_id);
+void        qt_view_on_selection_changed(qt_widget_t view,
+                                          qt_callback_void callback,
+                                          long callback_id);
+int         qt_view_last_clicked_row(void);
+int         qt_view_last_clicked_col(void);
+const char* qt_view_selected_rows(qt_widget_t view);
+int         qt_view_current_row(qt_widget_t view);
+
+/* ========== Phase 13: Practical Polish ========== */
+
+typedef void* qt_validator_t;
+typedef void* qt_plain_text_edit_t;
+typedef void* qt_tool_button_t;
+
+/* --- Validator state constants --- */
+#define QT_VALIDATOR_INVALID       0
+#define QT_VALIDATOR_INTERMEDIATE  1
+#define QT_VALIDATOR_ACCEPTABLE    2
+
+/* --- PlainTextEdit line wrap modes --- */
+#define QT_PLAIN_NO_WRAP    0
+#define QT_PLAIN_WIDGET_WRAP 1
+
+/* --- ToolButton popup modes --- */
+#define QT_DELAYED_POPUP     0
+#define QT_MENU_BUTTON_POPUP 1
+#define QT_INSTANT_POPUP     2
+
+/* --- ToolButton arrow types --- */
+#define QT_NO_ARROW    0
+#define QT_UP_ARROW    1
+#define QT_DOWN_ARROW  2
+#define QT_LEFT_ARROW  3
+#define QT_RIGHT_ARROW 4
+
+/* --- ToolButton styles --- */
+#define QT_TOOL_BUTTON_ICON_ONLY         0
+#define QT_TOOL_BUTTON_TEXT_ONLY         1
+#define QT_TOOL_BUTTON_TEXT_BESIDE_ICON  2
+#define QT_TOOL_BUTTON_TEXT_UNDER_ICON   3
+
+/* --- QSizePolicy constants --- */
+#define QT_SIZE_FIXED              0
+#define QT_SIZE_MINIMUM            1
+#define QT_SIZE_MINIMUM_EXPANDING  3
+#define QT_SIZE_MAXIMUM            4
+#define QT_SIZE_PREFERRED          5
+#define QT_SIZE_EXPANDING          7
+#define QT_SIZE_IGNORED            13
+
+/* --- QValidator --- */
+qt_validator_t qt_int_validator_create(int minimum, int maximum,
+                                       qt_widget_t parent);
+qt_validator_t qt_double_validator_create(double bottom, double top,
+                                           int decimals, qt_widget_t parent);
+qt_validator_t qt_regex_validator_create(const char* pattern,
+                                          qt_widget_t parent);
+void           qt_validator_destroy(qt_validator_t v);
+int            qt_validator_validate(qt_validator_t v, const char* input);
+void           qt_line_edit_set_validator(qt_line_edit_t e, qt_validator_t v);
+int            qt_line_edit_has_acceptable_input(qt_line_edit_t e);
+
+/* --- QPlainTextEdit --- */
+qt_plain_text_edit_t qt_plain_text_edit_create(qt_widget_t parent);
+void        qt_plain_text_edit_set_text(qt_plain_text_edit_t e,
+                                         const char* text);
+const char* qt_plain_text_edit_text(qt_plain_text_edit_t e);
+void        qt_plain_text_edit_append(qt_plain_text_edit_t e,
+                                       const char* text);
+void        qt_plain_text_edit_clear(qt_plain_text_edit_t e);
+void        qt_plain_text_edit_set_read_only(qt_plain_text_edit_t e,
+                                              int read_only);
+int         qt_plain_text_edit_is_read_only(qt_plain_text_edit_t e);
+void        qt_plain_text_edit_set_placeholder(qt_plain_text_edit_t e,
+                                                const char* text);
+int         qt_plain_text_edit_line_count(qt_plain_text_edit_t e);
+void        qt_plain_text_edit_set_max_block_count(qt_plain_text_edit_t e,
+                                                     int count);
+int         qt_plain_text_edit_cursor_line(qt_plain_text_edit_t e);
+int         qt_plain_text_edit_cursor_column(qt_plain_text_edit_t e);
+void        qt_plain_text_edit_set_line_wrap(qt_plain_text_edit_t e,
+                                              int mode);
+void        qt_plain_text_edit_on_text_changed(qt_plain_text_edit_t e,
+                                                qt_callback_void callback,
+                                                long callback_id);
+
+/* --- QToolButton --- */
+qt_tool_button_t qt_tool_button_create(qt_widget_t parent);
+void        qt_tool_button_set_text(qt_tool_button_t b, const char* text);
+const char* qt_tool_button_text(qt_tool_button_t b);
+void        qt_tool_button_set_icon(qt_tool_button_t b, const char* path);
+void        qt_tool_button_set_menu(qt_tool_button_t b, qt_widget_t menu);
+void        qt_tool_button_set_popup_mode(qt_tool_button_t b, int mode);
+void        qt_tool_button_set_auto_raise(qt_tool_button_t b, int val);
+void        qt_tool_button_set_arrow_type(qt_tool_button_t b, int arrow);
+void        qt_tool_button_set_tool_button_style(qt_tool_button_t b,
+                                                   int style);
+void        qt_tool_button_on_clicked(qt_tool_button_t b,
+                                       qt_callback_void callback,
+                                       long callback_id);
+
+/* --- Layout spacers --- */
+void qt_layout_add_spacing(qt_layout_t layout, int size);
+
+/* --- QSizePolicy --- */
+void qt_widget_set_size_policy(qt_widget_t w, int h_policy, int v_policy);
+void qt_layout_set_stretch_factor(qt_layout_t layout, qt_widget_t widget,
+                                   int stretch);
+
+/* ========== Phase 14: Graphics Scene & Custom Painting ========== */
+
+typedef void* qt_graphics_scene_t;
+typedef void* qt_graphics_view_t;
+typedef void* qt_graphics_item_t;
+typedef void* qt_paint_widget_t;
+
+/* Graphics item flags */
+#define QT_ITEM_MOVABLE    0x1
+#define QT_ITEM_SELECTABLE 0x2
+#define QT_ITEM_FOCUSABLE  0x4
+
+/* Graphics view drag modes */
+#define QT_DRAG_NONE        0
+#define QT_DRAG_SCROLL      1
+#define QT_DRAG_RUBBER_BAND 2
+
+/* Render hints */
+#define QT_RENDER_ANTIALIASING      0x01
+#define QT_RENDER_SMOOTH_PIXMAP     0x02
+#define QT_RENDER_TEXT_ANTIALIASING  0x04
+
+/* --- QGraphicsScene --- */
+qt_graphics_scene_t qt_graphics_scene_create(double x, double y,
+                                              double w, double h);
+qt_graphics_item_t  qt_graphics_scene_add_rect(qt_graphics_scene_t scene,
+                                                double x, double y,
+                                                double w, double h);
+qt_graphics_item_t  qt_graphics_scene_add_ellipse(qt_graphics_scene_t scene,
+                                                   double x, double y,
+                                                   double w, double h);
+qt_graphics_item_t  qt_graphics_scene_add_line(qt_graphics_scene_t scene,
+                                                double x1, double y1,
+                                                double x2, double y2);
+qt_graphics_item_t  qt_graphics_scene_add_text(qt_graphics_scene_t scene,
+                                                const char* text);
+qt_graphics_item_t  qt_graphics_scene_add_pixmap(qt_graphics_scene_t scene,
+                                                  qt_pixmap_t pixmap);
+void                qt_graphics_scene_remove_item(qt_graphics_scene_t scene,
+                                                   qt_graphics_item_t item);
+void                qt_graphics_scene_clear(qt_graphics_scene_t scene);
+int                 qt_graphics_scene_items_count(qt_graphics_scene_t scene);
+void                qt_graphics_scene_set_background(qt_graphics_scene_t scene,
+                                                      int r, int g, int b);
+void                qt_graphics_scene_destroy(qt_graphics_scene_t scene);
+
+/* --- QGraphicsView --- */
+qt_graphics_view_t qt_graphics_view_create(qt_graphics_scene_t scene,
+                                            qt_widget_t parent);
+void               qt_graphics_view_set_render_hint(qt_graphics_view_t view,
+                                                     int hint, int on);
+void               qt_graphics_view_set_drag_mode(qt_graphics_view_t view,
+                                                    int mode);
+void               qt_graphics_view_fit_in_view(qt_graphics_view_t view);
+void               qt_graphics_view_scale(qt_graphics_view_t view,
+                                           double sx, double sy);
+void               qt_graphics_view_center_on(qt_graphics_view_t view,
+                                               double x, double y);
+
+/* --- QGraphicsItem --- */
+void qt_graphics_item_set_pos(qt_graphics_item_t item, double x, double y);
+double qt_graphics_item_x(qt_graphics_item_t item);
+double qt_graphics_item_y(qt_graphics_item_t item);
+void qt_graphics_item_set_pen(qt_graphics_item_t item,
+                               int r, int g, int b, int width);
+void qt_graphics_item_set_brush(qt_graphics_item_t item, int r, int g, int b);
+void qt_graphics_item_set_flags(qt_graphics_item_t item, int flags);
+void qt_graphics_item_set_tooltip(qt_graphics_item_t item, const char* text);
+void qt_graphics_item_set_zvalue(qt_graphics_item_t item, double z);
+double qt_graphics_item_zvalue(qt_graphics_item_t item);
+void qt_graphics_item_set_rotation(qt_graphics_item_t item, double angle);
+void qt_graphics_item_set_scale(qt_graphics_item_t item, double factor);
+void qt_graphics_item_set_visible(qt_graphics_item_t item, int visible);
+
+/* --- PaintWidget (custom paintEvent) --- */
+qt_paint_widget_t qt_paint_widget_create(qt_widget_t parent);
+void              qt_paint_widget_on_paint(qt_paint_widget_t w,
+                                            qt_callback_void callback,
+                                            long callback_id);
+qt_painter_t      qt_paint_widget_painter(qt_paint_widget_t w);
+void              qt_paint_widget_update(qt_paint_widget_t w);
+int               qt_paint_widget_width(qt_paint_widget_t w);
+int               qt_paint_widget_height(qt_paint_widget_t w);
+
+/* Phase 15: QProcess state */
+#define QT_PROCESS_NOT_RUNNING 0
+#define QT_PROCESS_STARTING    1
+#define QT_PROCESS_RUNNING     2
+
+/* Phase 15: QMdiArea view mode */
+#define QT_MDI_SUBWINDOW 0
+#define QT_MDI_TABBED    1
+
+/* Phase 16: QLCDNumber mode */
+#define QT_LCD_DEC     0
+#define QT_LCD_HEX     1
+#define QT_LCD_OCT     2
+#define QT_LCD_BIN     3
+
+/* Phase 16: QLCDNumber segment style */
+#define QT_LCD_OUTLINE 0
+#define QT_LCD_FILLED  1
+#define QT_LCD_FLAT    2
+
+/* Phase 16: QDir filter flags (for QFileSystemModel) */
+#define QT_DIR_DIRS              0x001
+#define QT_DIR_FILES             0x002
+#define QT_DIR_HIDDEN            0x100
+#define QT_DIR_NO_DOT_AND_DOT_DOT 0x1000
+
+/* ========== Phase 15: Process, Wizard, MDI ========== */
+
+typedef void* qt_process_t;
+typedef void* qt_wizard_t;
+typedef void* qt_wizard_page_t;
+typedef void* qt_mdi_area_t;
+typedef void* qt_mdi_sub_window_t;
+
+/* --- QProcess --- */
+qt_process_t qt_process_create(qt_widget_t parent);
+void         qt_process_start(qt_process_t proc, const char* program,
+                               const char* args_str);
+void         qt_process_write(qt_process_t proc, const char* data);
+void         qt_process_close_write(qt_process_t proc);
+const char*  qt_process_read_stdout(qt_process_t proc);
+const char*  qt_process_read_stderr(qt_process_t proc);
+int          qt_process_wait_for_finished(qt_process_t proc, int msecs);
+int          qt_process_exit_code(qt_process_t proc);
+int          qt_process_state(qt_process_t proc);
+void         qt_process_kill(qt_process_t proc);
+void         qt_process_terminate(qt_process_t proc);
+void         qt_process_on_finished(qt_process_t proc,
+                                     qt_callback_int callback,
+                                     long callback_id);
+void         qt_process_on_ready_read(qt_process_t proc,
+                                       qt_callback_void callback,
+                                       long callback_id);
+void         qt_process_destroy(qt_process_t proc);
+
+/* --- QWizard / QWizardPage --- */
+qt_wizard_t      qt_wizard_create(qt_widget_t parent);
+int              qt_wizard_add_page(qt_wizard_t wiz, qt_wizard_page_t page);
+void             qt_wizard_set_start_id(qt_wizard_t wiz, int id);
+int              qt_wizard_current_id(qt_wizard_t wiz);
+void             qt_wizard_set_title(qt_wizard_t wiz, const char* title);
+int              qt_wizard_exec(qt_wizard_t wiz);
+qt_wizard_page_t qt_wizard_page_create(qt_widget_t parent);
+void             qt_wizard_page_set_title(qt_wizard_page_t page,
+                                           const char* title);
+void             qt_wizard_page_set_subtitle(qt_wizard_page_t page,
+                                              const char* subtitle);
+void             qt_wizard_page_set_layout(qt_wizard_page_t page,
+                                            qt_layout_t layout);
+void             qt_wizard_on_current_changed(qt_wizard_t wiz,
+                                               qt_callback_int callback,
+                                               long callback_id);
+
+/* --- QMdiArea / QMdiSubWindow --- */
+qt_mdi_area_t       qt_mdi_area_create(qt_widget_t parent);
+qt_mdi_sub_window_t qt_mdi_area_add_sub_window(qt_mdi_area_t area,
+                                                 qt_widget_t widget);
+void                qt_mdi_area_remove_sub_window(qt_mdi_area_t area,
+                                                   qt_mdi_sub_window_t sub);
+qt_mdi_sub_window_t qt_mdi_area_active_sub_window(qt_mdi_area_t area);
+int                 qt_mdi_area_sub_window_count(qt_mdi_area_t area);
+void                qt_mdi_area_cascade(qt_mdi_area_t area);
+void                qt_mdi_area_tile(qt_mdi_area_t area);
+void                qt_mdi_area_set_view_mode(qt_mdi_area_t area, int mode);
+void                qt_mdi_sub_window_set_title(qt_mdi_sub_window_t sub,
+                                                 const char* title);
+void                qt_mdi_area_on_sub_window_activated(qt_mdi_area_t area,
+                                                         qt_callback_void callback,
+                                                         long callback_id);
+
+// ============================================================
+// Phase 16: QDial, QLCDNumber, QToolBox, QUndoStack, QFileSystemModel
+// ============================================================
+
+// -- QDial --
+typedef void* qt_dial_t;
+qt_dial_t           qt_dial_create(qt_widget_t parent);
+void                qt_dial_set_value(qt_dial_t d, int val);
+int                 qt_dial_value(qt_dial_t d);
+void                qt_dial_set_range(qt_dial_t d, int min, int max);
+void                qt_dial_set_notches_visible(qt_dial_t d, int visible);
+void                qt_dial_set_wrapping(qt_dial_t d, int wrap);
+void                qt_dial_on_value_changed(qt_dial_t d,
+                                              qt_callback_int callback,
+                                              long callback_id);
+
+// -- QLCDNumber --
+typedef void* qt_lcd_t;
+qt_lcd_t            qt_lcd_create(int digits, qt_widget_t parent);
+void                qt_lcd_display_int(qt_lcd_t lcd, int value);
+void                qt_lcd_display_double(qt_lcd_t lcd, double value);
+void                qt_lcd_display_string(qt_lcd_t lcd, const char* text);
+void                qt_lcd_set_mode(qt_lcd_t lcd, int mode);
+void                qt_lcd_set_segment_style(qt_lcd_t lcd, int style);
+
+// -- QToolBox --
+typedef void* qt_tool_box_t;
+qt_tool_box_t       qt_tool_box_create(qt_widget_t parent);
+int                 qt_tool_box_add_item(qt_tool_box_t tb, qt_widget_t widget,
+                                          const char* text);
+void                qt_tool_box_set_current_index(qt_tool_box_t tb, int idx);
+int                 qt_tool_box_current_index(qt_tool_box_t tb);
+int                 qt_tool_box_count(qt_tool_box_t tb);
+void                qt_tool_box_set_item_text(qt_tool_box_t tb, int idx,
+                                               const char* text);
+void                qt_tool_box_on_current_changed(qt_tool_box_t tb,
+                                                    qt_callback_int callback,
+                                                    long callback_id);
+
+// -- QUndoStack --
+typedef void* qt_undo_stack_t;
+qt_undo_stack_t     qt_undo_stack_create(qt_widget_t parent);
+void                qt_undo_stack_push(qt_undo_stack_t stack, const char* text,
+                                        qt_callback_void undo_cb, long undo_id,
+                                        qt_callback_void redo_cb, long redo_id);
+void                qt_undo_stack_undo(qt_undo_stack_t stack);
+void                qt_undo_stack_redo(qt_undo_stack_t stack);
+int                 qt_undo_stack_can_undo(qt_undo_stack_t stack);
+int                 qt_undo_stack_can_redo(qt_undo_stack_t stack);
+const char*         qt_undo_stack_undo_text(qt_undo_stack_t stack);
+const char*         qt_undo_stack_redo_text(qt_undo_stack_t stack);
+void                qt_undo_stack_clear(qt_undo_stack_t stack);
+qt_action_t         qt_undo_stack_create_undo_action(qt_undo_stack_t stack,
+                                                       qt_widget_t parent);
+qt_action_t         qt_undo_stack_create_redo_action(qt_undo_stack_t stack,
+                                                       qt_widget_t parent);
+void                qt_undo_stack_destroy(qt_undo_stack_t stack);
+
+// -- QFileSystemModel --
+typedef void* qt_file_system_model_t;
+qt_file_system_model_t qt_file_system_model_create(qt_widget_t parent);
+void                qt_file_system_model_set_root_path(qt_file_system_model_t model,
+                                                        const char* path);
+void                qt_file_system_model_set_filter(qt_file_system_model_t model,
+                                                     int filters);
+void                qt_file_system_model_set_name_filters(qt_file_system_model_t model,
+                                                           const char* patterns);
+const char*         qt_file_system_model_file_path(qt_file_system_model_t model,
+                                                    int row, int column);
+void                qt_tree_view_set_file_system_root(qt_widget_t view,
+                                                       qt_file_system_model_t model,
+                                                       const char* path);
+void                qt_file_system_model_destroy(qt_file_system_model_t model);
+
 #ifdef __cplusplus
 }
 #endif
