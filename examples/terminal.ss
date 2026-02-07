@@ -23,13 +23,17 @@
 
     ;; Configure output area
     (qt-plain-text-edit-set-read-only! output #t)
-    (qt-widget-set-font! output "Monospace" 10)
     (qt-plain-text-edit-set-max-block-count! output 10000)
 
     ;; Configure input
     (qt-line-edit-set-placeholder! input "Enter command...")
-    (qt-widget-set-font! input "Monospace" 10)
-    (qt-widget-set-font! prompt-label "Monospace" 10)
+
+    ;; Set monospace font on all text widgets
+    (let ((mono (qt-font-create "Monospace" point-size: 10)))
+      (qt-widget-set-font! output mono)
+      (qt-widget-set-font! input mono)
+      (qt-widget-set-font! prompt-label mono)
+      (qt-font-destroy! mono))
 
     ;; Build input row
     (qt-layout-add-widget! input-layout prompt-label)

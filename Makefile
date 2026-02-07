@@ -1,7 +1,7 @@
 export PKG_CONFIG_PATH := /usr/lib/x86_64-linux-gnu/pkgconfig:$(PKG_CONFIG_PATH)
 export GERBIL_LOADPATH := $(HOME)/.gerbil/lib
 
-.PHONY: build test clean demo-hello demo-counter demo-form demo-editor demo-dashboard demo-filebrowser demo-styled demo-settings demo-painter demo-datainput demo-planner demo-autocomplete demo-modelviewer demo-polished demo-diagram demo-terminal demo-widgets
+.PHONY: build test clean demo-hello demo-counter demo-form demo-editor demo-dashboard demo-filebrowser demo-styled demo-settings demo-painter demo-datainput demo-planner demo-autocomplete demo-modelviewer demo-polished demo-diagram demo-terminal demo-widgets demo-dockable demo-wizard demo-mdi demo-richtext demo-filemanager demo-dragdrop demo-dialogs demo-trayapp demo-keyboard
 
 build:
 	gerbil build
@@ -68,3 +68,30 @@ demo-terminal: build
 
 demo-widgets: build
 	GERBIL_LOADPATH=$(CURDIR)/.gerbil/lib:$(GERBIL_LOADPATH) LD_LIBRARY_PATH=$(CURDIR)/vendor:$$LD_LIBRARY_PATH gxi examples/widgets.ss
+
+demo-dockable: build
+	GERBIL_LOADPATH=$(CURDIR)/.gerbil/lib:$(GERBIL_LOADPATH) LD_LIBRARY_PATH=$(CURDIR)/vendor:$$LD_LIBRARY_PATH gxi examples/dockable.ss
+
+demo-wizard: build
+	GERBIL_LOADPATH=$(CURDIR)/.gerbil/lib:$(GERBIL_LOADPATH) LD_LIBRARY_PATH=$(CURDIR)/vendor:$$LD_LIBRARY_PATH gxi examples/wizard.ss
+
+demo-mdi: build
+	GERBIL_LOADPATH=$(CURDIR)/.gerbil/lib:$(GERBIL_LOADPATH) LD_LIBRARY_PATH=$(CURDIR)/vendor:$$LD_LIBRARY_PATH gxi examples/mdi.ss
+
+demo-richtext: build
+	GERBIL_LOADPATH=$(CURDIR)/.gerbil/lib:$(GERBIL_LOADPATH) LD_LIBRARY_PATH=$(CURDIR)/vendor:$$LD_LIBRARY_PATH gxi examples/richtext.ss
+
+demo-filemanager: build
+	GERBIL_LOADPATH=$(CURDIR)/.gerbil/lib:$(GERBIL_LOADPATH) LD_LIBRARY_PATH=$(CURDIR)/vendor:$$LD_LIBRARY_PATH gxi examples/filemanager.ss
+
+demo-dragdrop: build
+	GERBIL_LOADPATH=$(CURDIR)/.gerbil/lib:$(GERBIL_LOADPATH) LD_LIBRARY_PATH=$(CURDIR)/vendor:$$LD_LIBRARY_PATH gxi examples/dragdrop.ss
+
+demo-dialogs: build
+	GERBIL_LOADPATH=$(CURDIR)/.gerbil/lib:$(GERBIL_LOADPATH) LD_LIBRARY_PATH=$(CURDIR)/vendor:$$LD_LIBRARY_PATH gxi examples/dialogs.ss
+
+demo-trayapp: build
+	GERBIL_LOADPATH=$(CURDIR)/.gerbil/lib:$(GERBIL_LOADPATH) LD_LIBRARY_PATH=$(CURDIR)/vendor:$$LD_LIBRARY_PATH gxi examples/trayapp.ss
+
+demo-keyboard: build
+	GERBIL_LOADPATH=$(CURDIR)/.gerbil/lib:$(GERBIL_LOADPATH) LD_LIBRARY_PATH=$(CURDIR)/vendor:$$LD_LIBRARY_PATH gxi examples/keyboard.ss
