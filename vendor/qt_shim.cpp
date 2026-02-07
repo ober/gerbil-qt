@@ -3732,7 +3732,10 @@ extern "C" qt_graphics_item_t qt_graphics_scene_add_line(
 extern "C" qt_graphics_item_t qt_graphics_scene_add_text(
         qt_graphics_scene_t scene, const char* text) {
     auto* s = static_cast<QGraphicsScene*>(scene);
-    return static_cast<void*>(s->addText(QString::fromUtf8(text)));
+    // QGraphicsTextItem inherits QGraphicsObject (QObject + QGraphicsItem).
+    // Must cast to QGraphicsItem* before void* to adjust for multiple inheritance.
+    QGraphicsItem* item = s->addText(QString::fromUtf8(text));
+    return static_cast<void*>(item);
 }
 
 extern "C" qt_graphics_item_t qt_graphics_scene_add_pixmap(

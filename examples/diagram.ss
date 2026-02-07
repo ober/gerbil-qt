@@ -64,8 +64,7 @@
                 (h (qt-paint-widget-height canvas)))
             (when painter
               ;; Background
-              (qt-painter-set-brush-color! painter 30 30 50)
-              (qt-painter-fill-rect! painter 0 0 w h)
+              (qt-painter-fill-rect! painter 0 0 w h 30 30 50)
 
               ;; Draw a gradient of circles
               (qt-painter-set-antialiasing! painter #t)
