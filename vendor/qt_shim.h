@@ -1394,6 +1394,9 @@ void                qt_tree_view_set_file_system_root(qt_widget_t view,
                                                        const char* path);
 void                qt_file_system_model_destroy(qt_file_system_model_t model);
 
+/* --- Signal disconnect --- */
+void qt_disconnect_all(qt_widget_t obj);
+
 #ifdef __cplusplus
 }
 #endif

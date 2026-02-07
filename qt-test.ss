@@ -2891,7 +2891,7 @@
       (let* ((scene (qt-graphics-scene-create 0 0 400 300))
              (rect (qt-graphics-scene-add-rect! scene 0 0 50 50)))
         ;; No crash
-        (qt-graphics-item-set-pen! rect 255 0 0 2)
+        (qt-graphics-item-set-pen! rect 255 0 0 width: 2)
         (qt-graphics-item-set-brush! rect 0 128 255)
         (qt-graphics-scene-destroy! scene)))
 
@@ -2994,8 +2994,8 @@
     (test-case "QProcess run echo"
       (ensure-app!)
       (let ((proc (qt-process-create)))
-        (qt-process-start! proc "/bin/echo" ["hello world"])
-        (check (qt-process-wait-for-finished proc 5000) => #t)
+        (qt-process-start! proc "/bin/echo" args: ["hello world"])
+        (check (qt-process-wait-for-finished proc msecs: 5000) => #t)
         (check (qt-process-exit-code proc) => 0)
         (let ((out (qt-process-read-stdout proc)))
           (check (string-prefix? "hello world" out) => #t))
@@ -3004,8 +3004,8 @@
     (test-case "QProcess run with exit code"
       (ensure-app!)
       (let ((proc (qt-process-create)))
-        (qt-process-start! proc "/bin/sh" ["-c" "exit 42"])
-        (check (qt-process-wait-for-finished proc 5000) => #t)
+        (qt-process-start! proc "/bin/sh" args: ["-c" "exit 42"])
+        (check (qt-process-wait-for-finished proc msecs: 5000) => #t)
         (qt-app-process-events! test-app)
         (qt-app-process-events! test-app)
         (check (qt-process-exit-code proc) => 42)
@@ -3014,8 +3014,8 @@
     (test-case "QProcess read stderr"
       (ensure-app!)
       (let ((proc (qt-process-create)))
-        (qt-process-start! proc "/bin/sh" ["-c" "echo err >&2"])
-        (check (qt-process-wait-for-finished proc 5000) => #t)
+        (qt-process-start! proc "/bin/sh" args: ["-c" "echo err >&2"])
+        (check (qt-process-wait-for-finished proc msecs: 5000) => #t)
         (let ((err (qt-process-read-stderr proc)))
           (check (string-prefix? "err" err) => #t))
         (qt-process-destroy! proc)))
@@ -3023,10 +3023,10 @@
     (test-case "QProcess write stdin"
       (ensure-app!)
       (let ((proc (qt-process-create)))
-        (qt-process-start! proc "/bin/cat" [])
+        (qt-process-start! proc "/bin/cat" args: [])
         (qt-process-write! proc "test input")
         (qt-process-close-write! proc)
-        (check (qt-process-wait-for-finished proc 5000) => #t)
+        (check (qt-process-wait-for-finished proc msecs: 5000) => #t)
         (let ((out (qt-process-read-stdout proc)))
           (check (string-prefix? "test input" out) => #t))
         (qt-process-destroy! proc)))
@@ -3035,11 +3035,11 @@
       (ensure-app!)
       (let ((proc (qt-process-create)))
         (check (qt-process-state proc) => QT_PROCESS_NOT_RUNNING)
-        (qt-process-start! proc "/bin/sleep" ["10"])
+        (qt-process-start! proc "/bin/sleep" args: ["10"])
         ;; Process should be starting or running
         (check (> (qt-process-state proc) QT_PROCESS_NOT_RUNNING) => #t)
         (qt-process-kill! proc)
-        (qt-process-wait-for-finished proc 5000)
+        (qt-process-wait-for-finished proc msecs: 5000)
         (qt-process-destroy! proc)))
 
     (test-case "QProcess on-finished callback"
@@ -3047,8 +3047,8 @@
       (let ((proc (qt-process-create))
             (finished-code #f))
         (qt-process-on-finished! proc (lambda (code) (set! finished-code code)))
-        (qt-process-start! proc "/bin/sh" ["-c" "exit 7"])
-        (qt-process-wait-for-finished proc 5000)
+        (qt-process-start! proc "/bin/sh" args: ["-c" "exit 7"])
+        (qt-process-wait-for-finished proc msecs: 5000)
         (qt-app-process-events! test-app)
         (qt-app-process-events! test-app)
         (check finished-code => 7)
@@ -3119,9 +3119,9 @@
       (let ((mdi (qt-mdi-area-create))
             (w1 (qt-widget-create)))
         (qt-mdi-area-add-sub-window! mdi w1)
-        ;; Active sub-window may be #f when not shown
+        ;; Active sub-window is #f when not shown in offscreen mode
         (let ((active (qt-mdi-area-active-sub-window mdi)))
-          (check (or (not active) (procedure? (lambda () active))) => #t))
+          (check (not active) => #t))
         (qt-widget-destroy! mdi)))
 
     (test-case "QMdiArea remove sub-window"
@@ -3178,7 +3178,7 @@
 
     (test-case "QLCDNumber create and display"
       (ensure-app!)
-      (let ((lcd (qt-lcd-create 6)))
+      (let ((lcd (qt-lcd-create digits: 6)))
         (qt-lcd-display-int! lcd 42)
         (qt-lcd-display-double! lcd 3.14)
         (qt-lcd-display-string! lcd "12.5")
@@ -3283,8 +3283,8 @@
       (ensure-app!)
       (let* ((win (qt-main-window-create))
              (stack (qt-undo-stack-create)))
-        (let ((undo-action (qt-undo-stack-create-undo-action stack win))
-              (redo-action (qt-undo-stack-create-redo-action stack win)))
+        (let ((undo-action (qt-undo-stack-create-undo-action stack parent: win))
+              (redo-action (qt-undo-stack-create-redo-action stack parent: win)))
           (check (not (eq? undo-action #f)) => #t)
           (check (not (eq? redo-action #f)) => #t))
         (qt-undo-stack-destroy! stack)

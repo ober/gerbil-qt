@@ -56,8 +56,10 @@
 
       ;; --- Tree view click shows file path ---
       (qt-on-view-clicked! tree
-        (lambda (row col)
-          (let ((path (qt-file-system-model-file-path model row #f)))
+        (lambda ()
+          (let* ((row (qt-view-last-clicked-row))
+                 (col (qt-view-last-clicked-col))
+                 (path (qt-file-system-model-file-path model row column: #f)))
             (qt-label-set-text! path-label (format "Selected: ~a" path))
             (qt-plain-text-edit-set-text! info-text
               (format "File: ~a\nRow: ~a Column: ~a" path row col)))))

@@ -662,6 +662,9 @@
      qt_file_system_model_file_path qt_tree_view_set_file_system_root
      qt_file_system_model_destroy
 
+     ;; Signal disconnect
+     qt_disconnect_all
+
      ;; Phase 15 constants
      QT_PROCESS_NOT_RUNNING QT_PROCESS_STARTING QT_PROCESS_RUNNING
      QT_MDI_SUBWINDOW QT_MDI_TABBED
@@ -1310,6 +1313,11 @@ static void ffi_qt_plain_text_edit_on_text_changed(void* e, long callback_id) {
 }
 static void ffi_qt_tool_button_on_clicked(void* b, long callback_id) {
     qt_tool_button_on_clicked(b, ffi_void_trampoline, callback_id);
+}
+
+/* Phase 14: PaintWidget wrapper */
+static void ffi_qt_paint_widget_on_paint(void* w, long callback_id) {
+    qt_paint_widget_on_paint(w, ffi_void_trampoline, callback_id);
 }
 
 /* Phase 15: QProcess wrappers */
@@ -3179,7 +3187,7 @@ END-C
 
   (define-c-lambda raw_qt_paint_widget_on_paint
     ((pointer void) long) void
-    "qt_paint_widget_on_paint(___arg1, ffi_void_trampoline, ___arg2);")
+    "ffi_qt_paint_widget_on_paint")
 
   (define-c-lambda qt_paint_widget_painter ((pointer void)) (pointer void)
     "qt_paint_widget_painter")
@@ -3390,6 +3398,10 @@ END-C
     "qt_tree_view_set_file_system_root")
   (define-c-lambda qt_file_system_model_destroy ((pointer void)) void
     "qt_file_system_model_destroy")
+
+  ;; ---- Signal disconnect ----
+  (define-c-lambda qt_disconnect_all ((pointer void)) void
+    "qt_disconnect_all")
 
   ;; ---- Callback dispatch tables ----
   (define *qt-void-handlers* (make-hash-table))

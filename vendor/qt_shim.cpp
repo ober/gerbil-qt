@@ -382,8 +382,8 @@ extern "C" void qt_line_edit_on_text_changed(qt_line_edit_t e,
                                               long callback_id) {
     QObject::connect(static_cast<QLineEdit*>(e), &QLineEdit::textChanged,
                      [callback, callback_id](const QString& text) {
-                         s_return_buf = text.toUtf8().toStdString();
-                         callback(callback_id, s_return_buf.c_str());
+                         std::string s = text.toUtf8().toStdString();
+                         callback(callback_id, s.c_str());
                      });
 }
 
@@ -3949,36 +3949,47 @@ extern "C" int qt_paint_widget_height(qt_paint_widget_t w) {
 // before QProcess can observe their exit status.  We intercept SIGCHLD with our
 // own handler that captures exit codes for tracked PIDs, then forwards to
 // Gambit's handler.
-static thread_local int s_last_process_exit_code = 0;
-static thread_local pid_t s_process_pid = 0;
-// Stored on-finished callback for manual invocation after waitpid
-static thread_local qt_callback_int s_process_finished_cb = nullptr;
-static thread_local long s_process_finished_cb_id = 0;
+// Per-process tracking: supports up to MAX_TRACKED concurrent QProcess instances.
+// All state is non-thread-local since Qt must run on a single thread.
 
-// Global SIGCHLD interception state
-// Use sig_atomic_t for variables written inside signal handlers.
-static volatile sig_atomic_t s_sigchld_target_pid = 0;
-static volatile sig_atomic_t s_sigchld_captured_code = -1;
-static struct sigaction s_gambit_sigaction;
-static bool s_sigchld_installed = false;
+// Signal-safe array for the SIGCHLD handler (only sig_atomic_t and simple ops).
+static const int MAX_TRACKED_PROCESSES = 16;
+struct TrackedProcess {
+    volatile sig_atomic_t pid;
+    volatile sig_atomic_t exit_code;
+};
+static TrackedProcess s_tracked_processes[MAX_TRACKED_PROCESSES] = {};
+
+// Non-signal state: per-process callback storage (keyed by QProcess pointer).
+struct ProcessInfo {
+    qt_callback_int finished_cb;
+    long finished_cb_id;
+    int last_exit_code;
+    pid_t pid;
+};
+static std::unordered_map<void*, ProcessInfo> s_process_info;
+
+// SIGCHLD handler management with reference counting.
+static struct sigaction s_gambit_sigaction = {};
+static int s_sigchld_refcount = 0;
 
 static void qt_sigchld_handler(int sig) {
     int saved_errno = errno;
     int wstatus;
     pid_t pid;
     while ((pid = waitpid(-1, &wstatus, WNOHANG)) > 0) {
-        if (pid == s_sigchld_target_pid) {
-            if (WIFEXITED(wstatus)) {
-                s_sigchld_captured_code = WEXITSTATUS(wstatus);
-            } else if (WIFSIGNALED(wstatus)) {
-                s_sigchld_captured_code = 128 + WTERMSIG(wstatus);
+        for (int i = 0; i < MAX_TRACKED_PROCESSES; i++) {
+            if (s_tracked_processes[i].pid == pid) {
+                if (WIFEXITED(wstatus)) {
+                    s_tracked_processes[i].exit_code = WEXITSTATUS(wstatus);
+                } else if (WIFSIGNALED(wstatus)) {
+                    s_tracked_processes[i].exit_code = 128 + WTERMSIG(wstatus);
+                }
+                break;
             }
         }
     }
     // Forward to Gambit's handler so it can handle its own process ports.
-    // We only forward via sa_handler (not sa_sigaction) because our handler
-    // is installed with sa_handler and we don't have siginfo_t/ucontext_t
-    // to pass. Gambit uses sa_handler in practice.
     if (s_gambit_sigaction.sa_handler &&
         s_gambit_sigaction.sa_handler != SIG_DFL &&
         s_gambit_sigaction.sa_handler != SIG_IGN) {
@@ -3988,21 +3999,53 @@ static void qt_sigchld_handler(int sig) {
 }
 
 static void qt_install_sigchld_handler() {
-    if (!s_sigchld_installed) {
+    if (s_sigchld_refcount == 0) {
         struct sigaction sa;
         memset(&sa, 0, sizeof(sa));
         sa.sa_handler = qt_sigchld_handler;
         sa.sa_flags = SA_RESTART | SA_NOCLDSTOP;
         sigemptyset(&sa.sa_mask);
         sigaction(SIGCHLD, &sa, &s_gambit_sigaction);
-        s_sigchld_installed = true;
     }
+    s_sigchld_refcount++;
 }
 
 static void qt_restore_sigchld_handler() {
-    if (s_sigchld_installed) {
-        sigaction(SIGCHLD, &s_gambit_sigaction, nullptr);
-        s_sigchld_installed = false;
+    if (s_sigchld_refcount > 0) {
+        s_sigchld_refcount--;
+        if (s_sigchld_refcount == 0) {
+            sigaction(SIGCHLD, &s_gambit_sigaction, nullptr);
+        }
+    }
+}
+
+static int qt_track_pid(pid_t pid) {
+    for (int i = 0; i < MAX_TRACKED_PROCESSES; i++) {
+        if (s_tracked_processes[i].pid == 0) {
+            s_tracked_processes[i].pid = pid;
+            s_tracked_processes[i].exit_code = -1;
+            return i;
+        }
+    }
+    return -1; // no slot available
+}
+
+static int qt_get_tracked_exit_code(pid_t pid) {
+    for (int i = 0; i < MAX_TRACKED_PROCESSES; i++) {
+        if (s_tracked_processes[i].pid == pid) {
+            return s_tracked_processes[i].exit_code;
+        }
+    }
+    return -1;
+}
+
+static void qt_untrack_pid(pid_t pid) {
+    for (int i = 0; i < MAX_TRACKED_PROCESSES; i++) {
+        if (s_tracked_processes[i].pid == pid) {
+            s_tracked_processes[i].pid = 0;
+            s_tracked_processes[i].exit_code = -1;
+            break;
+        }
     }
 }
 
@@ -4020,18 +4063,26 @@ extern "C" void qt_process_start(qt_process_t proc, const char* program,
         args = QString::fromUtf8(args_str).split(
             QChar('\n'), Qt::SkipEmptyParts);
     }
-    s_last_process_exit_code = 0;
-    s_process_pid = 0;
-    s_sigchld_captured_code = -1;
 
     // Install our SIGCHLD handler before starting the process
     qt_install_sigchld_handler();
 
     auto* p = static_cast<QProcess*>(proc);
     p->start(QString::fromUtf8(program), args);
-    p->waitForStarted(-1);
-    s_process_pid = static_cast<pid_t>(p->processId());
-    s_sigchld_target_pid = s_process_pid;
+    p->waitForStarted(5000);
+
+    pid_t pid = static_cast<pid_t>(p->processId());
+    if (pid > 0) {
+        qt_track_pid(pid);
+    }
+    // Update per-process info (may already have a callback from on_finished)
+    auto it = s_process_info.find(proc);
+    if (it != s_process_info.end()) {
+        it->second.pid = pid;
+        it->second.last_exit_code = 0;
+    } else {
+        s_process_info[proc] = {nullptr, 0, 0, pid};
+    }
 }
 
 extern "C" void qt_process_write(qt_process_t proc, const char* data) {
@@ -4056,35 +4107,44 @@ extern "C" const char* qt_process_read_stderr(qt_process_t proc) {
 
 extern "C" int qt_process_wait_for_finished(qt_process_t proc, int msecs) {
     auto* p = static_cast<QProcess*>(proc);
+    pid_t pid = static_cast<pid_t>(p->processId());
 
     // Let QProcess do its normal waiting
     p->waitForFinished(msecs);
 
-    // Check if our SIGCHLD handler captured the exit code
-    if (s_sigchld_captured_code >= 0) {
-        s_last_process_exit_code = s_sigchld_captured_code;
+    // Determine exit code: prefer our SIGCHLD-captured code, fall back to Qt
+    int exit_code = 0;
+    int captured = qt_get_tracked_exit_code(pid);
+    if (captured >= 0) {
+        exit_code = captured;
     } else if (p->exitStatus() == QProcess::NormalExit) {
-        s_last_process_exit_code = p->exitCode();
+        exit_code = p->exitCode();
     }
 
-    s_sigchld_target_pid = 0;
-    s_process_pid = 0;
+    // Store exit code and clean up tracking
+    auto it = s_process_info.find(static_cast<void*>(p));
+    if (it != s_process_info.end()) {
+        it->second.last_exit_code = exit_code;
 
-    // Restore Gambit's SIGCHLD handler
+        // Manually invoke on-finished callback if registered
+        if (it->second.finished_cb) {
+            it->second.finished_cb(it->second.finished_cb_id, exit_code);
+        }
+    }
+
+    qt_untrack_pid(pid);
     qt_restore_sigchld_handler();
-
-    // Manually invoke on-finished callback if registered
-    if (s_process_finished_cb) {
-        s_process_finished_cb(s_process_finished_cb_id,
-                              s_last_process_exit_code);
-    }
 
     return (p->state() == QProcess::NotRunning) ? 1 : 0;
 }
 
 extern "C" int qt_process_exit_code(qt_process_t proc) {
-    (void)proc;
-    return s_last_process_exit_code;
+    auto it = s_process_info.find(proc);
+    if (it != s_process_info.end()) {
+        return it->second.last_exit_code;
+    }
+    // Fallback: check Qt's own exit code
+    return static_cast<QProcess*>(proc)->exitCode();
 }
 
 extern "C" int qt_process_state(qt_process_t proc) {
@@ -4102,13 +4162,18 @@ extern "C" void qt_process_terminate(qt_process_t proc) {
 extern "C" void qt_process_on_finished(qt_process_t proc,
                                         qt_callback_int callback,
                                         long callback_id) {
-    (void)proc;
     // Store callback for manual invocation after our waitpid.
     // We do NOT also connect via QObject::connect because
     // qt_process_wait_for_finished already invokes the callback
     // manually, and the Qt signal would cause a double-fire.
-    s_process_finished_cb = callback;
-    s_process_finished_cb_id = callback_id;
+    auto it = s_process_info.find(proc);
+    if (it != s_process_info.end()) {
+        it->second.finished_cb = callback;
+        it->second.finished_cb_id = callback_id;
+    } else {
+        // Process not yet started — pre-register callback
+        s_process_info[proc] = {callback, callback_id, 0, 0};
+    }
 }
 
 extern "C" void qt_process_on_ready_read(qt_process_t proc,
@@ -4122,10 +4187,14 @@ extern "C" void qt_process_on_ready_read(qt_process_t proc,
 }
 
 extern "C" void qt_process_destroy(qt_process_t proc) {
-    qt_restore_sigchld_handler();
-    s_process_pid = 0;
-    s_sigchld_target_pid = 0;
-    s_process_finished_cb = nullptr;
+    auto it = s_process_info.find(proc);
+    if (it != s_process_info.end()) {
+        if (it->second.pid > 0) {
+            qt_untrack_pid(it->second.pid);
+            qt_restore_sigchld_handler();
+        }
+        s_process_info.erase(it);
+    }
     delete static_cast<QProcess*>(proc);
 }
 
@@ -4513,4 +4582,14 @@ extern "C" void qt_tree_view_set_file_system_root(qt_widget_t view,
 
 extern "C" void qt_file_system_model_destroy(qt_file_system_model_t model) {
     delete static_cast<QFileSystemModel*>(model);
+}
+
+// ============================================================
+// Signal disconnect
+// ============================================================
+
+extern "C" void qt_disconnect_all(qt_widget_t obj) {
+    if (obj) {
+        static_cast<QObject*>(obj)->disconnect();
+    }
 }

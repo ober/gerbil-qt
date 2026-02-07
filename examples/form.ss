@@ -5,10 +5,10 @@
 (import :gerbil-qt/qt)
 
 (def (main)
-  (let* ((app (qt-app-create))
-         (win (qt-main-window-create))
-         (central (qt-widget-create))
-         (layout (qt-vbox-layout-create central))
+  (with-qt-app app
+    (let* ((win (qt-main-window-create))
+           (central (qt-widget-create))
+           (layout (qt-vbox-layout-create central))
          ;; Name input
          (name-edit (qt-line-edit-create))
          ;; Color selector
@@ -64,10 +64,10 @@
               "Age: " (number->string age) "\n"
               "Newsletter: " (if subscribed "Yes" "No"))))))
 
-    (qt-main-window-set-title! win "Form Demo")
-    (qt-main-window-set-central-widget! win central)
-    (qt-widget-resize! win 350 350)
-    (qt-widget-show! win)
-    (qt-app-exec! app)))
+      (qt-main-window-set-title! win "Form Demo")
+      (qt-main-window-set-central-widget! win central)
+      (qt-widget-resize! win 350 350)
+      (qt-widget-show! win)
+      (qt-app-exec! app))))
 
 (main)

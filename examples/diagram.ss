@@ -27,28 +27,28 @@
       ;; Add some shapes to the scene
       (let ((box1 (qt-graphics-scene-add-rect! scene 20 30 120 80)))
         (qt-graphics-item-set-brush! box1 100 150 255)
-        (qt-graphics-item-set-pen! box1 40 80 180 2)
+        (qt-graphics-item-set-pen! box1 40 80 180 width: 2)
         (qt-graphics-item-set-flags! box1
           (bitwise-ior QT_ITEM_MOVABLE QT_ITEM_SELECTABLE))
         (qt-graphics-item-set-tooltip! box1 "Blue box — drag me!"))
 
       (let ((box2 (qt-graphics-scene-add-rect! scene 200 50 100 100)))
         (qt-graphics-item-set-brush! box2 255 140 60)
-        (qt-graphics-item-set-pen! box2 200 90 20 2)
+        (qt-graphics-item-set-pen! box2 200 90 20 width: 2)
         (qt-graphics-item-set-flags! box2
           (bitwise-ior QT_ITEM_MOVABLE QT_ITEM_SELECTABLE))
         (qt-graphics-item-set-tooltip! box2 "Orange box — drag me!"))
 
       (let ((circle (qt-graphics-scene-add-ellipse! scene 360 80 100 100)))
         (qt-graphics-item-set-brush! circle 100 220 100)
-        (qt-graphics-item-set-pen! circle 40 160 40 2)
+        (qt-graphics-item-set-pen! circle 40 160 40 width: 2)
         (qt-graphics-item-set-flags! circle
           (bitwise-ior QT_ITEM_MOVABLE QT_ITEM_SELECTABLE))
         (qt-graphics-item-set-tooltip! circle "Green circle — drag me!"))
 
       ;; Connecting line
       (let ((line (qt-graphics-scene-add-line! scene 140 70 200 100)))
-        (qt-graphics-item-set-pen! line 80 80 80 2)
+        (qt-graphics-item-set-pen! line 80 80 80 width: 2)
         (qt-graphics-item-set-zvalue! line -1.0))
 
       ;; Text label in the scene
@@ -102,6 +102,7 @@
       (qt-main-window-set-central-widget! win central)
       (qt-widget-resize! win 540 560)
       (qt-widget-show! win)
-      (qt-app-exec! app))))
+      (qt-app-exec! app)
+      (qt-graphics-scene-destroy! scene))))
 
 (main)

@@ -6,10 +6,10 @@
         :std/format)
 
 (def (main)
-  (let* ((app (qt-app-create))
-         (win (qt-main-window-create))
-         (central (qt-widget-create))
-         (layout (qt-vbox-layout-create central))
+  (with-qt-app app
+    (let* ((win (qt-main-window-create))
+           (central (qt-widget-create))
+           (layout (qt-vbox-layout-create central))
          ;; Output display
          (output (qt-plain-text-edit-create))
          ;; Input area
@@ -79,7 +79,7 @@
               (append-output (format "[exit ~a]" code))))
 
           ;; Start the process via sh -c
-          (qt-process-start! proc "/bin/sh" ["-c" cmd]))))
+          (qt-process-start! proc "/bin/sh" args: ["-c" cmd]))))
 
     ;; Connect signals
     (qt-on-clicked! run-btn (lambda () (run-command)))
@@ -95,6 +95,10 @@
     (append-output "Gerbil Terminal — Type a command and press Enter or Run")
     (append-output "")
 
-    (qt-app-exec! app)))
+      (qt-app-exec! app)
+
+      ;; Cleanup
+      (when proc
+        (qt-process-destroy! proc)))))
 
 (main)

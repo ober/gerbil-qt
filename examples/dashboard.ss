@@ -7,9 +7,9 @@
 (import :gerbil-qt/qt)
 
 (def (main)
-  (let* ((app (qt-app-create))
-         (win (qt-main-window-create))
-         (tabs (qt-tab-widget-create))
+  (with-qt-app app
+    (let* ((win (qt-main-window-create))
+           (tabs (qt-tab-widget-create))
 
          ;; ---- Tab 1: Todo List ----
          (todo-page (qt-widget-create))
@@ -185,6 +185,6 @@
     (qt-main-window-set-status-bar-text! win "Ready")
     (qt-widget-show! win)
 
-    (qt-app-exec! app)))
+      (qt-app-exec! app))))
 
 (main)

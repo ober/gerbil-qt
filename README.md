@@ -91,6 +91,14 @@ make demo-painter
 make demo-datainput
 make demo-planner
 make demo-autocomplete
+make demo-modelviewer
+make demo-polished
+make demo-diagram
+make demo-terminal
+make demo-widgets
+make demo-filemanager
+make demo-wizard
+make demo-mdi
 ```
 
 ## API Reference
@@ -1188,8 +1196,8 @@ Widget that displays a QGraphicsScene with panning, zooming, and selection.
 
 | Function | Description |
 |---|---|
-| `(qt-graphics-view-create scene [parent])` | Create view for a scene |
-| `(qt-graphics-view-set-render-hint! view hint [on])` | Enable/disable render hints |
+| `(qt-graphics-view-create scene parent: #f)` | Create view for a scene |
+| `(qt-graphics-view-set-render-hint! view hint on: #t)` | Enable/disable render hints |
 | `(qt-graphics-view-set-drag-mode! view mode)` | Set drag behavior |
 | `(qt-graphics-view-fit-in-view! view)` | Fit scene rect to view |
 | `(qt-graphics-view-scale! view sx sy)` | Apply scale transform (zoom) |
@@ -1206,7 +1214,7 @@ Shared API for all items returned by the scene add functions.
 | `(qt-graphics-item-set-pos! item x y)` | Set item position |
 | `(qt-graphics-item-x item)` | Get item X position |
 | `(qt-graphics-item-y item)` | Get item Y position |
-| `(qt-graphics-item-set-pen! item r g b [width])` | Set outline pen (default width: 1) |
+| `(qt-graphics-item-set-pen! item r g b width: 1)` | Set outline pen |
 | `(qt-graphics-item-set-brush! item r g b)` | Set fill color |
 | `(qt-graphics-item-set-flags! item flags)` | Set interaction flags (movable, selectable, focusable) |
 | `(qt-graphics-item-set-tooltip! item text)` | Set tooltip text |
@@ -1228,7 +1236,7 @@ A QWidget subclass that fires a callback during `paintEvent()`, enabling fully c
 
 | Function | Description |
 |---|---|
-| `(qt-paint-widget-create [parent])` | Create custom paint widget |
+| `(qt-paint-widget-create parent: #f)` | Create custom paint widget |
 | `(qt-paint-widget-on-paint! widget handler)` | Register paint callback (fires during paintEvent) |
 | `(qt-paint-widget-painter widget)` | Get active QPainter (only valid inside paint callback) |
 | `(qt-paint-widget-update! widget)` | Request repaint |
@@ -1243,13 +1251,13 @@ Launch and control external processes -- read stdout/stderr, write stdin, get ex
 
 | Function | Description |
 |---|---|
-| `(qt-process-create [parent])` | Create a new QProcess |
-| `(qt-process-start! proc program [args])` | Start process with program and argument list |
+| `(qt-process-create parent: #f)` | Create a new QProcess |
+| `(qt-process-start! proc program args: [])` | Start process with program and argument list |
 | `(qt-process-write! proc data)` | Write string to process stdin |
 | `(qt-process-close-write! proc)` | Close stdin (signal EOF to child) |
 | `(qt-process-read-stdout proc)` | Read available stdout as string |
 | `(qt-process-read-stderr proc)` | Read available stderr as string |
-| `(qt-process-wait-for-finished proc [msecs])` | Wait for process to finish (default 30s), returns `#t` if finished |
+| `(qt-process-wait-for-finished proc msecs: 30000)` | Wait for process to finish, returns `#t` if finished |
 | `(qt-process-exit-code proc)` | Get process exit code (valid after wait-for-finished) |
 | `(qt-process-state proc)` | Get process state: `QT_PROCESS_NOT_RUNNING`, `QT_PROCESS_STARTING`, `QT_PROCESS_RUNNING` |
 | `(qt-process-kill! proc)` | Kill the process (SIGKILL) |
@@ -1263,7 +1271,7 @@ Launch and control external processes -- read stdout/stderr, write stdin, get ex
 ```scheme
 ;; Run a command and capture output
 (let ((proc (qt-process-create)))
-  (qt-process-start! proc "/bin/echo" ["hello world"])
+  (qt-process-start! proc "/bin/echo" args: ["hello world"])
   (qt-process-wait-for-finished proc)
   (displayln (qt-process-read-stdout proc))  ;; "hello world\n"
   (displayln (qt-process-exit-code proc))     ;; 0
@@ -1276,13 +1284,13 @@ Multi-step wizard dialog for setup flows, onboarding, and multi-page forms.
 
 | Function | Description |
 |---|---|
-| `(qt-wizard-create [parent])` | Create wizard dialog |
+| `(qt-wizard-create parent: #f)` | Create wizard dialog |
 | `(qt-wizard-add-page! wizard page)` | Add page, returns page ID |
 | `(qt-wizard-set-start-id! wizard id)` | Set starting page |
 | `(qt-wizard-current-id wizard)` | Current page ID |
 | `(qt-wizard-set-title! wizard title)` | Set window title |
 | `(qt-wizard-exec! wizard)` | Run modal wizard (returns accept/reject) |
-| `(qt-wizard-page-create [parent])` | Create wizard page |
+| `(qt-wizard-page-create parent: #f)` | Create wizard page |
 | `(qt-wizard-page-set-title! page title)` | Set page title |
 | `(qt-wizard-page-set-subtitle! page subtitle)` | Set page subtitle |
 | `(qt-wizard-page-set-layout! page layout)` | Set page layout |
@@ -1296,7 +1304,7 @@ Multi-document interface for tabbed or windowed child document views.
 
 | Function | Description |
 |---|---|
-| `(qt-mdi-area-create [parent])` | Create MDI area |
+| `(qt-mdi-area-create parent: #f)` | Create MDI area |
 | `(qt-mdi-area-add-sub-window! area widget)` | Add widget as sub-window, returns sub-window handle |
 | `(qt-mdi-area-remove-sub-window! area sub)` | Remove sub-window |
 | `(qt-mdi-area-active-sub-window area)` | Get active sub-window (or `#f`) |
@@ -1315,7 +1323,7 @@ Circular slider (knob control) for value selection.
 
 | Function | Description |
 |---|---|
-| `(qt-dial-create [parent])` | Create a dial widget |
+| `(qt-dial-create parent: #f)` | Create a dial widget |
 | `(qt-dial-set-value! dial value)` | Set current value |
 | `(qt-dial-value dial)` | Get current value |
 | `(qt-dial-set-range! dial min max)` | Set value range |
@@ -1331,7 +1339,7 @@ Retro digit display for counters, clocks, and dashboards.
 
 | Function | Description |
 |---|---|
-| `(qt-lcd-create [digits] [parent])` | Create LCD display (default 5 digits) |
+| `(qt-lcd-create digits: 5 parent: #f)` | Create LCD display |
 | `(qt-lcd-display-int! lcd value)` | Display integer value |
 | `(qt-lcd-display-double! lcd value)` | Display floating-point value |
 | `(qt-lcd-display-string! lcd text)` | Display string |
@@ -1348,7 +1356,7 @@ Accordion-style stacked tabs -- a vertical tab widget alternative.
 
 | Function | Description |
 |---|---|
-| `(qt-tool-box-create [parent])` | Create tool box |
+| `(qt-tool-box-create parent: #f)` | Create tool box |
 | `(qt-tool-box-add-item! toolbox widget text)` | Add page, returns index |
 | `(qt-tool-box-set-current-index! toolbox idx)` | Switch to page |
 | `(qt-tool-box-current-index toolbox)` | Current page index |
@@ -1364,7 +1372,7 @@ Undo/redo framework for editors and document applications.
 
 | Function | Description |
 |---|---|
-| `(qt-undo-stack-create [parent])` | Create undo stack |
+| `(qt-undo-stack-create parent: #f)` | Create undo stack |
 | `(qt-undo-stack-push! stack text undo-handler redo-handler)` | Push command with undo/redo callbacks |
 | `(qt-undo-stack-undo! stack)` | Undo last command |
 | `(qt-undo-stack-redo! stack)` | Redo last undone command |
@@ -1373,8 +1381,8 @@ Undo/redo framework for editors and document applications.
 | `(qt-undo-stack-undo-text stack)` | Text of next undo command |
 | `(qt-undo-stack-redo-text stack)` | Text of next redo command |
 | `(qt-undo-stack-clear! stack)` | Clear undo history |
-| `(qt-undo-stack-create-undo-action stack [parent])` | Create QAction for undo (for menus/toolbars) |
-| `(qt-undo-stack-create-redo-action stack [parent])` | Create QAction for redo (for menus/toolbars) |
+| `(qt-undo-stack-create-undo-action stack parent: #f)` | Create QAction for undo (for menus/toolbars) |
+| `(qt-undo-stack-create-redo-action stack parent: #f)` | Create QAction for redo (for menus/toolbars) |
 | `(qt-undo-stack-destroy! stack)` | Destroy stack (explicit, QObject not QWidget) |
 
 QUndoStack is a QObject -- needs explicit destroy. Each pushed command stores undo/redo Scheme closures. `push!` immediately calls the redo handler.
@@ -1394,11 +1402,11 @@ Read-only filesystem model for use with QTreeView to build file browsers.
 
 | Function | Description |
 |---|---|
-| `(qt-file-system-model-create [parent])` | Create filesystem model |
+| `(qt-file-system-model-create parent: #f)` | Create filesystem model |
 | `(qt-file-system-model-set-root-path! model path)` | Set root directory to watch |
 | `(qt-file-system-model-set-filter! model filters)` | Set directory filters (bitwise-ior of constants) |
 | `(qt-file-system-model-set-name-filters! model patterns)` | Set glob name filters (list of strings) |
-| `(qt-file-system-model-file-path model row [column])` | Get file path for item |
+| `(qt-file-system-model-file-path model row column: 0)` | Get file path for item |
 | `(qt-tree-view-set-file-system-root! view model path)` | Set tree view root to directory |
 | `(qt-file-system-model-destroy! model)` | Destroy model (explicit, QObject not QWidget) |
 
@@ -1414,6 +1422,47 @@ QFileSystemModel is async -- directory scanning happens in a background thread. 
     (bitwise-ior QT_DIR_DIRS QT_DIR_FILES QT_DIR_NO_DOT_AND_DOT_DOT))
   (qt-tree-view-set-model! view model)
   (qt-tree-view-set-file-system-root! view model "/home"))
+```
+
+### Signal Disconnect & Callback Management
+
+| Function | Description |
+|----------|-------------|
+| `(unregister-qt-handler! id)` | Remove a callback by its ID (returned from `qt-on-*!`) |
+| `(qt-disconnect-all! obj)` | Disconnect all Qt signals from a QObject |
+
+All `qt-on-*!` functions return a callback ID:
+
+```scheme
+(let ((id (qt-on-clicked! button (lambda () (displayln "clicked!")))))
+  ;; Later, remove the handler:
+  (unregister-qt-handler! id))
+```
+
+### Resource Safety Macros
+
+RAII-style macros that guarantee cleanup even if the body throws an exception.
+
+| Macro | Description |
+|-------|-------------|
+| `(with-painter (p pixmap) body ...)` | Create QPainter on pixmap, auto end+destroy |
+| `(with-font (f family keyword-args ...) body ...)` | Create QFont, auto destroy |
+| `(with-color (c r g b keyword-args ...) body ...)` | Create QColor, auto destroy |
+| `(with-pixmap (pm w h) body ...)` | Create blank QPixmap, auto destroy |
+| `(with-icon var expr body ...)` | Evaluate expr to get QIcon, auto destroy |
+| `(with-settings var expr body ...)` | Evaluate expr to get QSettings, auto destroy |
+
+```scheme
+;; Paint onto a pixmap with guaranteed cleanup
+(with-pixmap (pm 200 100)
+  (with-painter (p pm)
+    (qt-painter-set-brush-color! p 255 0 0)
+    (qt-painter-fill-rect! p 0 0 200 100))
+  (qt-label-set-pixmap! label pm))
+
+;; Font with guaranteed cleanup
+(with-font (f "Monospace" point-size: 12)
+  (qt-widget-set-font! editor f))
 ```
 
 ## Architecture
@@ -1436,6 +1485,8 @@ Qt signal -> C++ lambda -> static trampoline -> c-define'd Scheme function
 ```
 
 Four callback types cover all signals: `void`, `string(text)`, `int(value)`, `bool(checked)`.
+
+All `qt-on-*!` signal registration functions return a callback ID (integer). Use `unregister-qt-handler!` to remove a specific callback, or `qt-disconnect-all!` to disconnect all signals from a QObject.
 
 ### Memory Management
 
@@ -1460,6 +1511,9 @@ Qt uses parent-child ownership: destroying a parent automatically destroys all c
 - `examples/diagram.ss` -- Interactive diagram with QGraphicsScene/View and custom PaintWidget
 - `examples/terminal.ss` -- Simple terminal with QProcess, command input, streaming output
 - `examples/widgets.ss` -- Niche widgets: QDial + QLCDNumber, QToolBox accordion, QUndoStack undo/redo
+- `examples/filemanager.ss` -- File system browser with QFileSystemModel + QTreeView, filters
+- `examples/wizard.ss` -- Multi-step wizard dialog with QWizard/QWizardPage
+- `examples/mdi.ss` -- Multi-document interface with QMdiArea, undo/redo, tile/cascade
 
 ## License
 

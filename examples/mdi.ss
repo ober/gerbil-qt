@@ -93,8 +93,8 @@
           (qt-menu-add-action! window-menu tab-mode))
 
         ;; Edit > Undo/Redo actions from stack
-        (let ((undo-action (qt-undo-stack-create-undo-action undo-stack win))
-              (redo-action (qt-undo-stack-create-redo-action undo-stack win)))
+        (let ((undo-action (qt-undo-stack-create-undo-action undo-stack parent: win))
+              (redo-action (qt-undo-stack-create-redo-action undo-stack parent: win)))
           (qt-action-set-shortcut! undo-action "Ctrl+Z")
           (qt-action-set-shortcut! redo-action "Ctrl+Shift+Z")
           (qt-menu-add-action! edit-menu undo-action)

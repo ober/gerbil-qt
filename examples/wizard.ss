@@ -31,7 +31,7 @@
         (lambda ()
           (qt-plain-text-edit-append! log-area "--- Starting wizard ---")
 
-          (let* ((wizard (qt-wizard-create win))
+          (let* ((wizard (qt-wizard-create parent: win))
 
                  ;; --- Page 1: Theme selection with radio buttons + button group ---
                  (page1 (qt-wizard-page-create))
