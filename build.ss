@@ -3,9 +3,11 @@
         :std/make
         :std/misc/process)
 
-;; Ensure pkg-config finds system Qt6 packages
-(let ((current (getenv "PKG_CONFIG_PATH" ""))
-      (sysdir "/usr/lib/x86_64-linux-gnu/pkgconfig"))
+;; Ensure pkg-config finds system Qt6 packages (portable across architectures)
+(let* ((current (getenv "PKG_CONFIG_PATH" ""))
+       (arch (with-catch (lambda (_) "x86_64-linux-gnu")
+               (lambda () (run-process ["gcc" "-dumpmachine"] coprocess: read-line))))
+       (sysdir (string-append "/usr/lib/" arch "/pkgconfig")))
   (when (and (file-exists? sysdir)
              (not (string-contains current sysdir)))
     (setenv "PKG_CONFIG_PATH"

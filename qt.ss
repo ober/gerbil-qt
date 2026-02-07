@@ -1631,8 +1631,7 @@
 ;;; ---- Font Dialog ----
 
 (def (qt-font-dialog parent: (parent #f))
-  (let ((f (qt_font_dialog_get_font parent)))
-    (if f f #f)))
+  (qt_font_dialog_get_font parent))
 
 ;;; ---- Color Dialog ----
 

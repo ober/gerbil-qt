@@ -3175,15 +3175,9 @@ END-C
   (define-c-lambda qt_paint_widget_create ((pointer void)) (pointer void)
     "qt_paint_widget_create")
 
-  (c-declare "
-static void ffi_paint_widget_trampoline(long callback_id) {
-    ffi_qt_callback_void(callback_id);
-}
-")
-
   (define-c-lambda raw_qt_paint_widget_on_paint
     ((pointer void) long) void
-    "qt_paint_widget_on_paint(___arg1, ffi_paint_widget_trampoline, ___arg2);")
+    "qt_paint_widget_on_paint(___arg1, ffi_void_trampoline, ___arg2);")
 
   (define-c-lambda qt_paint_widget_painter ((pointer void)) (pointer void)
     "qt_paint_widget_painter")
