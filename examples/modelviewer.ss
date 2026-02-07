@@ -13,7 +13,8 @@
            (vbox  (qt-vbox-layout-create central))
 
            ;; --- Top: Filter bar ---
-           (filter-hbox (qt-hbox-layout-create))
+           (filter-row (qt-widget-create))
+           (filter-hbox (qt-hbox-layout-create filter-row))
            (filter-label (qt-label-create "Filter:"))
            (filter-edit (qt-line-edit-create))
 
@@ -112,7 +113,7 @@
       ;; --- Layout assembly ---
       (qt-layout-add-widget! filter-hbox filter-label)
       (qt-layout-add-widget! filter-hbox filter-edit)
-      (qt-layout-add-widget! vbox filter-hbox)
+      (qt-layout-add-widget! vbox filter-row)
       (qt-layout-add-widget! vbox table-view)
       (qt-layout-add-widget! vbox tree-label)
       (qt-layout-add-widget! vbox tree-view)

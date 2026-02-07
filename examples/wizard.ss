@@ -35,7 +35,7 @@
 
                  ;; --- Page 1: Theme selection with radio buttons + button group ---
                  (page1 (qt-wizard-page-create))
-                 (p1-layout (qt-vbox-layout-create))
+                 (p1-layout (qt-vbox-layout-create page1))
                  (theme-group-box (qt-group-box-create "Choose Theme"))
                  (theme-layout (qt-vbox-layout-create theme-group-box))
                  (rb-light (qt-radio-button-create "Light Theme"))
@@ -45,7 +45,7 @@
 
                  ;; --- Page 2: Feature toggles with checkable group boxes ---
                  (page2 (qt-wizard-page-create))
-                 (p2-layout (qt-vbox-layout-create))
+                 (p2-layout (qt-vbox-layout-create page2))
                  (feat-notify (qt-group-box-create "Enable Notifications"))
                  (notify-layout (qt-vbox-layout-create feat-notify))
                  (notify-info (qt-label-create "Receive desktop notifications for events"))
@@ -55,7 +55,7 @@
 
                  ;; --- Page 3: Summary ---
                  (page3 (qt-wizard-page-create))
-                 (p3-layout (qt-vbox-layout-create))
+                 (p3-layout (qt-vbox-layout-create page3))
                  (summary-label (qt-label-create "Review your choices:"))
                  (summary-text (qt-plain-text-edit-create)))
 
@@ -95,7 +95,7 @@
             (qt-layout-add-widget! theme-layout rb-auto)
             (qt-layout-add-widget! p1-layout theme-group-box)
             (qt-layout-add-stretch! p1-layout)
-            (qt-wizard-page-set-layout! page1 p1-layout)
+            ;; layout already set via parent arg to qt-vbox-layout-create
 
             ;; === Page 2: Features ===
             (qt-wizard-page-set-title! page2 "Feature Configuration")
@@ -125,7 +125,7 @@
             (qt-layout-add-spacing! p2-layout 10)
             (qt-layout-add-widget! p2-layout feat-auto-save)
             (qt-layout-add-stretch! p2-layout)
-            (qt-wizard-page-set-layout! page2 p2-layout)
+            ;; layout already set via parent arg to qt-vbox-layout-create
 
             ;; === Page 3: Summary ===
             (qt-wizard-page-set-title! page3 "Summary")
@@ -133,7 +133,7 @@
             (qt-plain-text-edit-set-read-only! summary-text #t)
             (qt-layout-add-widget! p3-layout summary-label)
             (qt-layout-add-widget! p3-layout summary-text)
-            (qt-wizard-page-set-layout! page3 p3-layout)
+            ;; layout already set via parent arg to qt-vbox-layout-create
 
             ;; Track page changes to update summary
             (qt-wizard-on-current-changed! wizard
