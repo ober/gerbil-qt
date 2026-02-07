@@ -3952,8 +3952,9 @@ static thread_local qt_callback_int s_process_finished_cb = nullptr;
 static thread_local long s_process_finished_cb_id = 0;
 
 // Global SIGCHLD interception state
-static volatile pid_t s_sigchld_target_pid = 0;
-static volatile int s_sigchld_captured_code = -1;
+// Use sig_atomic_t for variables written inside signal handlers.
+static volatile sig_atomic_t s_sigchld_target_pid = 0;
+static volatile sig_atomic_t s_sigchld_captured_code = -1;
 static struct sigaction s_gambit_sigaction;
 static bool s_sigchld_installed = false;
 
@@ -3970,16 +3971,14 @@ static void qt_sigchld_handler(int sig) {
             }
         }
     }
-    // Forward to Gambit's handler so it can handle its own process ports
-    if (s_gambit_sigaction.sa_flags & SA_SIGINFO) {
-        if (s_gambit_sigaction.sa_sigaction)
-            s_gambit_sigaction.sa_sigaction(sig, nullptr, nullptr);
-    } else {
-        if (s_gambit_sigaction.sa_handler &&
-            s_gambit_sigaction.sa_handler != SIG_DFL &&
-            s_gambit_sigaction.sa_handler != SIG_IGN) {
-            s_gambit_sigaction.sa_handler(sig);
-        }
+    // Forward to Gambit's handler so it can handle its own process ports.
+    // We only forward via sa_handler (not sa_sigaction) because our handler
+    // is installed with sa_handler and we don't have siginfo_t/ucontext_t
+    // to pass. Gambit uses sa_handler in practice.
+    if (s_gambit_sigaction.sa_handler &&
+        s_gambit_sigaction.sa_handler != SIG_DFL &&
+        s_gambit_sigaction.sa_handler != SIG_IGN) {
+        s_gambit_sigaction.sa_handler(sig);
     }
     errno = saved_errno;
 }
@@ -4099,15 +4098,13 @@ extern "C" void qt_process_terminate(qt_process_t proc) {
 extern "C" void qt_process_on_finished(qt_process_t proc,
                                         qt_callback_int callback,
                                         long callback_id) {
-    // Store callback for manual invocation after our waitpid
+    (void)proc;
+    // Store callback for manual invocation after our waitpid.
+    // We do NOT also connect via QObject::connect because
+    // qt_process_wait_for_finished already invokes the callback
+    // manually, and the Qt signal would cause a double-fire.
     s_process_finished_cb = callback;
     s_process_finished_cb_id = callback_id;
-    // Also connect via Qt signal as fallback
-    QObject::connect(static_cast<QProcess*>(proc),
-                     QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
-                     [callback, callback_id](int exitCode, QProcess::ExitStatus) {
-                         callback(callback_id, exitCode);
-                     });
 }
 
 extern "C" void qt_process_on_ready_read(qt_process_t proc,
