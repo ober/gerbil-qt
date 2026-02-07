@@ -18,6 +18,7 @@
 (def shim-cpp (path-expand "qt_shim.cpp" vendor-dir))
 (def shim-h (path-expand "qt_shim.h" vendor-dir))
 
+
 ;; Build vendor/libqt_shim.so if it doesn't exist or is older than sources
 (unless (and (file-exists? shim-so)
              (>= (time->seconds (file-info-last-modification-time (file-info shim-so)))

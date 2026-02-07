@@ -83,7 +83,7 @@
 
     ;; Connect signals
     (qt-on-clicked! run-btn (lambda () (run-command)))
-    (qt-on-line-edit-return! input (lambda (_text) (run-command)))
+    (qt-on-return-pressed! input (lambda () (run-command)))
 
     ;; Window setup
     (qt-main-window-set-central-widget! win central)

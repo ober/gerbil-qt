@@ -99,7 +99,9 @@
       ;; --- Output panel ---
       (qt-plain-text-edit-set-read-only! out-text #t)
       (qt-plain-text-edit-set-max-block-count! out-text 200)
-      (qt-widget-set-font! out-text "Monospace" 9)
+      (let ((mono (qt-font-create "Monospace" point-size: 9)))
+        (qt-widget-set-font! out-text mono)
+        (qt-font-destroy! mono))
       (qt-plain-text-edit-append! out-text "Output log initialized")
 
       ;; --- Dock widgets setup ---
@@ -121,7 +123,7 @@
              (state-menu (qt-menu-bar-add-menu mbar "Window")))
 
         ;; View menu: toggle dock visibility
-        (let ((a1 (qt-action-create "Toggle Navigation" win)))
+        (let ((a1 (qt-action-create "Toggle Navigation" parent: win)))
           (qt-action-set-shortcut! a1 "Ctrl+1")
           (qt-on-triggered! a1
             (lambda ()
@@ -131,7 +133,7 @@
               (qt-plain-text-edit-append! out-text "Toggled Navigation dock")))
           (qt-menu-add-action! view-menu a1))
 
-        (let ((a2 (qt-action-create "Toggle Properties" win)))
+        (let ((a2 (qt-action-create "Toggle Properties" parent: win)))
           (qt-action-set-shortcut! a2 "Ctrl+2")
           (qt-on-triggered! a2
             (lambda ()
@@ -141,7 +143,7 @@
               (qt-plain-text-edit-append! out-text "Toggled Properties dock")))
           (qt-menu-add-action! view-menu a2))
 
-        (let ((a3 (qt-action-create "Toggle Output" win)))
+        (let ((a3 (qt-action-create "Toggle Output" parent: win)))
           (qt-action-set-shortcut! a3 "Ctrl+3")
           (qt-on-triggered! a3
             (lambda ()
@@ -152,10 +154,10 @@
           (qt-menu-add-action! view-menu a3))
 
         ;; Window state menu
-        (let ((norm (qt-action-create "Normal" win))
-              (mini (qt-action-create "Minimize" win))
-              (maxi (qt-action-create "Maximize" win))
-              (full (qt-action-create "Fullscreen" win)))
+        (let ((norm (qt-action-create "Normal" parent: win))
+              (mini (qt-action-create "Minimize" parent: win))
+              (maxi (qt-action-create "Maximize" parent: win))
+              (full (qt-action-create "Fullscreen" parent: win)))
           (qt-action-set-shortcut! norm "Ctrl+Shift+N")
           (qt-action-set-shortcut! maxi "Ctrl+Shift+M")
           (qt-action-set-shortcut! full "F11")

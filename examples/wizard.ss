@@ -18,7 +18,9 @@
            (result-label (qt-label-create "No wizard run yet")))
 
       (qt-plain-text-edit-set-read-only! log-area #t)
-      (qt-widget-set-font! log-area "Monospace" 9)
+      (let ((mono (qt-font-create "Monospace" point-size: 9)))
+        (qt-widget-set-font! log-area mono)
+        (qt-font-destroy! mono))
 
       (qt-layout-add-widget! vlayout start-btn)
       (qt-layout-add-widget! vlayout result-label)

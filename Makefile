@@ -1,14 +1,40 @@
 export PKG_CONFIG_PATH := /usr/lib/x86_64-linux-gnu/pkgconfig:$(PKG_CONFIG_PATH)
 export GERBIL_LOADPATH := $(HOME)/.gerbil/lib
 
-.PHONY: build test clean demo-hello demo-counter demo-form demo-editor demo-dashboard demo-filebrowser demo-styled demo-settings demo-painter demo-datainput demo-planner demo-autocomplete demo-modelviewer demo-polished demo-diagram demo-terminal demo-widgets demo-dockable demo-wizard demo-mdi demo-richtext demo-filemanager demo-dragdrop demo-dialogs demo-trayapp demo-keyboard
+GERBIL_LIB := $(HOME)/.gerbil/lib
+INSTALL_DIR := $(GERBIL_LIB)/gerbil-qt
+STATIC_DIR := $(GERBIL_LIB)/static
+
+EXAMPLES := $(wildcard examples/*.ss)
+DEMO_TARGETS := $(patsubst examples/%.ss,demo-%,$(EXAMPLES))
+
+.PHONY: build test clean install uninstall $(DEMO_TARGETS)
 
 build:
 	gerbil build
 
-test: build
-	@QT_QPA_PLATFORM=offscreen LD_LIBRARY_PATH=$(CURDIR)/vendor:$$LD_LIBRARY_PATH \
-		gerbil test ./... > /tmp/gerbil-qt-test.log 2>&1 || true; \
+install: build
+	@mkdir -p $(INSTALL_DIR) $(STATIC_DIR)
+	cp -f .gerbil/lib/gerbil-qt/* $(INSTALL_DIR)/
+	cp -f vendor/libqt_shim.so $(INSTALL_DIR)/
+	@if ls .gerbil/lib/static/gerbil-qt__* >/dev/null 2>&1; then \
+		cp -f .gerbil/lib/static/gerbil-qt__* $(STATIC_DIR)/; \
+	fi
+	@if command -v patchelf >/dev/null 2>&1; then \
+		for f in $(INSTALL_DIR)/libqt~0.o*; do \
+			patchelf --add-rpath $(INSTALL_DIR) "$$f" 2>/dev/null || true; \
+		done; \
+	fi
+	@echo "Installed to $(INSTALL_DIR)"
+	@echo "Run any example: gxi examples/hello.ss"
+
+uninstall:
+	rm -rf $(INSTALL_DIR)
+	rm -f $(STATIC_DIR)/gerbil-qt__*
+	@echo "Uninstalled gerbil-qt"
+
+test: install
+	@QT_QPA_PLATFORM=offscreen gerbil test ./... > /tmp/gerbil-qt-test.log 2>&1 || true; \
 	cat /tmp/gerbil-qt-test.log; \
 	if grep -q "FAILURE" /tmp/gerbil-qt-test.log; then \
 		exit 1; \
@@ -18,80 +44,6 @@ clean:
 	gerbil clean
 	rm -f vendor/libqt_shim.so
 
-demo-hello: build
-	GERBIL_LOADPATH=$(CURDIR)/.gerbil/lib:$(GERBIL_LOADPATH) LD_LIBRARY_PATH=$(CURDIR)/vendor:$$LD_LIBRARY_PATH gxi examples/hello.ss
-
-demo-counter: build
-	GERBIL_LOADPATH=$(CURDIR)/.gerbil/lib:$(GERBIL_LOADPATH) LD_LIBRARY_PATH=$(CURDIR)/vendor:$$LD_LIBRARY_PATH gxi examples/counter.ss
-
-demo-form: build
-	GERBIL_LOADPATH=$(CURDIR)/.gerbil/lib:$(GERBIL_LOADPATH) LD_LIBRARY_PATH=$(CURDIR)/vendor:$$LD_LIBRARY_PATH gxi examples/form.ss
-
-demo-editor: build
-	GERBIL_LOADPATH=$(CURDIR)/.gerbil/lib:$(GERBIL_LOADPATH) LD_LIBRARY_PATH=$(CURDIR)/vendor:$$LD_LIBRARY_PATH gxi examples/editor.ss
-
-demo-dashboard: build
-	GERBIL_LOADPATH=$(CURDIR)/.gerbil/lib:$(GERBIL_LOADPATH) LD_LIBRARY_PATH=$(CURDIR)/vendor:$$LD_LIBRARY_PATH gxi examples/dashboard.ss
-
-demo-filebrowser: build
-	GERBIL_LOADPATH=$(CURDIR)/.gerbil/lib:$(GERBIL_LOADPATH) LD_LIBRARY_PATH=$(CURDIR)/vendor:$$LD_LIBRARY_PATH gxi examples/filebrowser.ss
-
-demo-styled: build
-	GERBIL_LOADPATH=$(CURDIR)/.gerbil/lib:$(GERBIL_LOADPATH) LD_LIBRARY_PATH=$(CURDIR)/vendor:$$LD_LIBRARY_PATH gxi examples/styled.ss
-
-demo-settings: build
-	GERBIL_LOADPATH=$(CURDIR)/.gerbil/lib:$(GERBIL_LOADPATH) LD_LIBRARY_PATH=$(CURDIR)/vendor:$$LD_LIBRARY_PATH gxi examples/settings.ss
-
-demo-painter: build
-	GERBIL_LOADPATH=$(CURDIR)/.gerbil/lib:$(GERBIL_LOADPATH) LD_LIBRARY_PATH=$(CURDIR)/vendor:$$LD_LIBRARY_PATH gxi examples/painter.ss
-
-demo-datainput: build
-	GERBIL_LOADPATH=$(CURDIR)/.gerbil/lib:$(GERBIL_LOADPATH) LD_LIBRARY_PATH=$(CURDIR)/vendor:$$LD_LIBRARY_PATH gxi examples/datainput.ss
-
-demo-planner: build
-	GERBIL_LOADPATH=$(CURDIR)/.gerbil/lib:$(GERBIL_LOADPATH) LD_LIBRARY_PATH=$(CURDIR)/vendor:$$LD_LIBRARY_PATH gxi examples/planner.ss
-
-demo-autocomplete: build
-	GERBIL_LOADPATH=$(CURDIR)/.gerbil/lib:$(GERBIL_LOADPATH) LD_LIBRARY_PATH=$(CURDIR)/vendor:$$LD_LIBRARY_PATH gxi examples/autocomplete.ss
-
-demo-modelviewer: build
-	GERBIL_LOADPATH=$(CURDIR)/.gerbil/lib:$(GERBIL_LOADPATH) LD_LIBRARY_PATH=$(CURDIR)/vendor:$$LD_LIBRARY_PATH gxi examples/modelviewer.ss
-
-demo-polished: build
-	GERBIL_LOADPATH=$(CURDIR)/.gerbil/lib:$(GERBIL_LOADPATH) LD_LIBRARY_PATH=$(CURDIR)/vendor:$$LD_LIBRARY_PATH gxi examples/polished.ss
-
-demo-diagram: build
-	GERBIL_LOADPATH=$(CURDIR)/.gerbil/lib:$(GERBIL_LOADPATH) LD_LIBRARY_PATH=$(CURDIR)/vendor:$$LD_LIBRARY_PATH gxi examples/diagram.ss
-
-demo-terminal: build
-	GERBIL_LOADPATH=$(CURDIR)/.gerbil/lib:$(GERBIL_LOADPATH) LD_LIBRARY_PATH=$(CURDIR)/vendor:$$LD_LIBRARY_PATH gxi examples/terminal.ss
-
-demo-widgets: build
-	GERBIL_LOADPATH=$(CURDIR)/.gerbil/lib:$(GERBIL_LOADPATH) LD_LIBRARY_PATH=$(CURDIR)/vendor:$$LD_LIBRARY_PATH gxi examples/widgets.ss
-
-demo-dockable: build
-	GERBIL_LOADPATH=$(CURDIR)/.gerbil/lib:$(GERBIL_LOADPATH) LD_LIBRARY_PATH=$(CURDIR)/vendor:$$LD_LIBRARY_PATH gxi examples/dockable.ss
-
-demo-wizard: build
-	GERBIL_LOADPATH=$(CURDIR)/.gerbil/lib:$(GERBIL_LOADPATH) LD_LIBRARY_PATH=$(CURDIR)/vendor:$$LD_LIBRARY_PATH gxi examples/wizard.ss
-
-demo-mdi: build
-	GERBIL_LOADPATH=$(CURDIR)/.gerbil/lib:$(GERBIL_LOADPATH) LD_LIBRARY_PATH=$(CURDIR)/vendor:$$LD_LIBRARY_PATH gxi examples/mdi.ss
-
-demo-richtext: build
-	GERBIL_LOADPATH=$(CURDIR)/.gerbil/lib:$(GERBIL_LOADPATH) LD_LIBRARY_PATH=$(CURDIR)/vendor:$$LD_LIBRARY_PATH gxi examples/richtext.ss
-
-demo-filemanager: build
-	GERBIL_LOADPATH=$(CURDIR)/.gerbil/lib:$(GERBIL_LOADPATH) LD_LIBRARY_PATH=$(CURDIR)/vendor:$$LD_LIBRARY_PATH gxi examples/filemanager.ss
-
-demo-dragdrop: build
-	GERBIL_LOADPATH=$(CURDIR)/.gerbil/lib:$(GERBIL_LOADPATH) LD_LIBRARY_PATH=$(CURDIR)/vendor:$$LD_LIBRARY_PATH gxi examples/dragdrop.ss
-
-demo-dialogs: build
-	GERBIL_LOADPATH=$(CURDIR)/.gerbil/lib:$(GERBIL_LOADPATH) LD_LIBRARY_PATH=$(CURDIR)/vendor:$$LD_LIBRARY_PATH gxi examples/dialogs.ss
-
-demo-trayapp: build
-	GERBIL_LOADPATH=$(CURDIR)/.gerbil/lib:$(GERBIL_LOADPATH) LD_LIBRARY_PATH=$(CURDIR)/vendor:$$LD_LIBRARY_PATH gxi examples/trayapp.ss
-
-demo-keyboard: build
-	GERBIL_LOADPATH=$(CURDIR)/.gerbil/lib:$(GERBIL_LOADPATH) LD_LIBRARY_PATH=$(CURDIR)/vendor:$$LD_LIBRARY_PATH gxi examples/keyboard.ss
+# All demo targets: make demo-hello, make demo-styled, etc.
+$(DEMO_TARGETS): demo-%: install
+	gxi examples/$*.ss

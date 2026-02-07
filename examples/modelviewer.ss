@@ -7,7 +7,7 @@
         :std/srfi/13)
 
 (def (main)
-  (with-qt-app (app)
+  (with-qt-app app
     (let* ((win   (qt-main-window-create))
            (central (qt-widget-create))
            (vbox  (qt-vbox-layout-create central))

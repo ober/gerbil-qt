@@ -58,11 +58,11 @@
         (qt-system-tray-icon-set-tooltip! tray "Gerbil-Qt Tray Demo")
 
         ;; --- Context menu actions ---
-        (let ((show-action (qt-action-create "Show Window" win))
-              (info-action (qt-action-create "Info Message" win))
-              (warn-action (qt-action-create "Warning Message" win))
+        (let ((show-action (qt-action-create "Show Window" parent: win))
+              (info-action (qt-action-create "Info Message" parent: win))
+              (warn-action (qt-action-create "Warning Message" parent: win))
               (sep1 #f)
-              (quit-action (qt-action-create "Quit" win)))
+              (quit-action (qt-action-create "Quit" parent: win)))
           (qt-on-triggered! show-action
             (lambda ()
               (qt-widget-show-normal! win)

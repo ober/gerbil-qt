@@ -58,9 +58,9 @@
            (log-area (qt-plain-text-edit-create)))
 
       ;; Window setup
-      (qt-main-window-set-title win "Polished Form")
-      (qt-widget-resize win 500 450)
-      (qt-main-window-set-central-widget win central)
+      (qt-main-window-set-title! win "Polished Form")
+      (qt-widget-resize! win 500 450)
+      (qt-main-window-set-central-widget! win central)
 
       ;; Toolbar buttons
       (qt-tool-button-set-arrow-type! tb-up QT_UP_ARROW)

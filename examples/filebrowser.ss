@@ -3,7 +3,6 @@
 ;;; Demonstrates QTreeWidget, QGridLayout, QTimer, and clipboard integration.
 
 (import :gerbil-qt/qt
-        :std/os/fs
         :std/srfi/19
         :std/format)
 
@@ -20,11 +19,11 @@
       (lambda (name)
         (let* ((full-path (string-append dir "/" name))
                (is-dir (with-catch (lambda (_) #f)
-                         (lambda () (file-directory? full-path))))
+                         (lambda () (eq? 'directory (file-info-type (file-info full-path))))))
                (size (if is-dir
                        ""
                        (with-catch (lambda (_) "?")
-                         (lambda () (number->string (file-size full-path))))))
+                         (lambda () (number->string (file-info-size (file-info full-path)))))))
                (type (if is-dir "Directory" "File"))
                (item (qt-tree-item-create name)))
           (qt-tree-item-set-text! item size column: 1)

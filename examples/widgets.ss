@@ -119,9 +119,9 @@
       ;; Assemble main window
       (qt-layout-add-widget! layout toolbox)
       (qt-main-window-set-central-widget! win central)
-      (qt-widget-set-window-title! win "Niche Widgets Demo")
+      (qt-main-window-set-title! win "Niche Widgets Demo")
       (qt-widget-resize! win 400 500)
       (qt-widget-show! win)
-      (qt-app-exec app))))
+      (qt-app-exec! app))))
 
 (main)

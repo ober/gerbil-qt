@@ -23,7 +23,7 @@
              (edit-menu (qt-menu-bar-add-menu mbar "Edit")))
 
         ;; File > New Document
-        (let ((new-action (qt-action-create "New Document" win)))
+        (let ((new-action (qt-action-create "New Document" parent: win)))
           (qt-action-set-shortcut! new-action "Ctrl+N")
           (qt-on-triggered! new-action
             (lambda ()
@@ -41,7 +41,7 @@
           (qt-menu-add-action! file-menu new-action))
 
         ;; File > Close Active
-        (let ((close-action (qt-action-create "Close Active" win)))
+        (let ((close-action (qt-action-create "Close Active" parent: win)))
           (qt-action-set-shortcut! close-action "Ctrl+W")
           (qt-on-triggered! close-action
             (lambda ()
@@ -56,20 +56,20 @@
         (qt-menu-add-separator! file-menu)
 
         ;; File > Quit
-        (let ((quit-action (qt-action-create "Quit" win)))
+        (let ((quit-action (qt-action-create "Quit" parent: win)))
           (qt-action-set-shortcut! quit-action "Ctrl+Q")
           (qt-on-triggered! quit-action
             (lambda () (qt-app-quit! app)))
           (qt-menu-add-action! file-menu quit-action))
 
         ;; Window > Cascade
-        (let ((cascade-action (qt-action-create "Cascade" win)))
+        (let ((cascade-action (qt-action-create "Cascade" parent: win)))
           (qt-on-triggered! cascade-action
             (lambda () (qt-mdi-area-cascade! mdi)))
           (qt-menu-add-action! window-menu cascade-action))
 
         ;; Window > Tile
-        (let ((tile-action (qt-action-create "Tile" win)))
+        (let ((tile-action (qt-action-create "Tile" parent: win)))
           (qt-on-triggered! tile-action
             (lambda () (qt-mdi-area-tile! mdi)))
           (qt-menu-add-action! window-menu tile-action))
@@ -77,7 +77,7 @@
         (qt-menu-add-separator! window-menu)
 
         ;; Window > Subwindow Mode
-        (let ((sub-mode (qt-action-create "Subwindow Mode" win)))
+        (let ((sub-mode (qt-action-create "Subwindow Mode" parent: win)))
           (qt-on-triggered! sub-mode
             (lambda ()
               (qt-mdi-area-set-view-mode! mdi QT_MDI_SUBWINDOW)
@@ -85,7 +85,7 @@
           (qt-menu-add-action! window-menu sub-mode))
 
         ;; Window > Tabbed Mode
-        (let ((tab-mode (qt-action-create "Tabbed Mode" win)))
+        (let ((tab-mode (qt-action-create "Tabbed Mode" parent: win)))
           (qt-on-triggered! tab-mode
             (lambda ()
               (qt-mdi-area-set-view-mode! mdi QT_MDI_TABBED)
@@ -109,10 +109,10 @@
 
       ;; --- Toolbar ---
       (let ((toolbar (qt-toolbar-create "Quick Actions")))
-        (let ((new-btn (qt-action-create "New" win))
-              (cascade-btn (qt-action-create "Cascade" win))
-              (tile-btn (qt-action-create "Tile" win))
-              (tab-btn (qt-action-create "Tabbed" win)))
+        (let ((new-btn (qt-action-create "New" parent: win))
+              (cascade-btn (qt-action-create "Cascade" parent: win))
+              (tile-btn (qt-action-create "Tile" parent: win))
+              (tab-btn (qt-action-create "Tabbed" parent: win)))
           (qt-on-triggered! new-btn
             (lambda ()
               (set! doc-counter (+ doc-counter 1))

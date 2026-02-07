@@ -31,9 +31,6 @@
            ;; --- Results area ---
            (results (qt-text-browser-create parent: central))
 
-           ;; --- Status bar ---
-           (status-bar (qt-main-window-status-bar win))
-
            ;; --- Load saved history ---
            (saved (qt-settings-string settings "history" default: ""))
            (history (if (string=? saved "")
@@ -78,7 +75,7 @@
       (qt-layout-set-margins! layout 10 10 10 10)
 
       ;; Update status bar with history count
-      (qt-status-bar-show-message! status-bar
+      (qt-main-window-set-status-bar-text! win
         (string-append (number->string (length history)) " searches in history"))
 
       ;; --- Search action ---
@@ -111,7 +108,7 @@
                           (map (lambda (h) (string-append "<li>" h "</li>")) history))
                         "</ul>"))
                     ;; Update status
-                    (qt-status-bar-show-message! status-bar
+                    (qt-main-window-set-status-bar-text! win
                       (string-append "Searched: \"" query "\" — "
                         (number->string (length history)) " in history"))
                     ;; Clear input
@@ -132,7 +129,7 @@
                 "<p>Auto-completed: <b>" text "</b></p>"
                 "<hr>"
                 "<p><i>Selected from history.</i></p>"))
-            (qt-status-bar-show-message! status-bar
+            (qt-main-window-set-status-bar-text! win
               (string-append "Auto-completed: \"" text "\""))))
 
         ;; Clear history button
@@ -144,7 +141,7 @@
             (qt-settings-sync! settings)
             (qt-text-browser-set-html! results
               "<h2>History Cleared</h2><p>All saved searches have been removed.</p>")
-            (qt-status-bar-show-message! status-bar "History cleared"))))
+            (qt-main-window-set-status-bar-text! win "History cleared"))))
 
       ;; --- Window setup ---
       (qt-main-window-set-central-widget! win central)
