@@ -122,11 +122,12 @@
               (format "Root: ~a" path)))))
 
       (qt-on-return-pressed! root-input
-        (lambda (text)
-          (qt-file-system-model-set-root-path! model text)
-          (qt-tree-view-set-file-system-root! tree model text)
-          (qt-main-window-set-status-bar-text! win
-            (format "Root: ~a" text))))
+        (lambda ()
+          (let ((text (qt-line-edit-text root-input)))
+            (qt-file-system-model-set-root-path! model text)
+            (qt-tree-view-set-file-system-root! tree model text)
+            (qt-main-window-set-status-bar-text! win
+              (format "Root: ~a" text)))))
 
       ;; --- Assemble ---
       (qt-layout-add-widget! main-layout path-bar)

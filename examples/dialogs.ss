@@ -121,21 +121,21 @@
       ;; === File Dialogs ===
       (qt-on-clicked! btn-open
         (lambda ()
-          (let ((path (qt-file-dialog-open-file win "Open File" "" "All Files (*)")))
+          (let ((path (qt-file-dialog-open-file win caption: "Open File" filter: "All Files (*)")))
             (if (> (string-length path) 0)
               (log! (format "Open: ~a" path))
               (log! "Open: (cancelled)")))))
 
       (qt-on-clicked! btn-save
         (lambda ()
-          (let ((path (qt-file-dialog-save-file win "Save File" "" "All Files (*)")))
+          (let ((path (qt-file-dialog-save-file win caption: "Save File" filter: "All Files (*)")))
             (if (> (string-length path) 0)
               (log! (format "Save: ~a" path))
               (log! "Save: (cancelled)")))))
 
       (qt-on-clicked! btn-dir
         (lambda ()
-          (let ((path (qt-file-dialog-open-directory win "Choose Directory" "")))
+          (let ((path (qt-file-dialog-open-directory win caption: "Choose Directory")))
             (if (> (string-length path) 0)
               (log! (format "Directory: ~a" path))
               (log! "Directory: (cancelled)")))))

@@ -140,7 +140,7 @@
           (qt-plain-text-edit-append! log-area "Actions clicked")))
 
       ;; Validate All
-      (qt-on-button-clicked! btn-validate
+      (qt-on-clicked! btn-validate
         (lambda ()
           (let ((results '()))
             ;; Check quantity

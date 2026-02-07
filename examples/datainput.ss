@@ -143,7 +143,7 @@
                         "Progress canceled"
                         "Progress complete!"))
                     (qt-widget-destroy! pd))))
-              (qt-timer-start! timer)))))
+              (qt-timer-start! timer 50)))))
 
       ;; Window setup
       (qt-main-window-set-central-widget! win central)
