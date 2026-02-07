@@ -654,6 +654,15 @@
     (try body ...
       (finally (qt-app-destroy! app)))))
 
+;;; ---- Signal handler tracking ----
+;; Maps widget/object pointer → list of callback IDs for cleanup by qt-disconnect-all!
+(def *qt-widget-handlers* (make-hash-table))
+
+(def (track-handler! obj id)
+  (let ((ids (hash-ref *qt-widget-handlers* obj '())))
+    (hash-put! *qt-widget-handlers* obj (cons id ids)))
+  id)
+
 ;;; ---- Widget ----
 
 (def (qt-widget-create parent: (parent #f))
@@ -763,7 +772,7 @@
 (def (qt-on-clicked! button handler)
   (let ((id (register-qt-void-handler! handler)))
     (raw_qt_push_button_on_clicked button id)
-    id))
+    (track-handler! button id)))
 
 ;;; ---- Line Edit ----
 
@@ -788,12 +797,12 @@
 (def (qt-on-text-changed! line-edit handler)
   (let ((id (register-qt-string-handler! handler)))
     (raw_qt_line_edit_on_text_changed line-edit id)
-    id))
+    (track-handler! line-edit id)))
 
 (def (qt-on-return-pressed! line-edit handler)
   (let ((id (register-qt-void-handler! handler)))
     (raw_qt_line_edit_on_return_pressed line-edit id)
-    id))
+    (track-handler! line-edit id)))
 
 ;;; ---- Check Box ----
 
@@ -812,7 +821,7 @@
 (def (qt-on-toggled! check-box handler)
   (let ((id (register-qt-bool-handler! handler)))
     (raw_qt_check_box_on_toggled check-box id)
-    id))
+    (track-handler! check-box id)))
 
 ;;; ---- Combo Box ----
 
@@ -840,7 +849,7 @@
 (def (qt-on-index-changed! combo-box handler)
   (let ((id (register-qt-int-handler! handler)))
     (raw_qt_combo_box_on_current_index_changed combo-box id)
-    id))
+    (track-handler! combo-box id)))
 
 ;;; ---- Text Edit ----
 
@@ -868,7 +877,7 @@
 (def (qt-on-text-edit-changed! text-edit handler)
   (let ((id (register-qt-void-handler! handler)))
     (raw_qt_text_edit_on_text_changed text-edit id)
-    id))
+    (track-handler! text-edit id)))
 
 ;;; ---- Spin Box ----
 
@@ -896,7 +905,7 @@
 (def (qt-on-value-changed! spin-box handler)
   (let ((id (register-qt-int-handler! handler)))
     (raw_qt_spin_box_on_value_changed spin-box id)
-    id))
+    (track-handler! spin-box id)))
 
 ;;; ---- Dialog ----
 
@@ -1003,12 +1012,12 @@
 (def (qt-on-triggered! action handler)
   (let ((id (register-qt-void-handler! handler)))
     (raw_qt_action_on_triggered action id)
-    id))
+    (track-handler! action id)))
 
 (def (qt-on-action-toggled! action handler)
   (let ((id (register-qt-bool-handler! handler)))
     (raw_qt_action_on_toggled action id)
-    id))
+    (track-handler! action id)))
 
 ;;; ---- Toolbar ----
 
@@ -1070,12 +1079,12 @@
 (def (qt-on-current-row-changed! list-widget handler)
   (let ((id (register-qt-int-handler! handler)))
     (raw_qt_list_widget_on_current_row_changed list-widget id)
-    id))
+    (track-handler! list-widget id)))
 
 (def (qt-on-item-double-clicked! list-widget handler)
   (let ((id (register-qt-int-handler! handler)))
     (raw_qt_list_widget_on_item_double_clicked list-widget id)
-    id))
+    (track-handler! list-widget id)))
 
 ;;; ---- Table Widget ----
 
@@ -1118,7 +1127,7 @@
 (def (qt-on-cell-clicked! table handler)
   (let ((id (register-qt-void-handler! handler)))
     (raw_qt_table_widget_on_cell_clicked table id)
-    id))
+    (track-handler! table id)))
 
 ;;; ---- Tab Widget ----
 
@@ -1143,7 +1152,7 @@
 (def (qt-on-tab-changed! tab-widget handler)
   (let ((id (register-qt-int-handler! handler)))
     (raw_qt_tab_widget_on_current_changed tab-widget id)
-    id))
+    (track-handler! tab-widget id)))
 
 ;;; ---- Progress Bar ----
 
@@ -1188,7 +1197,7 @@
 (def (qt-on-slider-value-changed! slider handler)
   (let ((id (register-qt-int-handler! handler)))
     (raw_qt_slider_on_value_changed slider id)
-    id))
+    (track-handler! slider id)))
 
 ;;; ---- Grid Layout ----
 
@@ -1238,7 +1247,7 @@
 (def (qt-on-timeout! timer handler)
   (let ((id (register-qt-void-handler! handler)))
     (raw_qt_timer_on_timeout timer id)
-    id))
+    (track-handler! timer id)))
 
 (def (qt-timer-single-shot! msec handler)
   ;; Wrap handler to auto-unregister after firing (single-shot = one use).
@@ -1264,7 +1273,7 @@
 (def (qt-on-clipboard-changed! app handler)
   (let ((id (register-qt-void-handler! handler)))
     (raw_qt_clipboard_on_changed app id)
-    id))
+    (track-handler! app id)))
 
 ;;; ---- Tree Widget ----
 
@@ -1323,22 +1332,22 @@
 (def (qt-on-current-item-changed! tree handler)
   (let ((id (register-qt-void-handler! handler)))
     (raw_qt_tree_widget_on_current_item_changed tree id)
-    id))
+    (track-handler! tree id)))
 
 (def (qt-on-tree-item-double-clicked! tree handler)
   (let ((id (register-qt-void-handler! handler)))
     (raw_qt_tree_widget_on_item_double_clicked tree id)
-    id))
+    (track-handler! tree id)))
 
 (def (qt-on-item-expanded! tree handler)
   (let ((id (register-qt-void-handler! handler)))
     (raw_qt_tree_widget_on_item_expanded tree id)
-    id))
+    (track-handler! tree id)))
 
 (def (qt-on-item-collapsed! tree handler)
   (let ((id (register-qt-void-handler! handler)))
     (raw_qt_tree_widget_on_item_collapsed tree id)
-    id))
+    (track-handler! tree id)))
 
 ;;; ---- Tree Widget Item ----
 
@@ -1475,7 +1484,7 @@
 (def (qt-on-key-press! widget handler)
   (let ((id (register-qt-void-handler! handler)))
     (raw_qt_widget_install_key_handler widget id)
-    id))
+    (track-handler! widget id)))
 
 (def (qt-last-key-code)
   (qt_last_key_code))
@@ -1552,7 +1561,7 @@
 (def (qt-on-radio-toggled! radio handler)
   (let ((id (register-qt-bool-handler! handler)))
     (raw_qt_radio_button_on_toggled radio id)
-    id))
+    (track-handler! radio id)))
 
 ;;; ---- Button Group ----
 
@@ -1577,7 +1586,7 @@
 (def (qt-on-button-group-clicked! bg handler)
   (let ((id (register-qt-int-handler! handler)))
     (raw_qt_button_group_on_id_clicked bg id)
-    id))
+    (track-handler! bg id)))
 
 (def (qt-button-group-destroy! bg)
   (qt_button_group_destroy bg))
@@ -1608,7 +1617,7 @@
 (def (qt-on-group-box-toggled! gb handler)
   (let ((id (register-qt-bool-handler! handler)))
     (raw_qt_group_box_on_toggled gb id)
-    id))
+    (track-handler! gb id)))
 
 ;;; ---- Font ----
 
@@ -1697,7 +1706,7 @@
 (def (qt-on-stacked-changed! sw handler)
   (let ((id (register-qt-int-handler! handler)))
     (raw_qt_stacked_widget_on_current_changed sw id)
-    id))
+    (track-handler! sw id)))
 
 ;;; ---- Dock Widget ----
 
@@ -1752,7 +1761,7 @@
 (def (qt-on-tray-activated! ti handler)
   (let ((id (register-qt-int-handler! handler)))
     (raw_qt_system_tray_icon_on_activated ti id)
-    id))
+    (track-handler! ti id)))
 
 (def (qt-system-tray-available?)
   (not (= (qt_system_tray_icon_is_available) 0)))
@@ -1846,7 +1855,7 @@
   (let* ((id (register-qt-string-handler! handler))
          (df (raw_qt_drop_filter_install widget id)))
     (hash-put! *qt-drop-filter-ptrs* id df)
-    id))
+    (track-handler! widget id)))
 
 (def (qt-drop-filter-last-text id)
   (let ((df (hash-ref *qt-drop-filter-ptrs* id #f)))
@@ -1896,7 +1905,7 @@
   (let ((id (register-qt-string-handler!
              (lambda (str) (handler (string->number str))))))
     (raw_qt_double_spin_box_on_value_changed dsb id)
-    id))
+    (track-handler! dsb id)))
 
 ;;; ---- Date Edit ----
 
@@ -1933,7 +1942,7 @@
 (def (qt-on-date-changed! d handler)
   (let ((id (register-qt-string-handler! handler)))
     (raw_qt_date_edit_on_date_changed d id)
-    id))
+    (track-handler! d id)))
 
 ;;; ---- Time Edit ----
 
@@ -1961,7 +1970,7 @@
 (def (qt-on-time-changed! t handler)
   (let ((id (register-qt-string-handler! handler)))
     (raw_qt_time_edit_on_time_changed t id)
-    id))
+    (track-handler! t id)))
 
 ;;; ---- Frame ----
 
@@ -2024,7 +2033,7 @@
 (def (qt-on-progress-canceled! pd handler)
   (let ((id (register-qt-void-handler! handler)))
     (raw_qt_progress_dialog_on_canceled pd id)
-    id))
+    (track-handler! pd id)))
 
 ;;; ---- Input Dialog ----
 
@@ -2089,7 +2098,7 @@
 (def (qt-on-shortcut-activated! s handler)
   (let ((id (register-qt-void-handler! handler)))
     (raw_qt_shortcut_on_activated s id)
-    id))
+    (track-handler! s id)))
 
 (def (qt-shortcut-destroy! s)
   (qt_shortcut_destroy s))
@@ -2120,7 +2129,7 @@
 (def (qt-on-anchor-clicked! tb handler)
   (let ((id (register-qt-string-handler! handler)))
     (raw_qt_text_browser_on_anchor_clicked tb id)
-    id))
+    (track-handler! tb id)))
 
 ;;; ---- Dialog Button Box ----
 
@@ -2136,17 +2145,17 @@
 (def (qt-on-accepted! bb handler)
   (let ((id (register-qt-void-handler! handler)))
     (raw_qt_button_box_on_accepted bb id)
-    id))
+    (track-handler! bb id)))
 
 (def (qt-on-rejected! bb handler)
   (let ((id (register-qt-void-handler! handler)))
     (raw_qt_button_box_on_rejected bb id)
-    id))
+    (track-handler! bb id)))
 
 (def (qt-on-button-clicked! bb handler)
   (let ((id (register-qt-void-handler! handler)))
     (raw_qt_button_box_on_clicked bb id)
-    id))
+    (track-handler! bb id)))
 
 ;;; ---- Calendar Widget ----
 
@@ -2189,12 +2198,12 @@
 (def (qt-on-selection-changed! c handler)
   (let ((id (register-qt-void-handler! handler)))
     (raw_qt_calendar_on_selection_changed c id)
-    id))
+    (track-handler! c id)))
 
 (def (qt-on-calendar-clicked! c handler)
   (let ((id (register-qt-string-handler! handler)))
     (raw_qt_calendar_on_clicked c id)
-    id))
+    (track-handler! c id)))
 
 ;;; ---- QSettings ----
 
@@ -2326,7 +2335,7 @@
 (def (qt-on-completer-activated! c handler)
   (let ((id (register-qt-string-handler! handler)))
     (raw_qt_completer_on_activated c id)
-    id))
+    (track-handler! c id)))
 
 (def (qt-line-edit-set-completer! e c)
   (qt_line_edit_set_completer e c))
@@ -2637,22 +2646,22 @@
 (def (qt-on-view-clicked! view handler)
   (let ((id (register-qt-void-handler! handler)))
     (raw_qt_view_on_clicked view id)
-    id))
+    (track-handler! view id)))
 
 (def (qt-on-view-double-clicked! view handler)
   (let ((id (register-qt-void-handler! handler)))
     (raw_qt_view_on_double_clicked view id)
-    id))
+    (track-handler! view id)))
 
 (def (qt-on-view-activated! view handler)
   (let ((id (register-qt-void-handler! handler)))
     (raw_qt_view_on_activated view id)
-    id))
+    (track-handler! view id)))
 
 (def (qt-on-view-selection-changed! view handler)
   (let ((id (register-qt-void-handler! handler)))
     (raw_qt_view_on_selection_changed view id)
-    id))
+    (track-handler! view id)))
 
 (def (qt-view-last-clicked-row)
   (qt_view_last_clicked_row))
@@ -2739,7 +2748,7 @@
 (def (qt-on-plain-text-edit-text-changed! edit handler)
   (let ((id (register-qt-void-handler! handler)))
     (raw_qt_plain_text_edit_on_text_changed edit id)
-    id))
+    (track-handler! edit id)))
 
 ;; QToolButton
 
@@ -2773,7 +2782,7 @@
 (def (qt-on-tool-button-clicked! btn handler)
   (let ((id (register-qt-void-handler! handler)))
     (raw_qt_tool_button_on_clicked btn id)
-    id))
+    (track-handler! btn id)))
 
 ;; Layout spacers
 
@@ -2895,7 +2904,7 @@
 (def (qt-paint-widget-on-paint! widget handler)
   (let ((id (register-qt-void-handler! handler)))
     (raw_qt_paint_widget_on_paint widget id)
-    id))
+    (track-handler! widget id)))
 
 (def (qt-paint-widget-painter widget)
   (qt_paint_widget_painter widget))
@@ -2959,14 +2968,14 @@
     (let ((ids (hash-ref *qt-process-handlers* proc '())))
       (hash-put! *qt-process-handlers* proc (cons id ids)))
     (raw_qt_process_on_finished proc id)
-    id))
+    (track-handler! proc id)))
 
 (def (qt-process-on-ready-read! proc handler)
   (let ((id (register-qt-void-handler! handler)))
     (let ((ids (hash-ref *qt-process-handlers* proc '())))
       (hash-put! *qt-process-handlers* proc (cons id ids)))
     (raw_qt_process_on_ready_read proc id)
-    id))
+    (track-handler! proc id)))
 
 (def (qt-process-destroy! proc)
   (let ((ids (hash-ref *qt-process-handlers* proc '())))
@@ -3009,7 +3018,7 @@
 (def (qt-wizard-on-current-changed! wizard handler)
   (let ((id (register-qt-int-handler! handler)))
     (raw_qt_wizard_on_current_changed wizard id)
-    id))
+    (track-handler! wizard id)))
 
 ;;; ---- QMdiArea / QMdiSubWindow ----
 
@@ -3043,7 +3052,7 @@
 (def (qt-mdi-area-on-sub-window-activated! area handler)
   (let ((id (register-qt-void-handler! handler)))
     (raw_qt_mdi_area_on_sub_window_activated area id)
-    id))
+    (track-handler! area id)))
 
 ;;; ---- QDial ----
 
@@ -3068,7 +3077,7 @@
 (def (qt-dial-on-value-changed! dial handler)
   (let ((id (register-qt-int-handler! handler)))
     (raw_qt_dial_on_value_changed dial id)
-    id))
+    (track-handler! dial id)))
 
 ;;; ---- QLCDNumber ----
 
@@ -3113,7 +3122,7 @@
 (def (qt-tool-box-on-current-changed! toolbox handler)
   (let ((id (register-qt-int-handler! handler)))
     (raw_qt_tool_box_on_current_changed toolbox id)
-    id))
+    (track-handler! toolbox id)))
 
 ;;; ---- QUndoStack ----
 
@@ -3128,6 +3137,8 @@
         (redo-id (register-qt-void-handler! redo-handler)))
     (let ((ids (hash-ref *qt-undo-stack-handlers* stack '())))
       (hash-put! *qt-undo-stack-handlers* stack (cons* undo-id redo-id ids)))
+    (track-handler! stack undo-id)
+    (track-handler! stack redo-id)
     (raw_qt_undo_stack_push stack text undo-id redo-id)))
 
 (def (qt-undo-stack-undo! stack)
@@ -3197,6 +3208,9 @@
 ;;; ---- Signal Disconnect ----
 
 (def (qt-disconnect-all! obj)
+  (let ((ids (hash-ref *qt-widget-handlers* obj '())))
+    (for-each unregister-qt-handler! ids)
+    (hash-remove! *qt-widget-handlers* obj))
   (qt_disconnect_all obj))
 
 ;;; ---- Resource-safety macros ----
