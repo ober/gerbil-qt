@@ -1,0 +1,224 @@
+# gerbil-qt — Future Roadmap
+
+## Current State
+
+All 16 implementation phases complete. The library provides comprehensive Qt6 bindings for Gerbil Scheme.
+
+| Metric | Value |
+|--------|-------|
+| Tests | 372 passing |
+| Examples | 26 interactive demos |
+| C++ shim functions | ~655 |
+| High-level API functions | ~500+ |
+| Callback trampolines | 4 (void, string, int, bool) |
+
+**Covered widgets/classes:** QApplication, QWidget, QMainWindow, QLabel, QPushButton, QLineEdit, QCheckBox, QComboBox, QTextEdit, QPlainTextEdit, QSpinBox, QDoubleSpinBox, QRadioButton, QDateEdit, QTimeEdit, QCalendarWidget, QDialog, QMessageBox, QFileDialog, QFontDialog, QColorDialog, QInputDialog, QProgressDialog, QMenuBar, QMenu, QAction, QToolBar, QToolButton, QStatusBar, QListWidget, QTableWidget, QTreeWidget, QTabWidget, QStackedWidget, QProgressBar, QSlider, QGroupBox, QFrame, QSplitter, QScrollArea, QDockWidget, QTimer, QClipboard, QSystemTrayIcon, QPixmap, QIcon, QPainter, QFont, QColor, QTextBrowser, QDialogButtonBox, QShortcut, QSettings, QCompleter, QToolTip, QWhatsThis, QStandardItemModel, QStandardItem, QStringListModel, QSortFilterProxyModel, QListView, QTableView, QTreeView, QHeaderView, QValidator (Int/Double/Regex), QSizePolicy, QGraphicsScene, QGraphicsView, QGraphicsItem, PaintWidget, QProcess, QWizard, QWizardPage, QMdiArea, QMdiSubWindow, QDial, QLCDNumber, QToolBox, QUndoStack, QUndoCommand, QFileSystemModel, QButtonGroup, drag & drop, keyboard events, style sheets, window state, layout spacers.
+
+---
+
+## Phase 17: Additional Callback Trampolines
+
+**Priority:** High
+**Effort:** Small
+**Impact:** Enables new signal patterns without adding new widgets
+
+The current 4 trampolines (void, string, int, bool) cover all existing signals. Adding more trampolines future-proofs the library and enables signals that pass richer data.
+
+### Tasks
+
+- [ ] **Double trampoline** — `qt_callback_double` for signals like QDoubleSpinBox::valueChanged(double) with direct double passing instead of string trampoline workaround
+- [ ] **Two-int trampoline** — `qt_callback_int_int` for signals like QTableWidget::cellChanged(int row, int col), QModelIndex-based signals, geometry change notifications
+- [ ] **String-int trampoline** — `qt_callback_string_int` for signals that pass a string and status code together
+- [ ] Update libqt.ss with c-define trampolines and dispatch tables
+- [ ] Update qt.ss with high-level wrappers
+- [ ] Tests for new trampoline types
+
+---
+
+## Phase 18: Printing Support
+
+**Priority:** Medium
+**Effort:** Medium
+**Impact:** Essential for document-oriented applications
+
+### Tasks
+
+- [ ] **QPrinter** — create, set page size/orientation/margins, set output format (PDF/native), set output filename
+- [ ] **QPrintDialog** — show native print dialog, get selected printer
+- [ ] **QPrintPreviewDialog** — print preview with zoom/page navigation
+- [ ] **QPrintPreviewWidget** — embeddable print preview
+- [ ] Print from QTextDocument (QTextEdit/QPlainTextEdit content)
+- [ ] Print from QPainter (custom draw-to-printer)
+- [ ] Tests (non-modal parts only — dialogs hang in offscreen mode)
+- [ ] Example: document editor with print/print-preview
+
+**Estimated:** ~20 C++ shim functions
+
+---
+
+## Phase 19: Desktop Integration
+
+**Priority:** Medium
+**Effort:** Small
+**Impact:** Common desktop interaction patterns
+
+### Tasks
+
+- [ ] **QDesktopServices** — `openUrl` (open URL in browser), `openUrl` with file:// (open file in default app)
+- [ ] **QScreen** — screen geometry, available geometry, DPI, device pixel ratio, screen count
+- [ ] **QCursor** — set cursor shape per widget (wait, busy, hand, crosshair, etc.), custom cursor from pixmap, get/set global cursor position
+- [ ] **QApplication** — clipboard (already done), font metrics, palette/theme detection, beep
+- [ ] Tests
+- [ ] Example: desktop info viewer showing screen properties and cursor control
+
+**Estimated:** ~15 C++ shim functions
+
+---
+
+## Phase 20: Animation Framework
+
+**Priority:** Low
+**Effort:** Medium
+**Impact:** Enables smooth UI transitions and effects
+
+### Tasks
+
+- [ ] **QPropertyAnimation** — animate widget properties (geometry, opacity, color) over time
+- [ ] **QSequentialAnimationGroup** — chain animations in sequence
+- [ ] **QParallelAnimationGroup** — run animations simultaneously
+- [ ] **QEasingCurve** — linear, ease-in, ease-out, bounce, elastic curves
+- [ ] **QGraphicsOpacityEffect** — fade widgets in/out
+- [ ] Widget opacity support (setWindowOpacity, QGraphicsEffect)
+- [ ] Tests
+- [ ] Example: animated dashboard with fade/slide transitions
+
+**Estimated:** ~25 C++ shim functions
+
+**Note:** Requires careful design — Qt property animations use QVariant and the meta-object system. May need a simplified API that works through specific properties (geometry, opacity) rather than generic property animation.
+
+---
+
+## Phase 21: Rich Text & HTML
+
+**Priority:** Low
+**Effort:** Medium
+**Impact:** Enhanced text editing capabilities
+
+### Tasks
+
+- [ ] **QTextDocument** — access underlying document from QTextEdit, find/replace, undo/redo at document level
+- [ ] **QTextCursor** — programmatic text selection, insertion, formatting
+- [ ] **QTextCharFormat** — font, color, bold, italic, underline, strikethrough
+- [ ] **QTextBlockFormat** — alignment, indent, spacing
+- [ ] **QTextList** / **QTextTable** — structured document elements
+- [ ] HTML import/export from QTextEdit
+- [ ] Syntax highlighting via QSyntaxHighlighter (requires custom C++ subclass, like PaintWidget pattern)
+- [ ] Tests
+- [ ] Example: rich text editor with formatting toolbar
+
+**Estimated:** ~35 C++ shim functions
+
+**Note:** QSyntaxHighlighter requires a C++ subclass with `highlightBlock()` override — same eventFilter pattern as KeyPressFilter/PaintWidget. No MOC needed.
+
+---
+
+## Phase 22: Multimedia (Optional)
+
+**Priority:** Low
+**Effort:** Large
+**Impact:** Audio/video playback
+
+### Tasks
+
+- [ ] **QMediaPlayer** — play audio/video files
+- [ ] **QAudioOutput** — audio output device control
+- [ ] **QVideoWidget** — video display widget
+- [ ] Playback controls (play, pause, stop, seek, volume)
+- [ ] Media status and position tracking
+- [ ] Tests
+- [ ] Example: simple media player
+
+**Estimated:** ~20 C++ shim functions
+
+**Note:** Requires `qt6-multimedia-dev` package. Not all platforms have full multimedia backend support. Consider making this an optional build feature.
+
+---
+
+## Phase 23: SVG Support (Optional)
+
+**Priority:** Low
+**Effort:** Small
+**Impact:** Scalable vector graphics rendering
+
+### Tasks
+
+- [ ] **QSvgWidget** — display SVG files/strings
+- [ ] **QSvgRenderer** — render SVG to QPainter/QPixmap
+- [ ] Load from file or string
+- [ ] Tests
+- [ ] Example: SVG viewer
+
+**Estimated:** ~8 C++ shim functions
+
+**Note:** Requires `qt6-svg-dev` package. Consider making this an optional build feature.
+
+---
+
+## Infrastructure & Quality
+
+### CI/CD
+
+- [x] GitHub Actions workflow (build + test on Ubuntu 24.04)
+- [ ] Test on multiple Ubuntu versions (22.04, 24.04)
+- [ ] Cache Gerbil build for faster CI runs
+- [ ] Add badge to README
+
+### Documentation
+
+- [ ] Add API reference section to README for phases 11-16 (currently phases 1-10 documented)
+- [ ] Add "Getting Started" tutorial for new users
+- [ ] Add troubleshooting section (common build issues, offscreen mode, SIGCHLD)
+- [ ] Document all 26 examples with screenshots
+
+### Package Distribution
+
+- [ ] Register in Gerbil package directory for `gxpkg install`
+- [ ] Add installation instructions to README
+- [ ] Test clean install from scratch on fresh Ubuntu
+
+### Build System
+
+- [ ] Support macOS (Homebrew Qt6, different pkg-config paths, .dylib instead of .so)
+- [ ] Support building without Qt6 installed (graceful error message)
+- [ ] Optional features (multimedia, SVG) behind build flags
+- [ ] Static linking option for standalone executables
+
+### Testing
+
+- [ ] Increase test coverage for edge cases (empty strings, null pointers, boundary values)
+- [ ] Stress tests for callback dispatch (many concurrent callbacks)
+- [ ] Memory leak testing with Valgrind
+- [ ] Test with Qt6 6.5+ and 6.7+ for API compatibility
+
+### Code Quality
+
+- [ ] Audit all C++ shim functions for null pointer safety
+- [ ] Add consistent error messages for invalid arguments
+- [ ] Review thread safety of callback dispatch tables
+- [ ] Consider GC finalizers for non-parented QObjects (currently manual destroy only)
+
+---
+
+## Summary
+
+| Phase | Focus | ~Functions | Priority | Status |
+|-------|-------|-----------|----------|--------|
+| 1-16 | Core widgets, layouts, signals, advanced widgets | ~655 | — | **Complete** |
+| 17 | Additional callback trampolines | ~10 | High | Planned |
+| 18 | Printing support | ~20 | Medium | Planned |
+| 19 | Desktop integration | ~15 | Medium | Planned |
+| 20 | Animation framework | ~25 | Low | Planned |
+| 21 | Rich text & HTML | ~35 | Low | Planned |
+| 22 | Multimedia (optional) | ~20 | Low | Planned |
+| 23 | SVG support (optional) | ~8 | Low | Planned |
+| — | Infrastructure & quality | — | Ongoing | Planned |

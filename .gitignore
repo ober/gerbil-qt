@@ -2,6 +2,5 @@
 .gerbil/
 vendor/*.so
 
-# Planning/session notes
-plan.md
+# Session notes
 resume.md
