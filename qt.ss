@@ -1837,15 +1837,26 @@
 (def (qt-widget-set-accept-drops! w accept)
   (qt_widget_set_accept_drops w (if accept 1 0)))
 
+;; Track drop filter pointers by callback ID for cleanup
+(def *qt-drop-filter-ptrs* (make-hash-table))
+
 (def (qt-on-drop! widget handler)
-  (let ((id (register-qt-string-handler! handler)))
-    (raw_qt_drop_filter_install widget id)))
+  (let* ((id (register-qt-string-handler! handler))
+         (df (raw_qt_drop_filter_install widget id)))
+    (hash-put! *qt-drop-filter-ptrs* id df)
+    id))
 
-(def (qt-drop-filter-last-text df)
-  (qt_drop_filter_last_text df))
+(def (qt-drop-filter-last-text id)
+  (let ((df (hash-ref *qt-drop-filter-ptrs* id #f)))
+    (if df (qt_drop_filter_last_text df)
+        (error "qt-drop-filter-last-text: unknown drop filter ID" id))))
 
-(def (qt-drop-filter-destroy! df)
-  (qt_drop_filter_destroy df))
+(def (qt-drop-filter-destroy! id)
+  (let ((df (hash-ref *qt-drop-filter-ptrs* id #f)))
+    (when df
+      (qt_drop_filter_destroy df)
+      (hash-remove! *qt-drop-filter-ptrs* id)
+      (unregister-qt-handler! id))))
 
 (def (qt-drag-text! source text)
   (qt_drag_text source text))

@@ -712,9 +712,9 @@ Group boxes are widgets — they participate in Qt parent-child ownership. Use `
 | Function | Description |
 |----------|-------------|
 | `(qt-widget-set-accept-drops! w bool)` | Enable/disable drop acceptance |
-| `(qt-on-drop! widget handler)` | Install drop filter: `(lambda (text) ...)` |
-| `(qt-drop-filter-last-text df)` | Last dropped text |
-| `(qt-drop-filter-destroy! df)` | Remove drop filter |
+| `(qt-on-drop! widget handler)` | Install drop filter: `(lambda (text) ...)`, returns callback ID |
+| `(qt-drop-filter-last-text id)` | Last dropped text (by callback ID) |
+| `(qt-drop-filter-destroy! id)` | Remove drop filter and unregister handler (by callback ID) |
 | `(qt-drag-text! source text)` | Initiate drag with text |
 
 ### Phase 9: Practical Widgets & Dialog Enhancements

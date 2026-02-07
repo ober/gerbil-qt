@@ -1401,10 +1401,10 @@
     (test-case "drop filter install and destroy"
       (ensure-app!)
       (let* ((w (qt-widget-create))
-             (df (qt-on-drop! w (lambda (text) #t))))
-        ;; Verify we got a non-null handle
-        (check (not (eq? df #f)) => #t)
-        (qt-drop-filter-destroy! df)
+             (id (qt-on-drop! w (lambda (text) #t))))
+        ;; Verify we got a valid callback ID (integer)
+        (check (integer? id) => #t)
+        (qt-drop-filter-destroy! id)
         (qt-widget-destroy! w)))
 
     ;; ==================== Phase 9: Practical Widgets & Dialogs ====================
