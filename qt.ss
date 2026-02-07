@@ -663,6 +663,15 @@
     (hash-put! *qt-widget-handlers* obj (cons id ids)))
   id)
 
+(def (untrack-handler! id)
+  (hash-for-each
+   (lambda (obj ids)
+     (let ((new-ids (filter (lambda (x) (not (= x id))) ids)))
+       (if (null? new-ids)
+         (hash-remove! *qt-widget-handlers* obj)
+         (hash-put! *qt-widget-handlers* obj new-ids))))
+   *qt-widget-handlers*))
+
 ;;; ---- Widget ----
 
 (def (qt-widget-create parent: (parent #f))

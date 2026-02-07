@@ -1439,6 +1439,20 @@ All `qt-on-*!` functions return a callback ID:
   (unregister-qt-handler! id))
 ```
 
+**Important:** Calling `qt-on-*!` multiple times on the same widget accumulates
+signal connections — both old and new handlers will fire. To replace a handler,
+unregister the old one first:
+
+```scheme
+;; Replace a handler:
+(unregister-qt-handler! old-id)
+(set! old-id (qt-on-clicked! button new-handler))
+
+;; Or disconnect all signals at once:
+(qt-disconnect-all! button)
+(qt-on-clicked! button new-handler)
+```
+
 ### Resource Safety Macros
 
 RAII-style macros that guarantee cleanup even if the body throws an exception.
