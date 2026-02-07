@@ -1224,7 +1224,12 @@
     (raw_qt_timer_on_timeout timer id)))
 
 (def (qt-timer-single-shot! msec handler)
-  (let ((id (register-qt-void-handler! handler)))
+  ;; Wrap handler to auto-unregister after firing (single-shot = one use).
+  (let* ((id #f)
+         (wrapped (lambda ()
+                    (unregister-qt-handler! id)
+                    (handler))))
+    (set! id (register-qt-void-handler! wrapped))
     (raw_qt_timer_single_shot msec id)))
 
 (def (qt-timer-destroy! timer)
