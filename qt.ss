@@ -1634,7 +1634,7 @@
   (qt_font_set_italic f (if italic 1 0)))
 
 (def (qt-font-destroy! f)
-  (qt_font_destroy f))
+  (when f (qt_font_destroy f)))
 
 (def (qt-widget-set-font! w font)
   (qt_widget_set_font w font))
@@ -1665,6 +1665,8 @@
 
 ;;; ---- Font Dialog ----
 
+;; Returns a QFont pointer or #f if the user cancels.
+;; Caller must destroy the returned font with qt-font-destroy! when done.
 (def (qt-font-dialog parent: (parent #f))
   (qt_font_dialog_get_font parent))
 
