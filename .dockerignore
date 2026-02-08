@@ -1,0 +1,8 @@
+.gerbil/
+.git/
+.github/
+.claude/
+vendor/*.so
+*.md
+LICENSE
+.DS_Store

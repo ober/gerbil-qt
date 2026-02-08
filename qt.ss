@@ -630,7 +630,8 @@
   with-icon with-settings)
 
 (import :gerbil-qt/libqt
-        :std/srfi/13)
+        :std/srfi/13
+        :std/sugar)
 
 ;;; ---- Lifecycle ----
 

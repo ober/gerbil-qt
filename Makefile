@@ -8,7 +8,10 @@ STATIC_DIR := $(GERBIL_LIB)/static
 EXAMPLES := $(wildcard examples/*.ss)
 DEMO_TARGETS := $(patsubst examples/%.ss,demo-%,$(EXAMPLES))
 
-.PHONY: build test clean install uninstall $(DEMO_TARGETS)
+DOCKER ?= docker
+DOCKER_IMAGE := gerbil-qt-builder
+
+.PHONY: build test clean install uninstall docker-build docker-test docker-shell $(DEMO_TARGETS)
 
 build:
 	gerbil build
@@ -43,6 +46,18 @@ test: install
 clean:
 	gerbil clean
 	rm -f vendor/libqt_shim.so
+
+docker-build:
+	$(DOCKER) build -t $(DOCKER_IMAGE) .
+
+docker-test:
+	$(DOCKER) build -t $(DOCKER_IMAGE) --target test .
+
+docker-shell: docker-build
+	$(DOCKER) run --rm -it \
+		-v $(PWD):/project -w /project \
+		-e QT_QPA_PLATFORM=offscreen \
+		$(DOCKER_IMAGE) sh
 
 # All demo targets: make demo-hello, make demo-styled, etc.
 $(DEMO_TARGETS): demo-%: install
