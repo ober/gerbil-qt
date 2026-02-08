@@ -1878,6 +1878,7 @@
     (when df
       (qt_drop_filter_destroy df)
       (hash-remove! *qt-drop-filter-ptrs* id)
+      (untrack-handler! id)
       (unregister-qt-handler! id))))
 
 (def (qt-drag-text! source text)
@@ -2992,6 +2993,7 @@
   (let ((ids (hash-ref *qt-process-handlers* proc '())))
     (for-each unregister-qt-handler! ids)
     (hash-remove! *qt-process-handlers* proc))
+  (hash-remove! *qt-widget-handlers* proc)
   (qt_process_destroy proc))
 
 ;;; ---- QWizard / QWizardPage ----
@@ -3174,6 +3176,7 @@
   (let ((ids (hash-ref *qt-undo-stack-handlers* stack '())))
     (for-each unregister-qt-handler! ids)
     (hash-put! *qt-undo-stack-handlers* stack '()))
+  (hash-remove! *qt-widget-handlers* stack)
   (qt_undo_stack_clear stack))
 
 (def (qt-undo-stack-create-undo-action stack parent: (parent #f))
@@ -3186,6 +3189,7 @@
   (let ((ids (hash-ref *qt-undo-stack-handlers* stack '())))
     (for-each unregister-qt-handler! ids)
     (hash-remove! *qt-undo-stack-handlers* stack))
+  (hash-remove! *qt-widget-handlers* stack)
   (qt_undo_stack_destroy stack))
 
 ;;; ---- QFileSystemModel ----
@@ -3220,8 +3224,15 @@
 
 (def (qt-disconnect-all! obj)
   (let ((ids (hash-ref *qt-widget-handlers* obj '())))
-    (for-each unregister-qt-handler! ids)
+    (for-each (lambda (id)
+                (unregister-qt-handler! id)
+                ;; Clean up drop filter tracking if applicable
+                (hash-remove! *qt-drop-filter-ptrs* id))
+              ids)
     (hash-remove! *qt-widget-handlers* obj))
+  ;; Clean up secondary tracking tables if applicable
+  (hash-remove! *qt-undo-stack-handlers* obj)
+  (hash-remove! *qt-process-handlers* obj)
   (qt_disconnect_all obj))
 
 ;;; ---- Resource-safety macros ----

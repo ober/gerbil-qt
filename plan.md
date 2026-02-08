@@ -1,3 +1,36 @@
+# Bug Review - Handler Tracking Cleanup (IN PROGRESS)
+
+## Status: FIXES APPLIED, NOT YET BUILT/TESTED
+
+### Build
+- Gerbil was upgraded to v0.18.1-173, all artifacts stale
+- `libqt~0.c` is 84K lines (2.9MB) - takes 10-15 min to compile
+- Run: `make clean && make build` then `QT_QPA_PLATFORM=offscreen make test`
+
+### Fixes Applied to qt.ss (5 edits)
+
+**Bug class: Inconsistent handler tracking cleanup across three tracking layers**
+
+The handler system has: dispatch tables (`*qt-void-handlers*` etc), primary tracking (`*qt-widget-handlers*`), and secondary tracking (`*qt-undo-stack-handlers*`, `*qt-process-handlers*`, `*qt-drop-filter-ptrs*`). Several cleanup functions only cleaned some layers.
+
+1. **`qt-process-destroy!`** (~line 2992): Added `(hash-remove! *qt-widget-handlers* proc)`
+2. **`qt-undo-stack-destroy!`** (~line 3188): Added `(hash-remove! *qt-widget-handlers* stack)`
+3. **`qt-undo-stack-clear!`** (~line 3175): Added `(hash-remove! *qt-widget-handlers* stack)`
+4. **`qt-drop-filter-destroy!`** (~line 1876): Added `(untrack-handler! id)` before unregister
+5. **`qt-disconnect-all!`** (~line 3225): Changed to also clean `*qt-drop-filter-ptrs*`, `*qt-undo-stack-handlers*`, `*qt-process-handlers*`
+
+### Next Steps
+1. Build and test the above fixes
+2. If tests pass, commit: "Fix handler tracking leaks in destroy/cleanup functions"
+3. Consider fixing generic destroy functions (`qt-timer-destroy!`, `qt-button-group-destroy!`, etc.) that don't clean `*qt-widget-handlers*` at all
+4. Review completed with no other confirmed bugs in: callback types, FFI signatures, C++ shim, string serialization, input dialogs, settings, model/view, resource macros
+
+### Items Not Yet Reviewed
+- Process tracking array overflow (MAX_TRACKED_PROCESSES=16) - low severity, graceful fallback
+- Generic destroy functions handler leaks - lower priority
+
+---
+
 # Build Fix: Gambit Header Version Conflict
 
 ## Problem
