@@ -3972,23 +3972,25 @@ struct ProcessInfo {
 };
 static std::unordered_map<void*, ProcessInfo> s_process_info;
 
-// SIGCHLD handler management with reference counting.
+// SIGCHLD handler: only reaps our specifically tracked PIDs (not all children).
+// This captures exit codes before Gambit's handler can reap them with waitpid(-1).
+// Qt still detects process exit via pipe closure, so waitForFinished works.
 static struct sigaction s_gambit_sigaction = {};
 static int s_sigchld_refcount = 0;
 
 static void qt_sigchld_handler(int sig) {
     int saved_errno = errno;
-    int wstatus;
-    pid_t pid;
-    while ((pid = waitpid(-1, &wstatus, WNOHANG)) > 0) {
-        for (int i = 0; i < MAX_TRACKED_PROCESSES; i++) {
-            if (s_tracked_processes[i].pid == pid) {
+    // Only waitpid for our tracked PIDs — never waitpid(-1) which reaps all children
+    for (int i = 0; i < MAX_TRACKED_PROCESSES; i++) {
+        if (s_tracked_processes[i].pid > 0 && s_tracked_processes[i].exit_code < 0) {
+            int wstatus;
+            pid_t result = waitpid(s_tracked_processes[i].pid, &wstatus, WNOHANG);
+            if (result == s_tracked_processes[i].pid) {
                 if (WIFEXITED(wstatus)) {
                     s_tracked_processes[i].exit_code = WEXITSTATUS(wstatus);
                 } else if (WIFSIGNALED(wstatus)) {
                     s_tracked_processes[i].exit_code = 128 + WTERMSIG(wstatus);
                 }
-                break;
             }
         }
     }
@@ -4067,7 +4069,7 @@ extern "C" void qt_process_start(qt_process_t proc, const char* program,
             QChar('\n'), Qt::SkipEmptyParts);
     }
 
-    // Install our SIGCHLD handler before starting the process
+    // Install our SIGCHLD handler to capture exit codes for tracked PIDs
     qt_install_sigchld_handler();
 
     auto* p = static_cast<QProcess*>(proc);
@@ -4112,33 +4114,38 @@ extern "C" int qt_process_wait_for_finished(qt_process_t proc, int msecs) {
     auto* p = static_cast<QProcess*>(proc);
     pid_t pid = static_cast<pid_t>(p->processId());
 
-    // Let QProcess do its normal waiting
+    // Let QProcess do its normal waiting (uses pipe closure detection)
     p->waitForFinished(msecs);
 
-    // Determine exit code: prefer our SIGCHLD-captured code, fall back to Qt
+    // Determine exit code: prefer our SIGCHLD-captured code (which reaps
+    // specifically tracked PIDs before Gambit's handler can), fall back to Qt
     int exit_code = 0;
     int captured = qt_get_tracked_exit_code(pid);
     if (captured >= 0) {
         exit_code = captured;
-    } else if (p->exitStatus() == QProcess::NormalExit) {
+    } else if (p->state() == QProcess::NotRunning &&
+               p->exitStatus() == QProcess::NormalExit) {
         exit_code = p->exitCode();
     }
 
-    // Store exit code and clean up tracking
-    auto it = s_process_info.find(static_cast<void*>(p));
-    if (it != s_process_info.end()) {
-        it->second.last_exit_code = exit_code;
+    bool finished = (p->state() == QProcess::NotRunning) || (captured >= 0);
 
-        // Manually invoke on-finished callback if registered
-        if (it->second.finished_cb) {
-            it->second.finished_cb(it->second.finished_cb_id, exit_code);
+    // Store exit code and clean up tracking
+    if (finished) {
+        auto it = s_process_info.find(static_cast<void*>(p));
+        if (it != s_process_info.end()) {
+            it->second.last_exit_code = exit_code;
+
+            // Manually invoke on-finished callback if registered
+            if (it->second.finished_cb) {
+                it->second.finished_cb(it->second.finished_cb_id, exit_code);
+            }
         }
+        qt_untrack_pid(pid);
+        qt_restore_sigchld_handler();
     }
 
-    qt_untrack_pid(pid);
-    qt_restore_sigchld_handler();
-
-    return (p->state() == QProcess::NotRunning) ? 1 : 0;
+    return finished ? 1 : 0;
 }
 
 extern "C" int qt_process_exit_code(qt_process_t proc) {
