@@ -726,8 +726,18 @@
 (def (qt-widget-destroy! w)
   ;; Clean up Scheme handler tracking for this widget
   (let ((ids (hash-ref *qt-widget-handlers* w '())))
-    (for-each unregister-qt-handler! ids)
+    (for-each (lambda (id)
+                (unregister-qt-handler! id)
+                ;; Destroy drop filter C++ object if applicable
+                (let ((df (hash-ref *qt-drop-filter-ptrs* id #f)))
+                  (when df
+                    (qt_drop_filter_destroy df)
+                    (hash-remove! *qt-drop-filter-ptrs* id))))
+              ids)
     (hash-remove! *qt-widget-handlers* w))
+  ;; Clean up secondary tracking tables if applicable
+  (hash-remove! *qt-undo-stack-handlers* w)
+  (hash-remove! *qt-process-handlers* w)
   (qt_widget_destroy w))
 
 ;;; ---- Main Window ----
