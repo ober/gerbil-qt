@@ -3169,12 +3169,36 @@
 
 (def (qt-undo-stack-push! stack text undo-handler redo-handler)
   (let ((undo-id (register-qt-void-handler! undo-handler))
-        (redo-id (register-qt-void-handler! redo-handler)))
+        (redo-id (register-qt-void-handler! redo-handler))
+        (cleanup-id #f))
+    ;; Register a cleanup handler that C++ calls when the command is destroyed
+    ;; (e.g. when Qt truncates undone commands after a new push).
+    (set! cleanup-id
+      (register-qt-void-handler!
+       (lambda ()
+         ;; Unregister undo, redo, and cleanup handlers from dispatch tables
+         (unregister-qt-handler! undo-id)
+         (unregister-qt-handler! redo-id)
+         (unregister-qt-handler! cleanup-id)
+         ;; Remove from undo-stack secondary tracking
+         (let ((ids (hash-ref *qt-undo-stack-handlers* stack '())))
+           (let ((new-ids (filter (lambda (x) (not (or (= x undo-id) (= x redo-id) (= x cleanup-id)))) ids)))
+             (if (null? new-ids)
+               (hash-remove! *qt-undo-stack-handlers* stack)
+               (hash-put! *qt-undo-stack-handlers* stack new-ids))))
+         ;; Remove from primary widget tracking
+         (let ((ids (hash-ref *qt-widget-handlers* stack '())))
+           (let ((new-ids (filter (lambda (x) (not (or (= x undo-id) (= x redo-id) (= x cleanup-id)))) ids)))
+             (if (null? new-ids)
+               (hash-remove! *qt-widget-handlers* stack)
+               (hash-put! *qt-widget-handlers* stack new-ids)))))))
+    ;; Track all three handler IDs
     (let ((ids (hash-ref *qt-undo-stack-handlers* stack '())))
-      (hash-put! *qt-undo-stack-handlers* stack (cons* undo-id redo-id ids)))
+      (hash-put! *qt-undo-stack-handlers* stack (cons* undo-id redo-id cleanup-id ids)))
     (track-handler! stack undo-id)
     (track-handler! stack redo-id)
-    (raw_qt_undo_stack_push stack text undo-id redo-id)))
+    (track-handler! stack cleanup-id)
+    (raw_qt_undo_stack_push stack text undo-id redo-id cleanup-id)))
 
 (def (qt-undo-stack-undo! stack)
   (qt_undo_stack_undo stack))

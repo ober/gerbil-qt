@@ -4454,10 +4454,16 @@ class SchemeUndoCommand : public QUndoCommand {
 public:
     SchemeUndoCommand(const QString& text,
                       qt_callback_void undo_cb, long undo_id,
-                      qt_callback_void redo_cb, long redo_id)
+                      qt_callback_void redo_cb, long redo_id,
+                      qt_callback_void cleanup_cb, long cleanup_id)
         : QUndoCommand(text)
         , m_undo_cb(undo_cb), m_undo_id(undo_id)
-        , m_redo_cb(redo_cb), m_redo_id(redo_id) {}
+        , m_redo_cb(redo_cb), m_redo_id(redo_id)
+        , m_cleanup_cb(cleanup_cb), m_cleanup_id(cleanup_id) {}
+
+    ~SchemeUndoCommand() override {
+        if (m_cleanup_cb) m_cleanup_cb(m_cleanup_id);
+    }
 
     void undo() override {
         if (m_undo_cb) m_undo_cb(m_undo_id);
@@ -4472,6 +4478,8 @@ private:
     long m_undo_id;
     qt_callback_void m_redo_cb;
     long m_redo_id;
+    qt_callback_void m_cleanup_cb;
+    long m_cleanup_id;
 };
 
 extern "C" qt_undo_stack_t qt_undo_stack_create(qt_widget_t parent) {
@@ -4482,10 +4490,12 @@ extern "C" qt_undo_stack_t qt_undo_stack_create(qt_widget_t parent) {
 
 extern "C" void qt_undo_stack_push(qt_undo_stack_t stack, const char* text,
                                     qt_callback_void undo_cb, long undo_id,
-                                    qt_callback_void redo_cb, long redo_id) {
+                                    qt_callback_void redo_cb, long redo_id,
+                                    qt_callback_void cleanup_cb, long cleanup_id) {
     auto* s = static_cast<QUndoStack*>(stack);
     auto* cmd = new SchemeUndoCommand(QString::fromUtf8(text),
-                                      undo_cb, undo_id, redo_cb, redo_id);
+                                      undo_cb, undo_id, redo_cb, redo_id,
+                                      cleanup_cb, cleanup_id);
     s->push(cmd);  // QUndoStack takes ownership
 }
 

@@ -1364,7 +1364,8 @@ typedef void* qt_undo_stack_t;
 qt_undo_stack_t     qt_undo_stack_create(qt_widget_t parent);
 void                qt_undo_stack_push(qt_undo_stack_t stack, const char* text,
                                         qt_callback_void undo_cb, long undo_id,
-                                        qt_callback_void redo_cb, long redo_id);
+                                        qt_callback_void redo_cb, long redo_id,
+                                        qt_callback_void cleanup_cb, long cleanup_id);
 void                qt_undo_stack_undo(qt_undo_stack_t stack);
 void                qt_undo_stack_redo(qt_undo_stack_t stack);
 int                 qt_undo_stack_can_undo(qt_undo_stack_t stack);

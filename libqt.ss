@@ -1356,10 +1356,12 @@ static void ffi_qt_tool_box_on_current_changed(void* tb, long callback_id) {
 
 /* Phase 16: QUndoStack wrappers */
 static void ffi_qt_undo_stack_push(void* stack, const char* text,
-                                    long undo_id, long redo_id) {
+                                    long undo_id, long redo_id,
+                                    long cleanup_id) {
     qt_undo_stack_push(stack, text,
                        ffi_void_trampoline, undo_id,
-                       ffi_void_trampoline, redo_id);
+                       ffi_void_trampoline, redo_id,
+                       ffi_void_trampoline, cleanup_id);
 }
 
 /* Phase 16: QUndoStack text return wrappers — cast away const to avoid Gambit ___CFUN_ASSIGN warning */
@@ -3354,7 +3356,7 @@ END-C
   (define-c-lambda qt_undo_stack_create ((pointer void)) (pointer void)
     "qt_undo_stack_create")
   (define-c-lambda raw_qt_undo_stack_push
-    ((pointer void) UTF-8-string long long) void
+    ((pointer void) UTF-8-string long long long) void
     "ffi_qt_undo_stack_push")
   (define-c-lambda qt_undo_stack_undo ((pointer void)) void
     "qt_undo_stack_undo")

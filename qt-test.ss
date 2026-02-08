@@ -3279,6 +3279,30 @@
         (check (qt-undo-stack-can-undo? stack) => #f)
         (qt-undo-stack-destroy! stack)))
 
+    (test-case "QUndoStack truncation cleans up handlers"
+      (ensure-app!)
+      (let ((stack (qt-undo-stack-create))
+            (value 0)
+            (cleanup-count 0))
+        ;; Push command C1
+        (qt-undo-stack-push! stack "C1"
+          (lambda () (set! value 0))
+          (lambda () (set! value 1)))
+        (check value => 1)
+        ;; Undo C1 — now C1 is in the redo stack
+        (qt-undo-stack-undo! stack)
+        (check value => 0)
+        ;; Push C2 — Qt truncates C1, its destructor cleanup fires
+        (qt-undo-stack-push! stack "C2"
+          (lambda () (set! value 0))
+          (lambda () (set! value 2)))
+        (check value => 2)
+        ;; C1's handlers should have been cleaned up by the destructor callback.
+        ;; Only C2's handlers should remain.
+        (check (qt-undo-stack-can-undo? stack) => #t)
+        (check (qt-undo-stack-can-redo? stack) => #f)
+        (qt-undo-stack-destroy! stack)))
+
     (test-case "QUndoStack create actions"
       (ensure-app!)
       (let* ((win (qt-main-window-create))
