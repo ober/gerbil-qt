@@ -648,6 +648,9 @@
   (qt_application_process_events app))
 
 (def (qt-app-destroy! app)
+  (let ((ids (hash-ref *qt-widget-handlers* app '())))
+    (for-each unregister-qt-handler! ids)
+    (hash-remove! *qt-widget-handlers* app))
   (qt_application_destroy app))
 
 (defrule (with-qt-app app body ...)
@@ -721,6 +724,10 @@
   (qt_widget_set_font_size w size))
 
 (def (qt-widget-destroy! w)
+  ;; Clean up Scheme handler tracking for this widget
+  (let ((ids (hash-ref *qt-widget-handlers* w '())))
+    (for-each unregister-qt-handler! ids)
+    (hash-remove! *qt-widget-handlers* w))
   (qt_widget_destroy w))
 
 ;;; ---- Main Window ----
@@ -1270,6 +1277,9 @@
     id))
 
 (def (qt-timer-destroy! timer)
+  (let ((ids (hash-ref *qt-widget-handlers* timer '())))
+    (for-each unregister-qt-handler! ids)
+    (hash-remove! *qt-widget-handlers* timer))
   (qt_timer_destroy timer))
 
 ;;; ---- Clipboard ----
@@ -1599,6 +1609,9 @@
     (track-handler! bg id)))
 
 (def (qt-button-group-destroy! bg)
+  (let ((ids (hash-ref *qt-widget-handlers* bg '())))
+    (for-each unregister-qt-handler! ids)
+    (hash-remove! *qt-widget-handlers* bg))
   (qt_button_group_destroy bg))
 
 ;;; ---- Group Box ----
@@ -1778,6 +1791,9 @@
   (not (= (qt_system_tray_icon_is_available) 0)))
 
 (def (qt-system-tray-icon-destroy! ti)
+  (let ((ids (hash-ref *qt-widget-handlers* ti '())))
+    (for-each unregister-qt-handler! ids)
+    (hash-remove! *qt-widget-handlers* ti))
   (qt_system_tray_icon_destroy ti))
 
 ;;; ---- QPainter ----
@@ -2113,6 +2129,9 @@
     (track-handler! s id)))
 
 (def (qt-shortcut-destroy! s)
+  (let ((ids (hash-ref *qt-widget-handlers* s '())))
+    (for-each unregister-qt-handler! ids)
+    (hash-remove! *qt-widget-handlers* s))
   (qt_shortcut_destroy s))
 
 ;;; ---- Text Browser ----
@@ -2353,6 +2372,9 @@
   (qt_line_edit_set_completer e c))
 
 (def (qt-completer-destroy! c)
+  (let ((ids (hash-ref *qt-widget-handlers* c '())))
+    (for-each unregister-qt-handler! ids)
+    (hash-remove! *qt-widget-handlers* c))
   (qt_completer_destroy c))
 
 ;;; ---- QToolTip / QWhatsThis ----
@@ -3226,8 +3248,11 @@
   (let ((ids (hash-ref *qt-widget-handlers* obj '())))
     (for-each (lambda (id)
                 (unregister-qt-handler! id)
-                ;; Clean up drop filter tracking if applicable
-                (hash-remove! *qt-drop-filter-ptrs* id))
+                ;; Destroy drop filter C++ object if applicable
+                (let ((df (hash-ref *qt-drop-filter-ptrs* id #f)))
+                  (when df
+                    (qt_drop_filter_destroy df)
+                    (hash-remove! *qt-drop-filter-ptrs* id))))
               ids)
     (hash-remove! *qt-widget-handlers* obj))
   ;; Clean up secondary tracking tables if applicable
