@@ -38,6 +38,12 @@ int  qt_widget_is_visible(qt_widget_t w);
 void qt_widget_set_fixed_size(qt_widget_t w, int width, int height);
 void qt_widget_set_minimum_size(qt_widget_t w, int width, int height);
 void qt_widget_set_maximum_size(qt_widget_t w, int width, int height);
+void qt_widget_set_minimum_width(qt_widget_t w, int width);
+void qt_widget_set_minimum_height(qt_widget_t w, int height);
+void qt_widget_set_maximum_width(qt_widget_t w, int width);
+void qt_widget_set_maximum_height(qt_widget_t w, int height);
+void qt_widget_set_cursor(qt_widget_t w, int shape);
+void qt_widget_unset_cursor(qt_widget_t w);
 void qt_widget_resize(qt_widget_t w, int width, int height);
 void qt_widget_set_style_sheet(qt_widget_t w, const char* css);
 void qt_widget_set_tooltip(qt_widget_t w, const char* text);
@@ -63,6 +69,7 @@ qt_label_t qt_label_create(const char* text, qt_widget_t parent);
 void qt_label_set_text(qt_label_t l, const char* text);
 const char* qt_label_text(qt_label_t l);
 void qt_label_set_alignment(qt_label_t l, int alignment);
+void qt_label_set_word_wrap(qt_label_t l, int wrap);
 
 /* --- Push Button --- */
 qt_push_button_t qt_push_button_create(const char* text, qt_widget_t parent);
@@ -124,6 +131,8 @@ void        qt_text_edit_set_placeholder(qt_text_edit_t e, const char* text);
 void        qt_text_edit_set_read_only(qt_text_edit_t e, int read_only);
 void        qt_text_edit_append(qt_text_edit_t e, const char* text);
 void        qt_text_edit_clear(qt_text_edit_t e);
+void        qt_text_edit_scroll_to_bottom(qt_text_edit_t e);
+const char* qt_text_edit_html(qt_text_edit_t e);
 void        qt_text_edit_on_text_changed(qt_text_edit_t e,
                                           qt_callback_void callback,
                                           long callback_id);
@@ -644,6 +653,9 @@ void        qt_list_widget_set_current_row(qt_list_widget_t l, int row);
 const char* qt_list_widget_item_text(qt_list_widget_t l, int row);
 int         qt_list_widget_count(qt_list_widget_t l);
 void        qt_list_widget_clear(qt_list_widget_t l);
+void        qt_list_widget_set_item_data(qt_list_widget_t l, int row,
+                                          const char* data);
+const char* qt_list_widget_item_data(qt_list_widget_t l, int row);
 void        qt_list_widget_on_current_row_changed(qt_list_widget_t l,
                                                    qt_callback_int callback,
                                                    long callback_id);
@@ -777,6 +789,9 @@ const char* qt_text_browser_source(qt_text_browser_t tb);
 void        qt_text_browser_on_anchor_clicked(qt_text_browser_t tb,
                                                qt_callback_string callback,
                                                long callback_id);
+void        qt_text_browser_scroll_to_bottom(qt_text_browser_t tb);
+void        qt_text_browser_append(qt_text_browser_t tb, const char* text);
+const char* qt_text_browser_html(qt_text_browser_t tb);
 
 /* --- Dialog Button Box --- */
 qt_button_box_t qt_button_box_create(int standard_buttons, qt_widget_t parent);

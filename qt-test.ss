@@ -70,6 +70,30 @@
         (check (qt-label-text l) => "world")
         (qt-widget-destroy! l)))
 
+    (test-case "label word wrap"
+      (let ((l (qt-label-create "long text")))
+        ;; Just verify no crash
+        (qt-label-set-word-wrap! l #t)
+        (qt-label-set-word-wrap! l #f)
+        (qt-widget-destroy! l)))
+
+    (test-case "widget minimum/maximum width and height"
+      (let ((w (qt-widget-create)))
+        (qt-widget-set-minimum-width! w 100)
+        (qt-widget-set-minimum-height! w 50)
+        (qt-widget-set-maximum-width! w 800)
+        (qt-widget-set-maximum-height! w 600)
+        ;; Just verify no crash
+        (qt-widget-destroy! w)))
+
+    (test-case "widget set cursor"
+      (let ((w (qt-widget-create)))
+        (qt-widget-set-cursor! w QT_CURSOR_POINTING_HAND)
+        (qt-widget-set-cursor! w QT_CURSOR_WAIT)
+        (qt-widget-unset-cursor! w)
+        ;; Just verify no crash
+        (qt-widget-destroy! w)))
+
     (test-case "push button text round-trip"
       (let ((b (qt-push-button-create "Click")))
         (check (qt-push-button-text b) => "Click")
@@ -173,6 +197,23 @@
           (check (string-prefix? "Line 1" text) => #t))
         (qt-text-edit-clear! e)
         (check (qt-text-edit-text e) => "")
+        (qt-widget-destroy! e)))
+
+    (test-case "text edit scroll to bottom"
+      (let ((e (qt-text-edit-create)))
+        (qt-text-edit-set-text! e "Line 1")
+        (qt-text-edit-append! e "Line 2")
+        (qt-text-edit-append! e "Line 3")
+        ;; Just verify no crash
+        (qt-text-edit-scroll-to-bottom! e)
+        (qt-widget-destroy! e)))
+
+    (test-case "text edit html round-trip"
+      (let ((e (qt-text-edit-create)))
+        (qt-text-edit-set-text! e "Hello World")
+        (let ((html (qt-text-edit-html e)))
+          ;; HTML wraps plain text in tags
+          (check (number? (string-contains html "Hello World")) => #t))
         (qt-widget-destroy! e)))
 
     (test-case "text edit signal registration"
@@ -376,6 +417,15 @@
       (let ((l (qt-list-widget-create)))
         (qt-on-current-row-changed! l (lambda (row) #t))
         (qt-on-item-double-clicked! l (lambda (row) #t))
+        (qt-widget-destroy! l)))
+
+    (test-case "list widget item data round-trip"
+      (let ((l (qt-list-widget-create)))
+        (qt-list-widget-add-item! l "Visible Text")
+        (qt-list-widget-set-item-data! l 0 "hidden-id-123")
+        (check (qt-list-widget-item-data l 0) => "hidden-id-123")
+        ;; Display text is unaffected
+        (check (qt-list-widget-item-text l 0) => "Visible Text")
         (qt-widget-destroy! l)))
 
     ;; --- Table Widget ---
@@ -1796,6 +1846,28 @@
     (test-case "text browser on anchor clicked"
       (let ((tb (qt-text-browser-create)))
         (qt-on-anchor-clicked! tb (lambda (url) #t))
+        (qt-widget-destroy! tb)))
+
+    (test-case "text browser scroll to bottom"
+      (let ((tb (qt-text-browser-create)))
+        (qt-text-browser-set-html! tb "<p>Line 1</p>")
+        (qt-text-browser-scroll-to-bottom! tb)
+        (qt-widget-destroy! tb)))
+
+    (test-case "text browser append"
+      (let ((tb (qt-text-browser-create)))
+        (qt-text-browser-set-plain-text! tb "First")
+        (qt-text-browser-append! tb "Second")
+        (let ((text (qt-text-browser-plain-text tb)))
+          (check (number? (string-contains text "First")) => #t)
+          (check (number? (string-contains text "Second")) => #t))
+        (qt-widget-destroy! tb)))
+
+    (test-case "text browser html round-trip"
+      (let ((tb (qt-text-browser-create)))
+        (qt-text-browser-set-plain-text! tb "Hello")
+        (let ((html (qt-text-browser-html tb)))
+          (check (number? (string-contains html "Hello")) => #t))
         (qt-widget-destroy! tb)))
 
     ;; --- Dialog Button Box ---

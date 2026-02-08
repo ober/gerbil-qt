@@ -18,6 +18,9 @@
      qt_widget_set_enabled qt_widget_is_enabled qt_widget_set_visible qt_widget_is_visible
      qt_widget_set_fixed_size qt_widget_set_minimum_size
      qt_widget_set_maximum_size qt_widget_resize
+     qt_widget_set_minimum_width qt_widget_set_minimum_height
+     qt_widget_set_maximum_width qt_widget_set_maximum_height
+     qt_widget_set_cursor qt_widget_unset_cursor
      qt_widget_set_style_sheet qt_widget_set_tooltip
      qt_widget_set_font_size qt_widget_destroy
 
@@ -32,7 +35,7 @@
 
      ;; Labels
      qt_label_create qt_label_set_text qt_label_text
-     qt_label_set_alignment
+     qt_label_set_alignment qt_label_set_word_wrap
 
      ;; Push Button
      qt_push_button_create qt_push_button_set_text qt_push_button_text
@@ -59,6 +62,7 @@
      qt_text_edit_create qt_text_edit_set_text qt_text_edit_text
      qt_text_edit_set_placeholder qt_text_edit_set_read_only
      qt_text_edit_append qt_text_edit_clear
+     qt_text_edit_scroll_to_bottom qt_text_edit_html
      raw_qt_text_edit_on_text_changed
 
      ;; Spin Box
@@ -108,6 +112,7 @@
      qt_list_widget_insert_item qt_list_widget_remove_item
      qt_list_widget_current_row qt_list_widget_set_current_row
      qt_list_widget_item_text qt_list_widget_count qt_list_widget_clear
+     qt_list_widget_set_item_data qt_list_widget_item_data
      raw_qt_list_widget_on_current_row_changed
      raw_qt_list_widget_on_item_double_clicked
 
@@ -200,6 +205,10 @@
 
      ;; Scrollbar policy constants
      QT_SCROLLBAR_AS_NEEDED QT_SCROLLBAR_ALWAYS_OFF QT_SCROLLBAR_ALWAYS_ON
+
+     ;; Cursor shape constants
+     QT_CURSOR_ARROW QT_CURSOR_CROSS QT_CURSOR_WAIT QT_CURSOR_IBEAM
+     QT_CURSOR_POINTING_HAND QT_CURSOR_FORBIDDEN QT_CURSOR_BUSY
 
      ;; Splitter
      qt_splitter_create qt_splitter_add_widget qt_splitter_count
@@ -379,6 +388,8 @@
      qt_text_browser_set_plain_text qt_text_browser_plain_text
      qt_text_browser_set_open_external_links
      qt_text_browser_set_source qt_text_browser_source
+     qt_text_browser_scroll_to_bottom qt_text_browser_append
+     qt_text_browser_html
      raw_qt_text_browser_on_anchor_clicked
 
      ;; Dialog Button Box
@@ -761,6 +772,9 @@ static void ffi_qt_text_edit_on_text_changed(void* e, long callback_id) {
 static char* ffi_qt_text_edit_text(void* e) {
     return (char*)qt_text_edit_text(e);
 }
+static char* ffi_qt_text_edit_html(void* e) {
+    return (char*)qt_text_edit_html(e);
+}
 
 /* Spin Box */
 static void ffi_qt_spin_box_on_value_changed(void* s, long callback_id) {
@@ -805,6 +819,9 @@ static void ffi_qt_list_widget_on_item_double_clicked(void* l, long callback_id)
 }
 static char* ffi_qt_list_widget_item_text(void* l, int row) {
     return (char*)qt_list_widget_item_text(l, row);
+}
+static char* ffi_qt_list_widget_item_data(void* l, int row) {
+    return (char*)qt_list_widget_item_data(l, row);
 }
 
 /* Table Widget */
@@ -895,6 +912,15 @@ static char* ffi_qt_tree_item_text(void* item, int col) {
 #define QT_SCROLLBAR_AS_NEEDED  0
 #define QT_SCROLLBAR_ALWAYS_OFF 1
 #define QT_SCROLLBAR_ALWAYS_ON  2
+
+/* Cursor shape constants (Qt::CursorShape) */
+#define QT_CURSOR_ARROW          0
+#define QT_CURSOR_CROSS          2
+#define QT_CURSOR_WAIT           3
+#define QT_CURSOR_IBEAM          4
+#define QT_CURSOR_POINTING_HAND 13
+#define QT_CURSOR_FORBIDDEN     14
+#define QT_CURSOR_BUSY          16
 
 /* Key constants (Qt::Key) */
 #define QT_KEY_A         0x41
@@ -1130,6 +1156,9 @@ static char* ffi_qt_text_browser_source(void* tb) {
 }
 static void ffi_qt_text_browser_on_anchor_clicked(void* tb, long callback_id) {
     qt_text_browser_on_anchor_clicked(tb, ffi_string_trampoline, callback_id);
+}
+static char* ffi_qt_text_browser_html(void* tb) {
+    return (char*)qt_text_browser_html(tb);
 }
 
 /* Dialog Button Box — accepted/rejected/clicked use void trampoline */
@@ -1411,6 +1440,15 @@ END-C
   (define-const QT_SCROLLBAR_ALWAYS_OFF)
   (define-const QT_SCROLLBAR_ALWAYS_ON)
 
+  ;; Cursor shape constants
+  (define-const QT_CURSOR_ARROW)
+  (define-const QT_CURSOR_CROSS)
+  (define-const QT_CURSOR_WAIT)
+  (define-const QT_CURSOR_IBEAM)
+  (define-const QT_CURSOR_POINTING_HAND)
+  (define-const QT_CURSOR_FORBIDDEN)
+  (define-const QT_CURSOR_BUSY)
+
   ;; Key constants
   (define-const QT_KEY_A)
   (define-const QT_KEY_B)
@@ -1537,6 +1575,18 @@ END-C
     "qt_widget_set_minimum_size")
   (define-c-lambda qt_widget_set_maximum_size ((pointer void) int int) void
     "qt_widget_set_maximum_size")
+  (define-c-lambda qt_widget_set_minimum_width ((pointer void) int) void
+    "qt_widget_set_minimum_width")
+  (define-c-lambda qt_widget_set_minimum_height ((pointer void) int) void
+    "qt_widget_set_minimum_height")
+  (define-c-lambda qt_widget_set_maximum_width ((pointer void) int) void
+    "qt_widget_set_maximum_width")
+  (define-c-lambda qt_widget_set_maximum_height ((pointer void) int) void
+    "qt_widget_set_maximum_height")
+  (define-c-lambda qt_widget_set_cursor ((pointer void) int) void
+    "qt_widget_set_cursor")
+  (define-c-lambda qt_widget_unset_cursor ((pointer void)) void
+    "qt_widget_unset_cursor")
   (define-c-lambda qt_widget_resize ((pointer void) int int) void
     "qt_widget_resize")
   (define-c-lambda qt_widget_set_style_sheet ((pointer void) UTF-8-string) void
@@ -1580,6 +1630,8 @@ END-C
     "ffi_qt_label_text")
   (define-c-lambda qt_label_set_alignment ((pointer void) int) void
     "qt_label_set_alignment")
+  (define-c-lambda qt_label_set_word_wrap ((pointer void) int) void
+    "qt_label_set_word_wrap")
 
   ;; ---- Push Button ----
   (define-c-lambda qt_push_button_create
@@ -1655,6 +1707,10 @@ END-C
     "qt_text_edit_append")
   (define-c-lambda qt_text_edit_clear ((pointer void)) void
     "qt_text_edit_clear")
+  (define-c-lambda qt_text_edit_scroll_to_bottom ((pointer void)) void
+    "qt_text_edit_scroll_to_bottom")
+  (define-c-lambda qt_text_edit_html ((pointer void)) UTF-8-string
+    "ffi_qt_text_edit_html")
   (define-c-lambda raw_qt_text_edit_on_text_changed ((pointer void) long) void
     "ffi_qt_text_edit_on_text_changed")
 
@@ -1797,6 +1853,10 @@ END-C
     "qt_list_widget_count")
   (define-c-lambda qt_list_widget_clear ((pointer void)) void
     "qt_list_widget_clear")
+  (define-c-lambda qt_list_widget_set_item_data ((pointer void) int UTF-8-string) void
+    "qt_list_widget_set_item_data")
+  (define-c-lambda qt_list_widget_item_data ((pointer void) int) UTF-8-string
+    "ffi_qt_list_widget_item_data")
   (define-c-lambda raw_qt_list_widget_on_current_row_changed
     ((pointer void) long) void
     "ffi_qt_list_widget_on_current_row_changed")
@@ -2535,6 +2595,12 @@ END-C
     "ffi_qt_text_browser_source")
   (define-c-lambda raw_qt_text_browser_on_anchor_clicked ((pointer void) long) void
     "ffi_qt_text_browser_on_anchor_clicked")
+  (define-c-lambda qt_text_browser_scroll_to_bottom ((pointer void)) void
+    "qt_text_browser_scroll_to_bottom")
+  (define-c-lambda qt_text_browser_append ((pointer void) UTF-8-string) void
+    "qt_text_browser_append")
+  (define-c-lambda qt_text_browser_html ((pointer void)) UTF-8-string
+    "ffi_qt_text_browser_html")
 
   ;; ---- Dialog Button Box ----
   (define-c-lambda qt_button_box_create (int (pointer void)) (pointer void)

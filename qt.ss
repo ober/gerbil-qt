@@ -9,6 +9,9 @@
   qt-widget-set-enabled! qt-widget-enabled?
   qt-widget-set-visible! qt-widget-visible? qt-widget-set-fixed-size!
   qt-widget-set-minimum-size! qt-widget-set-maximum-size!
+  qt-widget-set-minimum-width! qt-widget-set-minimum-height!
+  qt-widget-set-maximum-width! qt-widget-set-maximum-height!
+  qt-widget-set-cursor! qt-widget-unset-cursor!
   qt-widget-resize! qt-widget-set-style-sheet!
   qt-widget-set-tooltip! qt-widget-set-font-size!
   qt-widget-destroy!
@@ -24,7 +27,7 @@
 
   ;; Labels
   qt-label-create qt-label-set-text! qt-label-text
-  qt-label-set-alignment!
+  qt-label-set-alignment! qt-label-set-word-wrap!
 
   ;; Push Button
   qt-push-button-create qt-push-button-set-text! qt-push-button-text
@@ -50,6 +53,7 @@
   qt-text-edit-create qt-text-edit-text qt-text-edit-set-text!
   qt-text-edit-set-placeholder! qt-text-edit-set-read-only!
   qt-text-edit-append! qt-text-edit-clear!
+  qt-text-edit-scroll-to-bottom! qt-text-edit-html
   qt-on-text-edit-changed!
 
   ;; Spin Box
@@ -99,6 +103,7 @@
   qt-list-widget-insert-item! qt-list-widget-remove-item!
   qt-list-widget-current-row qt-list-widget-set-current-row!
   qt-list-widget-item-text qt-list-widget-count qt-list-widget-clear!
+  qt-list-widget-set-item-data! qt-list-widget-item-data
   qt-on-current-row-changed! qt-on-item-double-clicked!
 
   ;; Table Widget
@@ -320,6 +325,8 @@
   qt-text-browser-set-plain-text! qt-text-browser-plain-text
   qt-text-browser-set-open-external-links!
   qt-text-browser-set-source! qt-text-browser-source
+  qt-text-browser-scroll-to-bottom! qt-text-browser-append!
+  qt-text-browser-html
   qt-on-anchor-clicked!
 
   ;; Dialog Button Box
@@ -344,6 +351,8 @@
   QT_TICKS_NONE QT_TICKS_ABOVE QT_TICKS_BELOW QT_TICKS_BOTH_SIDES
   QT_WINDOW_NO_STATE QT_WINDOW_MINIMIZED QT_WINDOW_MAXIMIZED QT_WINDOW_FULL_SCREEN
   QT_SCROLLBAR_AS_NEEDED QT_SCROLLBAR_ALWAYS_OFF QT_SCROLLBAR_ALWAYS_ON
+  QT_CURSOR_ARROW QT_CURSOR_CROSS QT_CURSOR_WAIT QT_CURSOR_IBEAM
+  QT_CURSOR_POINTING_HAND QT_CURSOR_FORBIDDEN QT_CURSOR_BUSY
   QT_KEY_A QT_KEY_B QT_KEY_C QT_KEY_D QT_KEY_E QT_KEY_F
   QT_KEY_G QT_KEY_H QT_KEY_I QT_KEY_J QT_KEY_K QT_KEY_L
   QT_KEY_M QT_KEY_N QT_KEY_O QT_KEY_P QT_KEY_Q QT_KEY_R
@@ -711,6 +720,24 @@
 (def (qt-widget-set-maximum-size! w width height)
   (qt_widget_set_maximum_size w width height))
 
+(def (qt-widget-set-minimum-width! w width)
+  (qt_widget_set_minimum_width w width))
+
+(def (qt-widget-set-minimum-height! w height)
+  (qt_widget_set_minimum_height w height))
+
+(def (qt-widget-set-maximum-width! w width)
+  (qt_widget_set_maximum_width w width))
+
+(def (qt-widget-set-maximum-height! w height)
+  (qt_widget_set_maximum_height w height))
+
+(def (qt-widget-set-cursor! w shape)
+  (qt_widget_set_cursor w shape))
+
+(def (qt-widget-unset-cursor! w)
+  (qt_widget_unset_cursor w))
+
 (def (qt-widget-resize! w width height)
   (qt_widget_resize w width height))
 
@@ -784,6 +811,9 @@
 
 (def (qt-label-set-alignment! l alignment)
   (qt_label_set_alignment l alignment))
+
+(def (qt-label-set-word-wrap! l wrap)
+  (qt_label_set_word_wrap l (if wrap 1 0)))
 
 ;;; ---- Push Button ----
 
@@ -900,6 +930,12 @@
 
 (def (qt-text-edit-clear! e)
   (qt_text_edit_clear e))
+
+(def (qt-text-edit-scroll-to-bottom! e)
+  (qt_text_edit_scroll_to_bottom e))
+
+(def (qt-text-edit-html e)
+  (qt_text_edit_html e))
 
 (def (qt-on-text-edit-changed! text-edit handler)
   (let ((id (register-qt-void-handler! handler)))
@@ -1102,6 +1138,12 @@
 
 (def (qt-list-widget-clear! l)
   (qt_list_widget_clear l))
+
+(def (qt-list-widget-set-item-data! l row data)
+  (qt_list_widget_set_item_data l row data))
+
+(def (qt-list-widget-item-data l row)
+  (qt_list_widget_item_data l row))
 
 (def (qt-on-current-row-changed! list-widget handler)
   (let ((id (register-qt-int-handler! handler)))
@@ -2166,6 +2208,15 @@
 
 (def (qt-text-browser-source tb)
   (qt_text_browser_source tb))
+
+(def (qt-text-browser-scroll-to-bottom! tb)
+  (qt_text_browser_scroll_to_bottom tb))
+
+(def (qt-text-browser-append! tb text)
+  (qt_text_browser_append tb text))
+
+(def (qt-text-browser-html tb)
+  (qt_text_browser_html tb))
 
 (def (qt-on-anchor-clicked! tb handler)
   (let ((id (register-qt-string-handler! handler)))

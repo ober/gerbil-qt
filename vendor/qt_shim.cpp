@@ -96,6 +96,8 @@
 #include <QToolBox>
 #include <QUndoStack>
 #include <QUndoCommand>
+#include <QScrollBar>
+#include <QCursor>
 #include <QFileSystemModel>
 #include <QGraphicsScene>
 #include <QGraphicsView>
@@ -231,6 +233,30 @@ extern "C" void qt_widget_set_maximum_size(qt_widget_t w, int width, int height)
     static_cast<QWidget*>(w)->setMaximumSize(width, height);
 }
 
+extern "C" void qt_widget_set_minimum_width(qt_widget_t w, int width) {
+    static_cast<QWidget*>(w)->setMinimumWidth(width);
+}
+
+extern "C" void qt_widget_set_minimum_height(qt_widget_t w, int height) {
+    static_cast<QWidget*>(w)->setMinimumHeight(height);
+}
+
+extern "C" void qt_widget_set_maximum_width(qt_widget_t w, int width) {
+    static_cast<QWidget*>(w)->setMaximumWidth(width);
+}
+
+extern "C" void qt_widget_set_maximum_height(qt_widget_t w, int height) {
+    static_cast<QWidget*>(w)->setMaximumHeight(height);
+}
+
+extern "C" void qt_widget_set_cursor(qt_widget_t w, int shape) {
+    static_cast<QWidget*>(w)->setCursor(QCursor(static_cast<Qt::CursorShape>(shape)));
+}
+
+extern "C" void qt_widget_unset_cursor(qt_widget_t w) {
+    static_cast<QWidget*>(w)->unsetCursor();
+}
+
 extern "C" void qt_widget_resize(qt_widget_t w, int width, int height) {
     static_cast<QWidget*>(w)->resize(width, height);
 }
@@ -320,6 +346,10 @@ extern "C" const char* qt_label_text(qt_label_t l) {
 
 extern "C" void qt_label_set_alignment(qt_label_t l, int alignment) {
     static_cast<QLabel*>(l)->setAlignment(static_cast<Qt::Alignment>(alignment));
+}
+
+extern "C" void qt_label_set_word_wrap(qt_label_t l, int wrap) {
+    static_cast<QLabel*>(l)->setWordWrap(wrap != 0);
 }
 
 // ============================================================
@@ -499,6 +529,17 @@ extern "C" void qt_text_edit_append(qt_text_edit_t e, const char* text) {
 
 extern "C" void qt_text_edit_clear(qt_text_edit_t e) {
     static_cast<QTextEdit*>(e)->clear();
+}
+
+extern "C" void qt_text_edit_scroll_to_bottom(qt_text_edit_t e) {
+    auto* te = static_cast<QTextEdit*>(e);
+    auto* sb = te->verticalScrollBar();
+    sb->setValue(sb->maximum());
+}
+
+extern "C" const char* qt_text_edit_html(qt_text_edit_t e) {
+    s_return_buf = static_cast<QTextEdit*>(e)->toHtml().toUtf8().toStdString();
+    return s_return_buf.c_str();
 }
 
 extern "C" void qt_text_edit_on_text_changed(qt_text_edit_t e,
@@ -832,6 +873,24 @@ extern "C" int qt_list_widget_count(qt_list_widget_t l) {
 
 extern "C" void qt_list_widget_clear(qt_list_widget_t l) {
     static_cast<QListWidget*>(l)->clear();
+}
+
+extern "C" void qt_list_widget_set_item_data(qt_list_widget_t l, int row,
+                                              const char* data) {
+    auto* item = static_cast<QListWidget*>(l)->item(row);
+    if (item) {
+        item->setData(Qt::UserRole, QString::fromUtf8(data));
+    }
+}
+
+extern "C" const char* qt_list_widget_item_data(qt_list_widget_t l, int row) {
+    auto* item = static_cast<QListWidget*>(l)->item(row);
+    if (item) {
+        s_return_buf = item->data(Qt::UserRole).toString().toUtf8().toStdString();
+    } else {
+        s_return_buf.clear();
+    }
+    return s_return_buf.c_str();
 }
 
 extern "C" void qt_list_widget_on_current_row_changed(qt_list_widget_t l,
@@ -2581,6 +2640,21 @@ extern "C" void qt_text_browser_on_anchor_clicked(qt_text_browser_t tb,
                          std::string s = url.toString().toUtf8().toStdString();
                          callback(callback_id, s.c_str());
                      });
+}
+
+extern "C" void qt_text_browser_scroll_to_bottom(qt_text_browser_t tb) {
+    auto* te = static_cast<QTextBrowser*>(tb);
+    auto* sb = te->verticalScrollBar();
+    sb->setValue(sb->maximum());
+}
+
+extern "C" void qt_text_browser_append(qt_text_browser_t tb, const char* text) {
+    static_cast<QTextBrowser*>(tb)->append(QString::fromUtf8(text));
+}
+
+extern "C" const char* qt_text_browser_html(qt_text_browser_t tb) {
+    s_return_buf = static_cast<QTextBrowser*>(tb)->toHtml().toUtf8().toStdString();
+    return s_return_buf.c_str();
 }
 
 // ============================================================
