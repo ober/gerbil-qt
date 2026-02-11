@@ -1492,6 +1492,7 @@ void qt_plain_text_edit_center_cursor(qt_plain_text_edit_t e);
 
 /* --- Document management (for multi-buffer) --- */
 void* qt_text_document_create(void);
+void* qt_plain_text_document_create(void);  /* with QPlainTextDocumentLayout */
 void  qt_text_document_destroy(void* doc);
 void* qt_plain_text_edit_document(qt_plain_text_edit_t e);
 void  qt_plain_text_edit_set_document(qt_plain_text_edit_t e, void* doc);

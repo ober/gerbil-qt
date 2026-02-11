@@ -598,7 +598,7 @@
      qt_plain_text_edit_line_from_position qt_plain_text_edit_line_end_position
      qt_plain_text_edit_find_text
      qt_plain_text_edit_ensure_cursor_visible qt_plain_text_edit_center_cursor
-     qt_text_document_create qt_text_document_destroy
+     qt_text_document_create qt_plain_text_document_create qt_text_document_destroy
      qt_plain_text_edit_document qt_plain_text_edit_set_document
      qt_text_document_is_modified qt_text_document_set_modified
 
@@ -3238,6 +3238,8 @@ END-C
     "qt_plain_text_edit_center_cursor")
   (define-c-lambda qt_text_document_create () (pointer void)
     "qt_text_document_create")
+  (define-c-lambda qt_plain_text_document_create () (pointer void)
+    "qt_plain_text_document_create")
   (define-c-lambda qt_text_document_destroy ((pointer void)) void
     "qt_text_document_destroy")
   (define-c-lambda qt_plain_text_edit_document ((pointer void)) (pointer void)

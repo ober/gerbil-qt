@@ -542,7 +542,7 @@
   qt-plain-text-edit-find-text
   qt-plain-text-edit-ensure-cursor-visible!
   qt-plain-text-edit-center-cursor!
-  qt-text-document-create qt-text-document-destroy!
+  qt-text-document-create qt-plain-text-document-create qt-text-document-destroy!
   qt-plain-text-edit-document qt-plain-text-edit-set-document!
   qt-text-document-modified? qt-text-document-set-modified!
 
@@ -2955,6 +2955,10 @@
 
 (def (qt-text-document-create)
   (qt_text_document_create))
+
+(def (qt-plain-text-document-create)
+  "Create a QTextDocument with QPlainTextDocumentLayout (for QPlainTextEdit)."
+  (qt_plain_text_document_create))
 
 (def (qt-text-document-destroy! doc)
   (qt_text_document_destroy doc))

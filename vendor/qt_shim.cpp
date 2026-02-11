@@ -4864,6 +4864,13 @@ extern "C" void* qt_text_document_create(void) {
     return static_cast<void*>(new QTextDocument());
 }
 
+extern "C" void* qt_plain_text_document_create(void) {
+    auto* doc = new QTextDocument();
+    auto* layout = new QPlainTextDocumentLayout(doc);
+    doc->setDocumentLayout(layout);
+    return static_cast<void*>(doc);
+}
+
 extern "C" void qt_text_document_destroy(void* doc) {
     delete static_cast<QTextDocument*>(doc);
 }
