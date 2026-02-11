@@ -48,6 +48,8 @@
 #include <QColorDialog>
 #include <QColor>
 #include <QStackedWidget>
+#include <QSyntaxHighlighter>
+#include <QRegularExpression>
 #include <QDockWidget>
 #include <QSystemTrayIcon>
 #include <QPainter>
@@ -4896,6 +4898,167 @@ extern "C" int qt_text_document_is_modified(void* doc) {
 
 extern "C" void qt_text_document_set_modified(void* doc, int val) {
     static_cast<QTextDocument*>(doc)->setModified(val != 0);
+}
+
+// ============================================================
+// QSyntaxHighlighter
+// ============================================================
+
+struct HighlightRule {
+    QRegularExpression pattern;
+    QTextCharFormat format;
+};
+
+struct MultiLineRule {
+    QRegularExpression startPattern;
+    QRegularExpression endPattern;
+    QTextCharFormat format;
+    int stateIndex;
+};
+
+class ConfigurableHighlighter : public QSyntaxHighlighter {
+public:
+    ConfigurableHighlighter(QTextDocument* parent)
+        : QSyntaxHighlighter(parent), m_nextState(1) {}
+
+    void addRule(const QString& pattern, const QTextCharFormat& fmt) {
+        HighlightRule rule;
+        rule.pattern = QRegularExpression(pattern);
+        rule.format = fmt;
+        m_rules.push_back(rule);
+    }
+
+    void addMultiLineRule(const QString& startPat, const QString& endPat,
+                          const QTextCharFormat& fmt) {
+        MultiLineRule rule;
+        rule.startPattern = QRegularExpression(startPat);
+        rule.endPattern = QRegularExpression(endPat);
+        rule.format = fmt;
+        rule.stateIndex = m_nextState++;
+        m_multiLineRules.push_back(rule);
+    }
+
+    void clearRules() {
+        m_rules.clear();
+        m_multiLineRules.clear();
+        m_nextState = 1;
+    }
+
+protected:
+    void highlightBlock(const QString& text) override {
+        // Apply single-line rules
+        for (const auto& rule : m_rules) {
+            auto it = rule.pattern.globalMatch(text);
+            while (it.hasNext()) {
+                auto match = it.next();
+                setFormat(match.capturedStart(), match.capturedLength(),
+                          rule.format);
+            }
+        }
+
+        // Apply multi-line rules
+        for (const auto& mlRule : m_multiLineRules) {
+            int startIndex = 0;
+            if (previousBlockState() != mlRule.stateIndex) {
+                auto match = mlRule.startPattern.match(text);
+                if (!match.hasMatch()) continue;
+                startIndex = match.capturedStart();
+            }
+
+            while (startIndex >= 0) {
+                int searchFrom = (previousBlockState() == mlRule.stateIndex
+                                  && startIndex == 0)
+                    ? 0
+                    : startIndex + mlRule.startPattern.match(text, startIndex)
+                                       .capturedLength();
+                auto endMatch = mlRule.endPattern.match(text, searchFrom);
+                int endIndex;
+                int matchLength;
+
+                if (!endMatch.hasMatch()) {
+                    setCurrentBlockState(mlRule.stateIndex);
+                    matchLength = text.length() - startIndex;
+                } else {
+                    endIndex = endMatch.capturedStart();
+                    matchLength = endIndex - startIndex
+                                  + endMatch.capturedLength();
+                }
+
+                setFormat(startIndex, matchLength, mlRule.format);
+
+                if (!endMatch.hasMatch()) break;
+                auto nextStart = mlRule.startPattern.match(
+                    text, startIndex + matchLength);
+                startIndex = nextStart.hasMatch()
+                    ? nextStart.capturedStart() : -1;
+            }
+        }
+    }
+
+private:
+    std::vector<HighlightRule> m_rules;
+    std::vector<MultiLineRule> m_multiLineRules;
+    int m_nextState;
+};
+
+static QTextCharFormat makeFormat(int r, int g, int b, int bold, int italic) {
+    QTextCharFormat fmt;
+    fmt.setForeground(QColor(r, g, b));
+    if (bold) fmt.setFontWeight(QFont::Bold);
+    if (italic) fmt.setFontItalic(true);
+    return fmt;
+}
+
+extern "C" qt_syntax_highlighter_t qt_syntax_highlighter_create(void* document) {
+    auto* doc = static_cast<QTextDocument*>(document);
+    auto* h = new ConfigurableHighlighter(doc);
+    return static_cast<void*>(h);
+}
+
+extern "C" void qt_syntax_highlighter_destroy(qt_syntax_highlighter_t h) {
+    delete static_cast<ConfigurableHighlighter*>(h);
+}
+
+extern "C" void qt_syntax_highlighter_add_rule(qt_syntax_highlighter_t h,
+    const char* pattern, int fg_r, int fg_g, int fg_b, int bold, int italic)
+{
+    auto* hl = static_cast<ConfigurableHighlighter*>(h);
+    hl->addRule(QString::fromUtf8(pattern), makeFormat(fg_r, fg_g, fg_b, bold, italic));
+}
+
+extern "C" void qt_syntax_highlighter_add_keywords(qt_syntax_highlighter_t h,
+    const char* keywords, int fg_r, int fg_g, int fg_b, int bold, int italic)
+{
+    auto* hl = static_cast<ConfigurableHighlighter*>(h);
+    // Split space-separated keywords and join with | for alternation
+    QString kws = QString::fromUtf8(keywords);
+    QStringList wordList = kws.split(' ', Qt::SkipEmptyParts);
+    if (wordList.isEmpty()) return;
+    // Escape special regex chars in each keyword, then join
+    QStringList escaped;
+    for (const auto& w : wordList) {
+        escaped.append(QRegularExpression::escape(w));
+    }
+    QString pattern = "\\b(" + escaped.join("|") + ")\\b";
+    hl->addRule(pattern, makeFormat(fg_r, fg_g, fg_b, bold, italic));
+}
+
+extern "C" void qt_syntax_highlighter_add_multiline_rule(qt_syntax_highlighter_t h,
+    const char* start_pattern, const char* end_pattern,
+    int fg_r, int fg_g, int fg_b, int bold, int italic)
+{
+    auto* hl = static_cast<ConfigurableHighlighter*>(h);
+    hl->addMultiLineRule(QString::fromUtf8(start_pattern),
+                         QString::fromUtf8(end_pattern),
+                         makeFormat(fg_r, fg_g, fg_b, bold, italic));
+}
+
+extern "C" void qt_syntax_highlighter_clear_rules(qt_syntax_highlighter_t h) {
+    static_cast<ConfigurableHighlighter*>(h)->clearRules();
+}
+
+extern "C" void qt_syntax_highlighter_rehighlight(qt_syntax_highlighter_t h) {
+    static_cast<ConfigurableHighlighter*>(h)->rehighlight();
 }
 
 // ============================================================

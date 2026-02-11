@@ -1417,6 +1417,22 @@ void                qt_file_system_model_destroy(qt_file_system_model_t model);
 /* --- Signal disconnect --- */
 void qt_disconnect_all(qt_widget_t obj);
 
+/* ========== Phase 18: QSyntaxHighlighter ========== */
+
+typedef void* qt_syntax_highlighter_t;
+
+qt_syntax_highlighter_t qt_syntax_highlighter_create(void* document);
+void qt_syntax_highlighter_destroy(qt_syntax_highlighter_t h);
+void qt_syntax_highlighter_add_rule(qt_syntax_highlighter_t h,
+    const char* pattern, int fg_r, int fg_g, int fg_b, int bold, int italic);
+void qt_syntax_highlighter_add_keywords(qt_syntax_highlighter_t h,
+    const char* keywords, int fg_r, int fg_g, int fg_b, int bold, int italic);
+void qt_syntax_highlighter_add_multiline_rule(qt_syntax_highlighter_t h,
+    const char* start_pattern, const char* end_pattern,
+    int fg_r, int fg_g, int fg_b, int bold, int italic);
+void qt_syntax_highlighter_clear_rules(qt_syntax_highlighter_t h);
+void qt_syntax_highlighter_rehighlight(qt_syntax_highlighter_t h);
+
 /* ========== Phase 17: QPlainTextEdit Editor Extensions ========== */
 
 /* QTextCursor::MoveOperation constants */

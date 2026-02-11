@@ -659,6 +659,12 @@
   QT_LCD_OUTLINE QT_LCD_FILLED QT_LCD_FLAT
   QT_DIR_DIRS QT_DIR_FILES QT_DIR_HIDDEN QT_DIR_NO_DOT_AND_DOT_DOT
 
+  ;; QSyntaxHighlighter
+  qt-syntax-highlighter-create qt-syntax-highlighter-destroy!
+  qt-syntax-highlighter-add-rule! qt-syntax-highlighter-add-keywords!
+  qt-syntax-highlighter-add-multiline-rule!
+  qt-syntax-highlighter-clear-rules! qt-syntax-highlighter-rehighlight!
+
   ;; Callback management
   unregister-qt-handler!
   qt-disconnect-all!
@@ -3460,6 +3466,32 @@
 
 (def (qt-file-system-model-destroy! model)
   (qt_file_system_model_destroy model))
+
+;;; ---- QSyntaxHighlighter ----
+
+(def (qt-syntax-highlighter-create doc)
+  (qt_syntax_highlighter_create doc))
+
+(def (qt-syntax-highlighter-destroy! h)
+  (qt_syntax_highlighter_destroy h))
+
+(def (qt-syntax-highlighter-add-rule! h pattern r g b bold? italic?)
+  (qt_syntax_highlighter_add_rule h pattern r g b
+    (if bold? 1 0) (if italic? 1 0)))
+
+(def (qt-syntax-highlighter-add-keywords! h keywords r g b bold? italic?)
+  (qt_syntax_highlighter_add_keywords h keywords r g b
+    (if bold? 1 0) (if italic? 1 0)))
+
+(def (qt-syntax-highlighter-add-multiline-rule! h start-pat end-pat r g b bold? italic?)
+  (qt_syntax_highlighter_add_multiline_rule h start-pat end-pat r g b
+    (if bold? 1 0) (if italic? 1 0)))
+
+(def (qt-syntax-highlighter-clear-rules! h)
+  (qt_syntax_highlighter_clear_rules h))
+
+(def (qt-syntax-highlighter-rehighlight! h)
+  (qt_syntax_highlighter_rehighlight h))
 
 ;;; ---- Signal Disconnect ----
 

@@ -704,6 +704,12 @@
      ;; Signal disconnect
      qt_disconnect_all
 
+     ;; QSyntaxHighlighter
+     qt_syntax_highlighter_create qt_syntax_highlighter_destroy
+     qt_syntax_highlighter_add_rule qt_syntax_highlighter_add_keywords
+     qt_syntax_highlighter_add_multiline_rule
+     qt_syntax_highlighter_clear_rules qt_syntax_highlighter_rehighlight
+
      ;; Phase 15 constants
      QT_PROCESS_NOT_RUNNING QT_PROCESS_STARTING QT_PROCESS_RUNNING
      QT_MDI_SUBWINDOW QT_MDI_TABBED
@@ -3604,6 +3610,25 @@ END-C
     "qt_tree_view_set_file_system_root")
   (define-c-lambda qt_file_system_model_destroy ((pointer void)) void
     "qt_file_system_model_destroy")
+
+  ;; ---- QSyntaxHighlighter ----
+  (define-c-lambda qt_syntax_highlighter_create ((pointer void)) (pointer void)
+    "qt_syntax_highlighter_create")
+  (define-c-lambda qt_syntax_highlighter_destroy ((pointer void)) void
+    "qt_syntax_highlighter_destroy")
+  (define-c-lambda qt_syntax_highlighter_add_rule
+    ((pointer void) UTF-8-string int int int int int) void
+    "qt_syntax_highlighter_add_rule")
+  (define-c-lambda qt_syntax_highlighter_add_keywords
+    ((pointer void) UTF-8-string int int int int int) void
+    "qt_syntax_highlighter_add_keywords")
+  (define-c-lambda qt_syntax_highlighter_add_multiline_rule
+    ((pointer void) UTF-8-string UTF-8-string int int int int int) void
+    "qt_syntax_highlighter_add_multiline_rule")
+  (define-c-lambda qt_syntax_highlighter_clear_rules ((pointer void)) void
+    "qt_syntax_highlighter_clear_rules")
+  (define-c-lambda qt_syntax_highlighter_rehighlight ((pointer void)) void
+    "qt_syntax_highlighter_rehighlight")
 
   ;; ---- Signal disconnect ----
   (define-c-lambda qt_disconnect_all ((pointer void)) void
