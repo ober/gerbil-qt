@@ -1413,6 +1413,88 @@ void                qt_file_system_model_destroy(qt_file_system_model_t model);
 /* --- Signal disconnect --- */
 void qt_disconnect_all(qt_widget_t obj);
 
+/* ========== Phase 17: QPlainTextEdit Editor Extensions ========== */
+
+/* QTextCursor::MoveOperation constants */
+#define QT_CURSOR_NO_MOVE           0
+#define QT_CURSOR_START             1
+#define QT_CURSOR_UP                2
+#define QT_CURSOR_START_OF_LINE     3
+#define QT_CURSOR_START_OF_BLOCK    4
+#define QT_CURSOR_PREVIOUS_CHAR     5
+#define QT_CURSOR_PREVIOUS_BLOCK    6
+#define QT_CURSOR_END_OF_LINE       7
+#define QT_CURSOR_END_OF_BLOCK      8
+#define QT_CURSOR_NEXT_CHAR         9
+#define QT_CURSOR_NEXT_BLOCK       10
+#define QT_CURSOR_END              11
+#define QT_CURSOR_DOWN             12
+#define QT_CURSOR_LEFT             13
+#define QT_CURSOR_WORD_LEFT        14
+#define QT_CURSOR_NEXT_WORD        15
+#define QT_CURSOR_RIGHT            16
+#define QT_CURSOR_WORD_RIGHT       17
+#define QT_CURSOR_PREVIOUS_WORD    18
+
+/* QTextCursor::MoveMode */
+#define QT_MOVE_ANCHOR  0
+#define QT_KEEP_ANCHOR  1
+
+/* QTextDocument::FindFlag */
+#define QT_FIND_BACKWARD        1
+#define QT_FIND_CASE_SENSITIVE  2
+#define QT_FIND_WHOLE_WORDS     4
+
+/* --- Cursor position --- */
+int  qt_plain_text_edit_cursor_position(qt_plain_text_edit_t e);
+void qt_plain_text_edit_set_cursor_position(qt_plain_text_edit_t e, int pos);
+void qt_plain_text_edit_move_cursor(qt_plain_text_edit_t e, int operation,
+                                     int mode);
+
+/* --- Selection --- */
+void        qt_plain_text_edit_select_all(qt_plain_text_edit_t e);
+const char* qt_plain_text_edit_selected_text(qt_plain_text_edit_t e);
+int         qt_plain_text_edit_selection_start(qt_plain_text_edit_t e);
+int         qt_plain_text_edit_selection_end(qt_plain_text_edit_t e);
+void        qt_plain_text_edit_set_selection(qt_plain_text_edit_t e,
+                                              int start, int end);
+int         qt_plain_text_edit_has_selection(qt_plain_text_edit_t e);
+
+/* --- Editing --- */
+void qt_plain_text_edit_insert_text(qt_plain_text_edit_t e, const char* text);
+void qt_plain_text_edit_remove_selected_text(qt_plain_text_edit_t e);
+void qt_plain_text_edit_undo(qt_plain_text_edit_t e);
+void qt_plain_text_edit_redo(qt_plain_text_edit_t e);
+int  qt_plain_text_edit_can_undo(qt_plain_text_edit_t e);
+void qt_plain_text_edit_cut(qt_plain_text_edit_t e);
+void qt_plain_text_edit_copy(qt_plain_text_edit_t e);
+void qt_plain_text_edit_paste(qt_plain_text_edit_t e);
+
+/* --- Text access --- */
+int         qt_plain_text_edit_text_length(qt_plain_text_edit_t e);
+const char* qt_plain_text_edit_text_range(qt_plain_text_edit_t e,
+                                           int start, int end);
+int         qt_plain_text_edit_line_from_position(qt_plain_text_edit_t e,
+                                                   int pos);
+int         qt_plain_text_edit_line_end_position(qt_plain_text_edit_t e,
+                                                  int line);
+
+/* --- Search --- */
+int qt_plain_text_edit_find_text(qt_plain_text_edit_t e, const char* text,
+                                  int flags);
+
+/* --- Scroll & visibility --- */
+void qt_plain_text_edit_ensure_cursor_visible(qt_plain_text_edit_t e);
+void qt_plain_text_edit_center_cursor(qt_plain_text_edit_t e);
+
+/* --- Document management (for multi-buffer) --- */
+void* qt_text_document_create(void);
+void  qt_text_document_destroy(void* doc);
+void* qt_plain_text_edit_document(qt_plain_text_edit_t e);
+void  qt_plain_text_edit_set_document(qt_plain_text_edit_t e, void* doc);
+int   qt_text_document_is_modified(void* doc);
+void  qt_text_document_set_modified(void* doc, int val);
+
 #ifdef __cplusplus
 }
 #endif

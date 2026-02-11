@@ -518,6 +518,33 @@
   qt-plain-text-edit-set-line-wrap!
   qt-on-plain-text-edit-text-changed!
 
+  ;; Phase 17: QPlainTextEdit Editor Extensions
+  QT_CURSOR_NO_MOVE QT_CURSOR_START QT_CURSOR_UP QT_CURSOR_START_OF_LINE
+  QT_CURSOR_START_OF_BLOCK QT_CURSOR_PREVIOUS_CHAR QT_CURSOR_PREVIOUS_BLOCK
+  QT_CURSOR_END_OF_LINE QT_CURSOR_END_OF_BLOCK QT_CURSOR_NEXT_CHAR
+  QT_CURSOR_NEXT_BLOCK QT_CURSOR_END QT_CURSOR_DOWN QT_CURSOR_LEFT
+  QT_CURSOR_WORD_LEFT QT_CURSOR_NEXT_WORD QT_CURSOR_RIGHT
+  QT_CURSOR_WORD_RIGHT QT_CURSOR_PREVIOUS_WORD
+  QT_MOVE_ANCHOR QT_KEEP_ANCHOR
+  QT_FIND_BACKWARD QT_FIND_CASE_SENSITIVE QT_FIND_WHOLE_WORDS
+  qt-plain-text-edit-cursor-position qt-plain-text-edit-set-cursor-position!
+  qt-plain-text-edit-move-cursor!
+  qt-plain-text-edit-select-all! qt-plain-text-edit-selected-text
+  qt-plain-text-edit-selection-start qt-plain-text-edit-selection-end
+  qt-plain-text-edit-set-selection! qt-plain-text-edit-has-selection?
+  qt-plain-text-edit-insert-text! qt-plain-text-edit-remove-selected-text!
+  qt-plain-text-edit-undo! qt-plain-text-edit-redo!
+  qt-plain-text-edit-can-undo?
+  qt-plain-text-edit-cut! qt-plain-text-edit-copy! qt-plain-text-edit-paste!
+  qt-plain-text-edit-text-length qt-plain-text-edit-text-range
+  qt-plain-text-edit-line-from-position qt-plain-text-edit-line-end-position
+  qt-plain-text-edit-find-text
+  qt-plain-text-edit-ensure-cursor-visible!
+  qt-plain-text-edit-center-cursor!
+  qt-text-document-create qt-text-document-destroy!
+  qt-plain-text-edit-document qt-plain-text-edit-set-document!
+  qt-text-document-modified? qt-text-document-set-modified!
+
   ;; Phase 13: QToolButton
   qt-tool-button-create qt-tool-button-set-text! qt-tool-button-text
   qt-tool-button-set-icon! qt-tool-button-set-menu!
@@ -2844,6 +2871,98 @@
   (let ((id (register-qt-void-handler! handler)))
     (raw_qt_plain_text_edit_on_text_changed edit id)
     (track-handler! edit id)))
+
+;; Phase 17: QPlainTextEdit Editor Extensions
+
+(def (qt-plain-text-edit-cursor-position edit)
+  (qt_plain_text_edit_cursor_position edit))
+
+(def (qt-plain-text-edit-set-cursor-position! edit pos)
+  (qt_plain_text_edit_set_cursor_position edit pos))
+
+(def (qt-plain-text-edit-move-cursor! edit operation mode: (mode QT_MOVE_ANCHOR))
+  (qt_plain_text_edit_move_cursor edit operation mode))
+
+(def (qt-plain-text-edit-select-all! edit)
+  (qt_plain_text_edit_select_all edit))
+
+(def (qt-plain-text-edit-selected-text edit)
+  (qt_plain_text_edit_selected_text edit))
+
+(def (qt-plain-text-edit-selection-start edit)
+  (qt_plain_text_edit_selection_start edit))
+
+(def (qt-plain-text-edit-selection-end edit)
+  (qt_plain_text_edit_selection_end edit))
+
+(def (qt-plain-text-edit-set-selection! edit start end)
+  (qt_plain_text_edit_set_selection edit start end))
+
+(def (qt-plain-text-edit-has-selection? edit)
+  (not (= (qt_plain_text_edit_has_selection edit) 0)))
+
+(def (qt-plain-text-edit-insert-text! edit text)
+  (qt_plain_text_edit_insert_text edit text))
+
+(def (qt-plain-text-edit-remove-selected-text! edit)
+  (qt_plain_text_edit_remove_selected_text edit))
+
+(def (qt-plain-text-edit-undo! edit)
+  (qt_plain_text_edit_undo edit))
+
+(def (qt-plain-text-edit-redo! edit)
+  (qt_plain_text_edit_redo edit))
+
+(def (qt-plain-text-edit-can-undo? edit)
+  (not (= (qt_plain_text_edit_can_undo edit) 0)))
+
+(def (qt-plain-text-edit-cut! edit)
+  (qt_plain_text_edit_cut edit))
+
+(def (qt-plain-text-edit-copy! edit)
+  (qt_plain_text_edit_copy edit))
+
+(def (qt-plain-text-edit-paste! edit)
+  (qt_plain_text_edit_paste edit))
+
+(def (qt-plain-text-edit-text-length edit)
+  (qt_plain_text_edit_text_length edit))
+
+(def (qt-plain-text-edit-text-range edit start end)
+  (qt_plain_text_edit_text_range edit start end))
+
+(def (qt-plain-text-edit-line-from-position edit pos)
+  (qt_plain_text_edit_line_from_position edit pos))
+
+(def (qt-plain-text-edit-line-end-position edit line)
+  (qt_plain_text_edit_line_end_position edit line))
+
+(def (qt-plain-text-edit-find-text edit text flags: (flags 0))
+  (qt_plain_text_edit_find_text edit text flags))
+
+(def (qt-plain-text-edit-ensure-cursor-visible! edit)
+  (qt_plain_text_edit_ensure_cursor_visible edit))
+
+(def (qt-plain-text-edit-center-cursor! edit)
+  (qt_plain_text_edit_center_cursor edit))
+
+(def (qt-text-document-create)
+  (qt_text_document_create))
+
+(def (qt-text-document-destroy! doc)
+  (qt_text_document_destroy doc))
+
+(def (qt-plain-text-edit-document edit)
+  (qt_plain_text_edit_document edit))
+
+(def (qt-plain-text-edit-set-document! edit doc)
+  (qt_plain_text_edit_set_document edit doc))
+
+(def (qt-text-document-modified? doc)
+  (not (= (qt_text_document_is_modified doc) 0)))
+
+(def (qt-text-document-set-modified! doc val)
+  (qt_text_document_set_modified doc (if val 1 0)))
 
 ;; QToolButton
 

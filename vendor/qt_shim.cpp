@@ -98,6 +98,8 @@
 #include <QUndoCommand>
 #include <QScrollBar>
 #include <QCursor>
+#include <QTextBlock>
+#include <QTextDocument>
 #include <QFileSystemModel>
 #include <QGraphicsScene>
 #include <QGraphicsView>
@@ -4676,6 +4678,180 @@ extern "C" void qt_tree_view_set_file_system_root(qt_widget_t view,
 
 extern "C" void qt_file_system_model_destroy(qt_file_system_model_t model) {
     delete static_cast<QFileSystemModel*>(model);
+}
+
+// ============================================================
+// Phase 17: QPlainTextEdit Editor Extensions
+// ============================================================
+
+extern "C" int qt_plain_text_edit_cursor_position(qt_plain_text_edit_t e) {
+    auto* pte = static_cast<QPlainTextEdit*>(e);
+    return pte->textCursor().position();
+}
+
+extern "C" void qt_plain_text_edit_set_cursor_position(qt_plain_text_edit_t e,
+                                                         int pos) {
+    auto* pte = static_cast<QPlainTextEdit*>(e);
+    QTextCursor tc = pte->textCursor();
+    tc.setPosition(pos);
+    pte->setTextCursor(tc);
+}
+
+extern "C" void qt_plain_text_edit_move_cursor(qt_plain_text_edit_t e,
+                                                 int operation, int mode) {
+    auto* pte = static_cast<QPlainTextEdit*>(e);
+    pte->moveCursor(static_cast<QTextCursor::MoveOperation>(operation),
+                    static_cast<QTextCursor::MoveMode>(mode));
+}
+
+extern "C" void qt_plain_text_edit_select_all(qt_plain_text_edit_t e) {
+    static_cast<QPlainTextEdit*>(e)->selectAll();
+}
+
+extern "C" const char* qt_plain_text_edit_selected_text(qt_plain_text_edit_t e) {
+    auto* pte = static_cast<QPlainTextEdit*>(e);
+    s_return_buf = pte->textCursor().selectedText().toUtf8().constData();
+    return s_return_buf.c_str();
+}
+
+extern "C" int qt_plain_text_edit_selection_start(qt_plain_text_edit_t e) {
+    auto* pte = static_cast<QPlainTextEdit*>(e);
+    return pte->textCursor().selectionStart();
+}
+
+extern "C" int qt_plain_text_edit_selection_end(qt_plain_text_edit_t e) {
+    auto* pte = static_cast<QPlainTextEdit*>(e);
+    return pte->textCursor().selectionEnd();
+}
+
+extern "C" void qt_plain_text_edit_set_selection(qt_plain_text_edit_t e,
+                                                   int start, int end) {
+    auto* pte = static_cast<QPlainTextEdit*>(e);
+    QTextCursor tc = pte->textCursor();
+    tc.setPosition(start);
+    tc.setPosition(end, QTextCursor::KeepAnchor);
+    pte->setTextCursor(tc);
+}
+
+extern "C" int qt_plain_text_edit_has_selection(qt_plain_text_edit_t e) {
+    auto* pte = static_cast<QPlainTextEdit*>(e);
+    return pte->textCursor().hasSelection() ? 1 : 0;
+}
+
+extern "C" void qt_plain_text_edit_insert_text(qt_plain_text_edit_t e,
+                                                 const char* text) {
+    auto* pte = static_cast<QPlainTextEdit*>(e);
+    QTextCursor tc = pte->textCursor();
+    tc.insertText(QString::fromUtf8(text));
+    pte->setTextCursor(tc);
+}
+
+extern "C" void qt_plain_text_edit_remove_selected_text(qt_plain_text_edit_t e) {
+    auto* pte = static_cast<QPlainTextEdit*>(e);
+    QTextCursor tc = pte->textCursor();
+    tc.removeSelectedText();
+    pte->setTextCursor(tc);
+}
+
+extern "C" void qt_plain_text_edit_undo(qt_plain_text_edit_t e) {
+    static_cast<QPlainTextEdit*>(e)->undo();
+}
+
+extern "C" void qt_plain_text_edit_redo(qt_plain_text_edit_t e) {
+    static_cast<QPlainTextEdit*>(e)->redo();
+}
+
+extern "C" int qt_plain_text_edit_can_undo(qt_plain_text_edit_t e) {
+    auto* pte = static_cast<QPlainTextEdit*>(e);
+    return pte->document()->isUndoAvailable() ? 1 : 0;
+}
+
+extern "C" void qt_plain_text_edit_cut(qt_plain_text_edit_t e) {
+    static_cast<QPlainTextEdit*>(e)->cut();
+}
+
+extern "C" void qt_plain_text_edit_copy(qt_plain_text_edit_t e) {
+    static_cast<QPlainTextEdit*>(e)->copy();
+}
+
+extern "C" void qt_plain_text_edit_paste(qt_plain_text_edit_t e) {
+    static_cast<QPlainTextEdit*>(e)->paste();
+}
+
+extern "C" int qt_plain_text_edit_text_length(qt_plain_text_edit_t e) {
+    auto* pte = static_cast<QPlainTextEdit*>(e);
+    return pte->document()->characterCount() - 1;  // -1 for trailing block separator
+}
+
+extern "C" const char* qt_plain_text_edit_text_range(qt_plain_text_edit_t e,
+                                                       int start, int end) {
+    auto* pte = static_cast<QPlainTextEdit*>(e);
+    QTextCursor tc(pte->document());
+    tc.setPosition(start);
+    tc.setPosition(end, QTextCursor::KeepAnchor);
+    s_return_buf = tc.selectedText().toUtf8().constData();
+    return s_return_buf.c_str();
+}
+
+extern "C" int qt_plain_text_edit_line_from_position(qt_plain_text_edit_t e,
+                                                       int pos) {
+    auto* pte = static_cast<QPlainTextEdit*>(e);
+    QTextCursor tc(pte->document());
+    tc.setPosition(pos);
+    return tc.blockNumber();
+}
+
+extern "C" int qt_plain_text_edit_line_end_position(qt_plain_text_edit_t e,
+                                                      int line) {
+    auto* pte = static_cast<QPlainTextEdit*>(e);
+    QTextBlock block = pte->document()->findBlockByNumber(line);
+    if (!block.isValid()) return -1;
+    return block.position() + block.length() - 1;  // -1 for block separator
+}
+
+extern "C" int qt_plain_text_edit_find_text(qt_plain_text_edit_t e,
+                                              const char* text, int flags) {
+    auto* pte = static_cast<QPlainTextEdit*>(e);
+    QTextDocument::FindFlags qflags;
+    if (flags & 1) qflags |= QTextDocument::FindBackward;
+    if (flags & 2) qflags |= QTextDocument::FindCaseSensitively;
+    if (flags & 4) qflags |= QTextDocument::FindWholeWords;
+    bool found = pte->find(QString::fromUtf8(text), qflags);
+    return found ? pte->textCursor().selectionStart() : -1;
+}
+
+extern "C" void qt_plain_text_edit_ensure_cursor_visible(qt_plain_text_edit_t e) {
+    static_cast<QPlainTextEdit*>(e)->ensureCursorVisible();
+}
+
+extern "C" void qt_plain_text_edit_center_cursor(qt_plain_text_edit_t e) {
+    static_cast<QPlainTextEdit*>(e)->centerCursor();
+}
+
+extern "C" void* qt_text_document_create(void) {
+    return static_cast<void*>(new QTextDocument());
+}
+
+extern "C" void qt_text_document_destroy(void* doc) {
+    delete static_cast<QTextDocument*>(doc);
+}
+
+extern "C" void* qt_plain_text_edit_document(qt_plain_text_edit_t e) {
+    return static_cast<void*>(static_cast<QPlainTextEdit*>(e)->document());
+}
+
+extern "C" void qt_plain_text_edit_set_document(qt_plain_text_edit_t e,
+                                                  void* doc) {
+    static_cast<QPlainTextEdit*>(e)->setDocument(
+        static_cast<QTextDocument*>(doc));
+}
+
+extern "C" int qt_text_document_is_modified(void* doc) {
+    return static_cast<QTextDocument*>(doc)->isModified() ? 1 : 0;
+}
+
+extern "C" void qt_text_document_set_modified(void* doc, int val) {
+    static_cast<QTextDocument*>(doc)->setModified(val != 0);
 }
 
 // ============================================================

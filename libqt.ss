@@ -575,6 +575,32 @@
      qt_plain_text_edit_set_line_wrap
      raw_qt_plain_text_edit_on_text_changed
 
+     ;; Phase 17: QPlainTextEdit Editor Extensions
+     QT_CURSOR_NO_MOVE QT_CURSOR_START QT_CURSOR_UP QT_CURSOR_START_OF_LINE
+     QT_CURSOR_START_OF_BLOCK QT_CURSOR_PREVIOUS_CHAR QT_CURSOR_PREVIOUS_BLOCK
+     QT_CURSOR_END_OF_LINE QT_CURSOR_END_OF_BLOCK QT_CURSOR_NEXT_CHAR
+     QT_CURSOR_NEXT_BLOCK QT_CURSOR_END QT_CURSOR_DOWN QT_CURSOR_LEFT
+     QT_CURSOR_WORD_LEFT QT_CURSOR_NEXT_WORD QT_CURSOR_RIGHT
+     QT_CURSOR_WORD_RIGHT QT_CURSOR_PREVIOUS_WORD
+     QT_MOVE_ANCHOR QT_KEEP_ANCHOR
+     QT_FIND_BACKWARD QT_FIND_CASE_SENSITIVE QT_FIND_WHOLE_WORDS
+     qt_plain_text_edit_cursor_position qt_plain_text_edit_set_cursor_position
+     qt_plain_text_edit_move_cursor
+     qt_plain_text_edit_select_all qt_plain_text_edit_selected_text
+     qt_plain_text_edit_selection_start qt_plain_text_edit_selection_end
+     qt_plain_text_edit_set_selection qt_plain_text_edit_has_selection
+     qt_plain_text_edit_insert_text qt_plain_text_edit_remove_selected_text
+     qt_plain_text_edit_undo qt_plain_text_edit_redo
+     qt_plain_text_edit_can_undo
+     qt_plain_text_edit_cut qt_plain_text_edit_copy qt_plain_text_edit_paste
+     qt_plain_text_edit_text_length qt_plain_text_edit_text_range
+     qt_plain_text_edit_line_from_position qt_plain_text_edit_line_end_position
+     qt_plain_text_edit_find_text
+     qt_plain_text_edit_ensure_cursor_visible qt_plain_text_edit_center_cursor
+     qt_text_document_create qt_text_document_destroy
+     qt_plain_text_edit_document qt_plain_text_edit_set_document
+     qt_text_document_is_modified qt_text_document_set_modified
+
      ;; Phase 13: QToolButton
      qt_tool_button_create qt_tool_button_set_text qt_tool_button_text
      qt_tool_button_set_icon qt_tool_button_set_menu
@@ -3116,6 +3142,104 @@ END-C
   (define-c-lambda raw_qt_plain_text_edit_on_text_changed
     ((pointer void) long) void
     "ffi_qt_plain_text_edit_on_text_changed")
+
+  ;; Phase 17: QPlainTextEdit Editor Extensions - constants
+  (define-const QT_CURSOR_NO_MOVE)
+  (define-const QT_CURSOR_START)
+  (define-const QT_CURSOR_UP)
+  (define-const QT_CURSOR_START_OF_LINE)
+  (define-const QT_CURSOR_START_OF_BLOCK)
+  (define-const QT_CURSOR_PREVIOUS_CHAR)
+  (define-const QT_CURSOR_PREVIOUS_BLOCK)
+  (define-const QT_CURSOR_END_OF_LINE)
+  (define-const QT_CURSOR_END_OF_BLOCK)
+  (define-const QT_CURSOR_NEXT_CHAR)
+  (define-const QT_CURSOR_NEXT_BLOCK)
+  (define-const QT_CURSOR_END)
+  (define-const QT_CURSOR_DOWN)
+  (define-const QT_CURSOR_LEFT)
+  (define-const QT_CURSOR_WORD_LEFT)
+  (define-const QT_CURSOR_NEXT_WORD)
+  (define-const QT_CURSOR_RIGHT)
+  (define-const QT_CURSOR_WORD_RIGHT)
+  (define-const QT_CURSOR_PREVIOUS_WORD)
+  (define-const QT_MOVE_ANCHOR)
+  (define-const QT_KEEP_ANCHOR)
+  (define-const QT_FIND_BACKWARD)
+  (define-const QT_FIND_CASE_SENSITIVE)
+  (define-const QT_FIND_WHOLE_WORDS)
+
+  ;; Phase 17: QPlainTextEdit Editor Extensions - functions
+  (define-c-lambda qt_plain_text_edit_cursor_position ((pointer void)) int
+    "qt_plain_text_edit_cursor_position")
+  (define-c-lambda qt_plain_text_edit_set_cursor_position
+    ((pointer void) int) void
+    "qt_plain_text_edit_set_cursor_position")
+  (define-c-lambda qt_plain_text_edit_move_cursor
+    ((pointer void) int int) void
+    "qt_plain_text_edit_move_cursor")
+  (define-c-lambda qt_plain_text_edit_select_all ((pointer void)) void
+    "qt_plain_text_edit_select_all")
+  (define-c-lambda qt_plain_text_edit_selected_text ((pointer void)) UTF-8-string
+    "qt_plain_text_edit_selected_text")
+  (define-c-lambda qt_plain_text_edit_selection_start ((pointer void)) int
+    "qt_plain_text_edit_selection_start")
+  (define-c-lambda qt_plain_text_edit_selection_end ((pointer void)) int
+    "qt_plain_text_edit_selection_end")
+  (define-c-lambda qt_plain_text_edit_set_selection
+    ((pointer void) int int) void
+    "qt_plain_text_edit_set_selection")
+  (define-c-lambda qt_plain_text_edit_has_selection ((pointer void)) int
+    "qt_plain_text_edit_has_selection")
+  (define-c-lambda qt_plain_text_edit_insert_text
+    ((pointer void) UTF-8-string) void
+    "qt_plain_text_edit_insert_text")
+  (define-c-lambda qt_plain_text_edit_remove_selected_text ((pointer void)) void
+    "qt_plain_text_edit_remove_selected_text")
+  (define-c-lambda qt_plain_text_edit_undo ((pointer void)) void
+    "qt_plain_text_edit_undo")
+  (define-c-lambda qt_plain_text_edit_redo ((pointer void)) void
+    "qt_plain_text_edit_redo")
+  (define-c-lambda qt_plain_text_edit_can_undo ((pointer void)) int
+    "qt_plain_text_edit_can_undo")
+  (define-c-lambda qt_plain_text_edit_cut ((pointer void)) void
+    "qt_plain_text_edit_cut")
+  (define-c-lambda qt_plain_text_edit_copy ((pointer void)) void
+    "qt_plain_text_edit_copy")
+  (define-c-lambda qt_plain_text_edit_paste ((pointer void)) void
+    "qt_plain_text_edit_paste")
+  (define-c-lambda qt_plain_text_edit_text_length ((pointer void)) int
+    "qt_plain_text_edit_text_length")
+  (define-c-lambda qt_plain_text_edit_text_range
+    ((pointer void) int int) UTF-8-string
+    "qt_plain_text_edit_text_range")
+  (define-c-lambda qt_plain_text_edit_line_from_position
+    ((pointer void) int) int
+    "qt_plain_text_edit_line_from_position")
+  (define-c-lambda qt_plain_text_edit_line_end_position
+    ((pointer void) int) int
+    "qt_plain_text_edit_line_end_position")
+  (define-c-lambda qt_plain_text_edit_find_text
+    ((pointer void) UTF-8-string int) int
+    "qt_plain_text_edit_find_text")
+  (define-c-lambda qt_plain_text_edit_ensure_cursor_visible
+    ((pointer void)) void
+    "qt_plain_text_edit_ensure_cursor_visible")
+  (define-c-lambda qt_plain_text_edit_center_cursor ((pointer void)) void
+    "qt_plain_text_edit_center_cursor")
+  (define-c-lambda qt_text_document_create () (pointer void)
+    "qt_text_document_create")
+  (define-c-lambda qt_text_document_destroy ((pointer void)) void
+    "qt_text_document_destroy")
+  (define-c-lambda qt_plain_text_edit_document ((pointer void)) (pointer void)
+    "qt_plain_text_edit_document")
+  (define-c-lambda qt_plain_text_edit_set_document
+    ((pointer void) (pointer void)) void
+    "qt_plain_text_edit_set_document")
+  (define-c-lambda qt_text_document_is_modified ((pointer void)) int
+    "qt_text_document_is_modified")
+  (define-c-lambda qt_text_document_set_modified ((pointer void) int) void
+    "qt_text_document_set_modified")
 
   ;; Phase 13: QToolButton
   (define-c-lambda qt_tool_button_create ((pointer void)) (pointer void)
