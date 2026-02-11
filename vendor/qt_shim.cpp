@@ -1538,6 +1538,11 @@ extern "C" int qt_splitter_is_collapsible(qt_splitter_t s, int index) {
     return static_cast<QSplitter*>(s)->isCollapsible(index) ? 1 : 0;
 }
 
+extern "C" void qt_splitter_set_orientation(qt_splitter_t s, int orientation) {
+    static_cast<QSplitter*>(s)->setOrientation(
+        static_cast<Qt::Orientation>(orientation));
+}
+
 // ============================================================
 // Keyboard Events
 // ============================================================

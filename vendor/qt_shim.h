@@ -336,6 +336,7 @@ void qt_splitter_set_stretch_factor(qt_splitter_t s, int index, int stretch);
 void qt_splitter_set_handle_width(qt_splitter_t s, int width);
 void qt_splitter_set_collapsible(qt_splitter_t s, int index, int collapsible);
 int  qt_splitter_is_collapsible(qt_splitter_t s, int index);
+void qt_splitter_set_orientation(qt_splitter_t s, int orientation);
 
 /* --- Keyboard Events --- */
 void qt_widget_install_key_handler(qt_widget_t w,

@@ -189,6 +189,7 @@
   qt-splitter-set-sizes! qt-splitter-size-at
   qt-splitter-set-stretch-factor! qt-splitter-set-handle-width!
   qt-splitter-set-collapsible! qt-splitter-collapsible?
+  qt-splitter-set-orientation!
 
   ;; Keyboard Events
   qt-on-key-press! qt-on-key-press-consuming!
@@ -1578,6 +1579,9 @@
 
 (def (qt-splitter-collapsible? s index)
   (not (= (qt_splitter_is_collapsible s index) 0)))
+
+(def (qt-splitter-set-orientation! s orientation)
+  (qt_splitter_set_orientation s orientation))
 
 ;;; ---- Keyboard Events ----
 

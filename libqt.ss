@@ -216,6 +216,7 @@
      qt_splitter_size_at qt_splitter_set_stretch_factor
      qt_splitter_set_handle_width
      qt_splitter_set_collapsible qt_splitter_is_collapsible
+     qt_splitter_set_orientation
 
      ;; Keyboard Events
      raw_qt_widget_install_key_handler
@@ -2156,6 +2157,8 @@ END-C
     "qt_splitter_set_collapsible")
   (define-c-lambda qt_splitter_is_collapsible ((pointer void) int) int
     "qt_splitter_is_collapsible")
+  (define-c-lambda qt_splitter_set_orientation ((pointer void) int) void
+    "qt_splitter_set_orientation")
 
   ;; ---- Keyboard Events ----
   (define-c-lambda raw_qt_widget_install_key_handler
