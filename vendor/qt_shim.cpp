@@ -159,6 +159,30 @@ private:
     long m_callback_id;
 };
 
+// ConsumingKeyPressFilter: same as KeyPressFilter but returns true
+// for KeyPress events, preventing the widget from handling them.
+// Use this for Emacs-style editors where ALL keys are intercepted.
+class ConsumingKeyPressFilter : public QObject {
+public:
+    ConsumingKeyPressFilter(QObject* parent, qt_callback_void callback, long callback_id)
+        : QObject(parent), m_callback(callback), m_callback_id(callback_id) {}
+
+    bool eventFilter(QObject* obj, QEvent* event) override {
+        if (event->type() == QEvent::KeyPress) {
+            auto* ke = static_cast<QKeyEvent*>(event);
+            s_last_key_code = ke->key();
+            s_last_key_modifiers = static_cast<int>(ke->modifiers());
+            s_last_key_text = ke->text().toUtf8().toStdString();
+            m_callback(m_callback_id);
+            return true;  // consume the event — widget does NOT see it
+        }
+        return QObject::eventFilter(obj, event);
+    }
+
+private:
+    qt_callback_void m_callback;
+    long m_callback_id;
+};
 
 // ============================================================
 // Application lifecycle
@@ -1523,6 +1547,14 @@ extern "C" void qt_widget_install_key_handler(qt_widget_t w,
                                                long callback_id) {
     auto* widget = static_cast<QWidget*>(w);
     auto* filter = new KeyPressFilter(widget, callback, callback_id);
+    widget->installEventFilter(filter);
+}
+
+extern "C" void qt_widget_install_key_handler_consuming(qt_widget_t w,
+                                                         qt_callback_void callback,
+                                                         long callback_id) {
+    auto* widget = static_cast<QWidget*>(w);
+    auto* filter = new ConsumingKeyPressFilter(widget, callback, callback_id);
     widget->installEventFilter(filter);
 }
 

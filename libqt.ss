@@ -219,6 +219,7 @@
 
      ;; Keyboard Events
      raw_qt_widget_install_key_handler
+     raw_qt_widget_install_key_handler_consuming
      qt_last_key_code qt_last_key_modifiers qt_last_key_text
 
      ;; Key constants
@@ -1026,6 +1027,11 @@ static char* ffi_qt_tree_item_text(void* item, int col) {
 /* Key handler — uses void trampoline */
 static void ffi_qt_widget_install_key_handler(void* w, long callback_id) {
     qt_widget_install_key_handler(w, ffi_void_trampoline, callback_id);
+}
+
+/* Consuming key handler — intercepts and consumes key events */
+static void ffi_qt_widget_install_key_handler_consuming(void* w, long callback_id) {
+    qt_widget_install_key_handler_consuming(w, ffi_void_trampoline, callback_id);
 }
 
 /* Key text — cast away const */
@@ -2155,6 +2161,9 @@ END-C
   (define-c-lambda raw_qt_widget_install_key_handler
     ((pointer void) long) void
     "ffi_qt_widget_install_key_handler")
+  (define-c-lambda raw_qt_widget_install_key_handler_consuming
+    ((pointer void) long) void
+    "ffi_qt_widget_install_key_handler_consuming")
   (define-c-lambda qt_last_key_code () int
     "qt_last_key_code")
   (define-c-lambda qt_last_key_modifiers () int

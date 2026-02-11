@@ -341,6 +341,9 @@ int  qt_splitter_is_collapsible(qt_splitter_t s, int index);
 void qt_widget_install_key_handler(qt_widget_t w,
                                    qt_callback_void callback,
                                    long callback_id);
+void qt_widget_install_key_handler_consuming(qt_widget_t w,
+                                              qt_callback_void callback,
+                                              long callback_id);
 int         qt_last_key_code(void);
 int         qt_last_key_modifiers(void);
 const char* qt_last_key_text(void);

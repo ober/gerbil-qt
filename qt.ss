@@ -191,7 +191,8 @@
   qt-splitter-set-collapsible! qt-splitter-collapsible?
 
   ;; Keyboard Events
-  qt-on-key-press! qt-last-key-code qt-last-key-modifiers qt-last-key-text
+  qt-on-key-press! qt-on-key-press-consuming!
+  qt-last-key-code qt-last-key-modifiers qt-last-key-text
 
   ;; Pixmap
   qt-pixmap-load qt-pixmap-width qt-pixmap-height
@@ -1583,6 +1584,12 @@
 (def (qt-on-key-press! widget handler)
   (let ((id (register-qt-void-handler! handler)))
     (raw_qt_widget_install_key_handler widget id)
+    (track-handler! widget id)))
+
+(def (qt-on-key-press-consuming! widget handler)
+  "Install key handler that consumes key events (widget doesn't process them)."
+  (let ((id (register-qt-void-handler! handler)))
+    (raw_qt_widget_install_key_handler_consuming widget id)
     (track-handler! widget id)))
 
 (def (qt-last-key-code)
