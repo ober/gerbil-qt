@@ -5062,6 +5062,170 @@ extern "C" void qt_syntax_highlighter_rehighlight(qt_syntax_highlighter_t h) {
 }
 
 // ============================================================
+// Line Number Area
+// ============================================================
+
+// Helper to access protected QPlainTextEdit methods
+class PlainTextEditAccess : public QPlainTextEdit {
+public:
+    using QPlainTextEdit::firstVisibleBlock;
+    using QPlainTextEdit::blockBoundingGeometry;
+    using QPlainTextEdit::blockBoundingRect;
+    using QPlainTextEdit::contentOffset;
+    using QPlainTextEdit::setViewportMargins;
+};
+
+static inline PlainTextEditAccess* pteAccess(QPlainTextEdit *e) {
+    return static_cast<PlainTextEditAccess*>(e);
+}
+
+class LineNumberArea : public QWidget {
+    QPlainTextEdit *editor;
+    QColor bgColor{0x28, 0x28, 0x28};
+    QColor fgColor{0x70, 0x70, 0x70};
+public:
+    LineNumberArea(QPlainTextEdit *e) : QWidget(e), editor(e) {
+        updateWidth();
+    }
+    void setBgColor(int r, int g, int b) { bgColor = QColor(r, g, b); update(); }
+    void setFgColor(int r, int g, int b) { fgColor = QColor(r, g, b); update(); }
+    int areaWidth() const {
+        int digits = 1;
+        int mx = qMax(1, editor->blockCount());
+        while (mx >= 10) { mx /= 10; ++digits; }
+        int space = 6 + fontMetrics().horizontalAdvance(QLatin1Char('9')) * digits;
+        return space;
+    }
+    void updateWidth() {
+        int w = areaWidth();
+        pteAccess(editor)->setViewportMargins(isVisible() ? w : 0, 0, 0, 0);
+    }
+    QSize sizeHint() const override { return QSize(areaWidth(), 0); }
+protected:
+    void paintEvent(QPaintEvent *event) override {
+        QPainter painter(this);
+        painter.fillRect(event->rect(), bgColor);
+        painter.setPen(fgColor);
+        auto *acc = pteAccess(editor);
+        QTextBlock block = acc->firstVisibleBlock();
+        int blockNumber = block.blockNumber();
+        int top = qRound(acc->blockBoundingGeometry(block)
+                         .translated(acc->contentOffset()).top());
+        int bottom = top + qRound(acc->blockBoundingRect(block).height());
+        while (block.isValid() && top <= event->rect().bottom()) {
+            if (block.isVisible() && bottom >= event->rect().top()) {
+                QString number = QString::number(blockNumber + 1);
+                painter.drawText(0, top, width() - 3, fontMetrics().height(),
+                                 Qt::AlignRight, number);
+            }
+            block = block.next();
+            top = bottom;
+            bottom = top + qRound(acc->blockBoundingRect(block).height());
+            ++blockNumber;
+        }
+    }
+};
+
+extern "C" void* qt_line_number_area_create(qt_plain_text_edit_t editor) {
+    auto* ed = static_cast<QPlainTextEdit*>(editor);
+    auto* area = new LineNumberArea(ed);
+    area->setFont(ed->font());
+    // Connect signals for updating
+    QObject::connect(ed, &QPlainTextEdit::blockCountChanged, area, [area](int) {
+        area->updateWidth();
+        area->update();
+    });
+    QObject::connect(ed, &QPlainTextEdit::updateRequest, area,
+        [area](const QRect &rect, int dy) {
+            if (dy) area->scroll(0, dy);
+            else area->update(0, rect.y(), area->width(), rect.height());
+        });
+    area->updateWidth();
+    area->show();
+    return area;
+}
+
+extern "C" void qt_line_number_area_destroy(void* area) {
+    delete static_cast<LineNumberArea*>(area);
+}
+
+extern "C" void qt_line_number_area_set_visible(void* area, int visible) {
+    auto* a = static_cast<LineNumberArea*>(area);
+    if (visible) a->show(); else a->hide();
+    a->updateWidth();
+}
+
+extern "C" void qt_line_number_area_set_bg_color(void* area, int r, int g, int b) {
+    static_cast<LineNumberArea*>(area)->setBgColor(r, g, b);
+}
+
+extern "C" void qt_line_number_area_set_fg_color(void* area, int r, int g, int b) {
+    static_cast<LineNumberArea*>(area)->setFgColor(r, g, b);
+}
+
+// ============================================================
+// Extra Selections
+// ============================================================
+
+// Per-editor extra selection storage
+#include <QHash>
+static QHash<QPlainTextEdit*, QList<QTextEdit::ExtraSelection>> g_extraSelections;
+
+extern "C" void qt_plain_text_edit_clear_extra_selections(qt_plain_text_edit_t editor) {
+    auto* ed = static_cast<QPlainTextEdit*>(editor);
+    g_extraSelections[ed].clear();
+}
+
+extern "C" void qt_plain_text_edit_add_extra_selection_line(qt_plain_text_edit_t editor,
+    int line, int bg_r, int bg_g, int bg_b)
+{
+    auto* ed = static_cast<QPlainTextEdit*>(editor);
+    QTextEdit::ExtraSelection sel;
+    sel.format.setBackground(QColor(bg_r, bg_g, bg_b));
+    sel.format.setProperty(QTextFormat::FullWidthSelection, true);
+    QTextBlock block = ed->document()->findBlockByNumber(line);
+    sel.cursor = QTextCursor(block);
+    g_extraSelections[ed].append(sel);
+}
+
+extern "C" void qt_plain_text_edit_add_extra_selection_range(qt_plain_text_edit_t editor,
+    int start, int length, int fg_r, int fg_g, int fg_b,
+    int bg_r, int bg_g, int bg_b, int bold)
+{
+    auto* ed = static_cast<QPlainTextEdit*>(editor);
+    QTextEdit::ExtraSelection sel;
+    sel.format.setForeground(QColor(fg_r, fg_g, fg_b));
+    sel.format.setBackground(QColor(bg_r, bg_g, bg_b));
+    if (bold) {
+        sel.format.setFontWeight(QFont::Bold);
+    }
+    QTextCursor cursor(ed->document());
+    cursor.setPosition(start);
+    cursor.setPosition(start + length, QTextCursor::KeepAnchor);
+    sel.cursor = cursor;
+    g_extraSelections[ed].append(sel);
+}
+
+extern "C" void qt_plain_text_edit_apply_extra_selections(qt_plain_text_edit_t editor) {
+    auto* ed = static_cast<QPlainTextEdit*>(editor);
+    ed->setExtraSelections(g_extraSelections[ed]);
+}
+
+// ============================================================
+// Completer on QPlainTextEdit
+// ============================================================
+
+extern "C" void qt_completer_set_widget(void* completer, void* widget) {
+    auto* c = static_cast<QCompleter*>(completer);
+    c->setWidget(static_cast<QWidget*>(widget));
+}
+
+extern "C" void qt_completer_complete_rect(void* completer, int x, int y, int w, int h) {
+    auto* c = static_cast<QCompleter*>(completer);
+    c->complete(QRect(x, y, w, h));
+}
+
+// ============================================================
 // Signal disconnect
 // ============================================================
 

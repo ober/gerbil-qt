@@ -719,6 +719,20 @@
      QT_LCD_OUTLINE QT_LCD_FILLED QT_LCD_FLAT
      QT_DIR_DIRS QT_DIR_FILES QT_DIR_HIDDEN QT_DIR_NO_DOT_AND_DOT_DOT
 
+     ;; Line number area
+     qt_line_number_area_create qt_line_number_area_destroy
+     qt_line_number_area_set_visible
+     qt_line_number_area_set_bg_color qt_line_number_area_set_fg_color
+
+     ;; Extra selections
+     qt_plain_text_edit_clear_extra_selections
+     qt_plain_text_edit_add_extra_selection_line
+     qt_plain_text_edit_add_extra_selection_range
+     qt_plain_text_edit_apply_extra_selections
+
+     ;; Completer on editor
+     qt_completer_set_widget qt_completer_complete_rect
+
      ;; Callback management
      *qt-void-handlers* *qt-string-handlers*
      *qt-int-handlers* *qt-bool-handlers*
@@ -3633,6 +3647,35 @@ END-C
   ;; ---- Signal disconnect ----
   (define-c-lambda qt_disconnect_all ((pointer void)) void
     "qt_disconnect_all")
+
+  ;; ---- Line number area ----
+  (define-c-lambda qt_line_number_area_create ((pointer void)) (pointer void)
+    "qt_line_number_area_create")
+  (define-c-lambda qt_line_number_area_destroy ((pointer void)) void
+    "qt_line_number_area_destroy")
+  (define-c-lambda qt_line_number_area_set_visible ((pointer void) int) void
+    "qt_line_number_area_set_visible")
+  (define-c-lambda qt_line_number_area_set_bg_color ((pointer void) int int int) void
+    "qt_line_number_area_set_bg_color")
+  (define-c-lambda qt_line_number_area_set_fg_color ((pointer void) int int int) void
+    "qt_line_number_area_set_fg_color")
+
+  ;; ---- Extra selections ----
+  (define-c-lambda qt_plain_text_edit_clear_extra_selections ((pointer void)) void
+    "qt_plain_text_edit_clear_extra_selections")
+  (define-c-lambda qt_plain_text_edit_add_extra_selection_line ((pointer void) int int int int) void
+    "qt_plain_text_edit_add_extra_selection_line")
+  (define-c-lambda qt_plain_text_edit_add_extra_selection_range
+    ((pointer void) int int int int int int int int int) void
+    "qt_plain_text_edit_add_extra_selection_range")
+  (define-c-lambda qt_plain_text_edit_apply_extra_selections ((pointer void)) void
+    "qt_plain_text_edit_apply_extra_selections")
+
+  ;; ---- Completer on editor ----
+  (define-c-lambda qt_completer_set_widget ((pointer void) (pointer void)) void
+    "qt_completer_set_widget")
+  (define-c-lambda qt_completer_complete_rect ((pointer void) int int int int) void
+    "qt_completer_complete_rect")
 
   ;; ---- Callback dispatch tables ----
   (define *qt-void-handlers* (make-hash-table))

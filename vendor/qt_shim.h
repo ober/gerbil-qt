@@ -1516,6 +1516,26 @@ void  qt_plain_text_edit_set_document(qt_plain_text_edit_t e, void* doc);
 int   qt_text_document_is_modified(void* doc);
 void  qt_text_document_set_modified(void* doc, int val);
 
+/* ====== Line Number Area ====== */
+void* qt_line_number_area_create(qt_plain_text_edit_t editor);
+void  qt_line_number_area_destroy(void* area);
+void  qt_line_number_area_set_visible(void* area, int visible);
+void  qt_line_number_area_set_bg_color(void* area, int r, int g, int b);
+void  qt_line_number_area_set_fg_color(void* area, int r, int g, int b);
+
+/* ====== Extra Selections (current-line highlight, brace matching, search) ====== */
+void qt_plain_text_edit_clear_extra_selections(qt_plain_text_edit_t editor);
+void qt_plain_text_edit_add_extra_selection_line(qt_plain_text_edit_t editor,
+         int line, int bg_r, int bg_g, int bg_b);
+void qt_plain_text_edit_add_extra_selection_range(qt_plain_text_edit_t editor,
+         int start, int length, int fg_r, int fg_g, int fg_b,
+         int bg_r, int bg_g, int bg_b, int bold);
+void qt_plain_text_edit_apply_extra_selections(qt_plain_text_edit_t editor);
+
+/* ====== Completer on QPlainTextEdit ====== */
+void qt_completer_set_widget(void* completer, void* widget);
+void qt_completer_complete_rect(void* completer, int x, int y, int w, int h);
+
 #ifdef __cplusplus
 }
 #endif

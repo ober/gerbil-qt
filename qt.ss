@@ -671,7 +671,19 @@
 
   ;; Resource-safety macros
   with-painter with-font with-color with-pixmap
-  with-icon with-settings)
+  with-icon with-settings
+
+  ;; Line number area
+  qt-line-number-area-create qt-line-number-area-destroy!
+  qt-line-number-area-set-visible! qt-line-number-area-set-bg-color!
+  qt-line-number-area-set-fg-color!
+
+  ;; Extra selections
+  qt-extra-selections-clear! qt-extra-selection-add-line!
+  qt-extra-selection-add-range! qt-extra-selections-apply!
+
+  ;; Completer on editor
+  qt-completer-set-widget! qt-completer-complete-rect!)
 
 (import :gerbil-qt/libqt
         :std/srfi/13
@@ -3542,3 +3554,50 @@
   (let ((var expr))
     (try body ...
       (finally (qt-settings-destroy! var)))))
+
+;;;============================================================================
+;;; Line Number Area
+;;;============================================================================
+
+(def (qt-line-number-area-create editor)
+  (qt_line_number_area_create editor))
+
+(def (qt-line-number-area-destroy! area)
+  (when area (qt_line_number_area_destroy area)))
+
+(def (qt-line-number-area-set-visible! area visible)
+  (qt_line_number_area_set_visible area (if visible 1 0)))
+
+(def (qt-line-number-area-set-bg-color! area r g b)
+  (qt_line_number_area_set_bg_color area r g b))
+
+(def (qt-line-number-area-set-fg-color! area r g b)
+  (qt_line_number_area_set_fg_color area r g b))
+
+;;;============================================================================
+;;; Extra Selections
+;;;============================================================================
+
+(def (qt-extra-selections-clear! editor)
+  (qt_plain_text_edit_clear_extra_selections editor))
+
+(def (qt-extra-selection-add-line! editor line bg-r bg-g bg-b)
+  (qt_plain_text_edit_add_extra_selection_line editor line bg-r bg-g bg-b))
+
+(def (qt-extra-selection-add-range! editor start length
+       fg-r fg-g fg-b bg-r bg-g bg-b bold: (bold #f))
+  (qt_plain_text_edit_add_extra_selection_range
+    editor start length fg-r fg-g fg-b bg-r bg-g bg-b (if bold 1 0)))
+
+(def (qt-extra-selections-apply! editor)
+  (qt_plain_text_edit_apply_extra_selections editor))
+
+;;;============================================================================
+;;; Completer on editor
+;;;============================================================================
+
+(def (qt-completer-set-widget! completer widget)
+  (qt_completer_set_widget completer widget))
+
+(def (qt-completer-complete-rect! completer x y w h)
+  (qt_completer_complete_rect completer x y w h))
