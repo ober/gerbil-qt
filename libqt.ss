@@ -1472,8 +1472,11 @@ static char* ffi_qt_file_system_model_file_path(void* model, int row, int column
     return (char*)qt_file_system_model_file_path(model, row, column);
 }
 
-/* QScintilla: const-cast wrappers and signal trampolines */
-#ifdef QT_SCINTILLA_AVAILABLE
+/* QScintilla: const-cast wrappers and signal trampolines.
+   These always reference the real functions from qt_shim.h / libqt_shim.so.
+   The header has its own #ifdef QT_SCINTILLA_AVAILABLE guard; if QScintilla
+   is not installed, the C compiler will error — which is correct since the
+   consuming project should not use QScintilla functions without the library. */
 static char* ffi_qt_scintilla_receive_string(void* sci, unsigned int msg,
                                              unsigned long wparam) {
     return (char*)qt_scintilla_receive_string(sci, msg, wparam);
@@ -1502,36 +1505,6 @@ static void ffi_qt_scintilla_on_margin_clicked(void* sci, long callback_id) {
 static void ffi_qt_scintilla_on_modified(void* sci, long callback_id) {
     qt_scintilla_on_modified(sci, ffi_int_trampoline, callback_id);
 }
-#else
-/* Stubs when QScintilla is not available — functions compile but return errors at runtime */
-static void* qt_scintilla_create(void* p) { (void)p; return (void*)0; }
-static void  qt_scintilla_destroy(void* s) { (void)s; }
-static long  qt_scintilla_send_message(void* s, unsigned int m, unsigned long w, long l) {
-    (void)s; (void)m; (void)w; (void)l; return 0;
-}
-static long  qt_scintilla_send_message_string(void* s, unsigned int m, unsigned long w, const char* str) {
-    (void)s; (void)m; (void)w; (void)str; return 0;
-}
-static char* ffi_qt_scintilla_receive_string(void* s, unsigned int m, unsigned long w) {
-    (void)s; (void)m; (void)w; return (char*)"";
-}
-static void  qt_scintilla_set_text(void* s, const char* t) { (void)s; (void)t; }
-static char* ffi_qt_scintilla_get_text(void* s) { (void)s; return (char*)""; }
-static int   qt_scintilla_get_text_length(void* s) { (void)s; return 0; }
-static void  qt_scintilla_set_lexer_language(void* s, const char* l) { (void)s; (void)l; }
-static char* ffi_qt_scintilla_get_lexer_language(void* s) { (void)s; return (char*)""; }
-static void  qt_scintilla_set_read_only(void* s, int r) { (void)s; (void)r; }
-static int   qt_scintilla_is_read_only(void* s) { (void)s; return 0; }
-static void  qt_scintilla_set_margin_width(void* s, int m, int w) { (void)s; (void)m; (void)w; }
-static void  qt_scintilla_set_margin_type(void* s, int m, int t) { (void)s; (void)m; (void)t; }
-static void  qt_scintilla_set_focus(void* s) { (void)s; }
-static void  ffi_qt_scintilla_on_text_changed(void* s, long i) { (void)s; (void)i; }
-static void  ffi_qt_scintilla_on_char_added(void* s, long i) { (void)s; (void)i; }
-static void  ffi_qt_scintilla_on_save_point_reached(void* s, long i) { (void)s; (void)i; }
-static void  ffi_qt_scintilla_on_save_point_left(void* s, long i) { (void)s; (void)i; }
-static void  ffi_qt_scintilla_on_margin_clicked(void* s, long i) { (void)s; (void)i; }
-static void  ffi_qt_scintilla_on_modified(void* s, long i) { (void)s; (void)i; }
-#endif /* QT_SCINTILLA_AVAILABLE */
 
 END-C
   )
