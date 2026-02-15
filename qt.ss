@@ -683,7 +683,20 @@
   qt-extra-selection-add-range! qt-extra-selections-apply!
 
   ;; Completer on editor
-  qt-completer-set-widget! qt-completer-complete-rect!)
+  qt-completer-set-widget! qt-completer-complete-rect!
+
+  ;; QScintilla (Scintilla-compatible editor widget)
+  qt-scintilla-create qt-scintilla-destroy!
+  qt-scintilla-send-message qt-scintilla-send-message/string
+  qt-scintilla-receive-string
+  qt-scintilla-text qt-scintilla-set-text! qt-scintilla-text-length
+  qt-scintilla-set-lexer-language! qt-scintilla-lexer-language
+  qt-scintilla-set-read-only! qt-scintilla-read-only?
+  qt-scintilla-set-margin-width! qt-scintilla-set-margin-type!
+  qt-scintilla-set-focus!
+  qt-on-scintilla-text-changed! qt-on-scintilla-char-added!
+  qt-on-scintilla-save-point-reached! qt-on-scintilla-save-point-left!
+  qt-on-scintilla-margin-clicked! qt-on-scintilla-modified!)
 
 (import :gerbil-qt/libqt
         :std/srfi/13
@@ -3601,3 +3614,92 @@
 
 (def (qt-completer-complete-rect! completer x y w h)
   (qt_completer_complete_rect completer x y w h))
+
+;;;============================================================================
+;;; QScintilla (Scintilla-compatible editor widget)
+;;;============================================================================
+;;; QScintilla wraps the same Scintilla engine used by gerbil-scintilla's TUI
+;;; backend, but as a Qt widget.  The core API is send-message with SCI_*
+;;; constants — the same protocol used by gerbil-scintilla/constants.ss.
+
+(def (qt-scintilla-create parent: (parent #f))
+  (qt_scintilla_create parent))
+
+(def (qt-scintilla-destroy! sci)
+  (qt_scintilla_destroy sci))
+
+;; Core Scintilla message passing — same SCI_* protocol as gerbil-scintilla
+(def (qt-scintilla-send-message sci msg (wparam 0) (lparam 0))
+  (qt_scintilla_send_message sci msg wparam lparam))
+
+(def (qt-scintilla-send-message/string sci msg str (wparam 0))
+  (qt_scintilla_send_message_string sci msg wparam str))
+
+(def (qt-scintilla-receive-string sci msg (wparam 0))
+  (qt_scintilla_receive_string sci msg wparam))
+
+;; Convenience text operations
+(def (qt-scintilla-set-text! sci text)
+  (qt_scintilla_set_text sci text))
+
+(def (qt-scintilla-text sci)
+  (qt_scintilla_get_text sci))
+
+(def (qt-scintilla-text-length sci)
+  (qt_scintilla_get_text_length sci))
+
+;; Lexer (uses QScintilla's built-in lexers)
+(def (qt-scintilla-set-lexer-language! sci language)
+  (qt_scintilla_set_lexer_language sci language))
+
+(def (qt-scintilla-lexer-language sci)
+  (qt_scintilla_get_lexer_language sci))
+
+;; Read-only
+(def (qt-scintilla-set-read-only! sci read-only?)
+  (qt_scintilla_set_read_only sci (if read-only? 1 0)))
+
+(def (qt-scintilla-read-only? sci)
+  (not (= 0 (qt_scintilla_is_read_only sci))))
+
+;; Margins
+(def (qt-scintilla-set-margin-width! sci margin width)
+  (qt_scintilla_set_margin_width sci margin width))
+
+(def (qt-scintilla-set-margin-type! sci margin type)
+  (qt_scintilla_set_margin_type sci margin type))
+
+;; Focus
+(def (qt-scintilla-set-focus! sci)
+  (qt_scintilla_set_focus sci))
+
+;; Signal connections
+(def (qt-on-scintilla-text-changed! sci handler)
+  (let ((id (register-qt-void-handler! handler)))
+    (raw_qt_scintilla_on_text_changed sci id)
+    (track-handler! sci id)))
+
+(def (qt-on-scintilla-char-added! sci handler)
+  (let ((id (register-qt-int-handler! handler)))
+    (raw_qt_scintilla_on_char_added sci id)
+    (track-handler! sci id)))
+
+(def (qt-on-scintilla-save-point-reached! sci handler)
+  (let ((id (register-qt-void-handler! handler)))
+    (raw_qt_scintilla_on_save_point_reached sci id)
+    (track-handler! sci id)))
+
+(def (qt-on-scintilla-save-point-left! sci handler)
+  (let ((id (register-qt-void-handler! handler)))
+    (raw_qt_scintilla_on_save_point_left sci id)
+    (track-handler! sci id)))
+
+(def (qt-on-scintilla-margin-clicked! sci handler)
+  (let ((id (register-qt-int-handler! handler)))
+    (raw_qt_scintilla_on_margin_clicked sci id)
+    (track-handler! sci id)))
+
+(def (qt-on-scintilla-modified! sci handler)
+  (let ((id (register-qt-int-handler! handler)))
+    (raw_qt_scintilla_on_modified sci id)
+    (track-handler! sci id)))

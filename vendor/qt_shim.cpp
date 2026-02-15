@@ -5234,3 +5234,201 @@ extern "C" void qt_disconnect_all(qt_widget_t obj) {
         static_cast<QObject*>(obj)->disconnect();
     }
 }
+
+// ============================================================
+// QScintilla (Scintilla-compatible editor widget)
+// ============================================================
+
+#ifdef QT_SCINTILLA_AVAILABLE
+
+#include <Qsci/qsciscintilla.h>
+#include <Qsci/qscilexer.h>
+#include <Qsci/qscilexerbash.h>
+#include <Qsci/qscilexercpp.h>
+#include <Qsci/qscilexercss.h>
+#include <Qsci/qscilexerhtml.h>
+#include <Qsci/qscilexerjavascript.h>
+#include <Qsci/qscilexerjson.h>
+#include <Qsci/qscilexerlua.h>
+#include <Qsci/qscilexermakefile.h>
+#include <Qsci/qscilexermarkdown.h>
+#include <Qsci/qscilexerpython.h>
+#include <Qsci/qscilexerruby.h>
+#include <Qsci/qscilexersql.h>
+#include <Qsci/qscilexerxml.h>
+#include <Qsci/qscilexeryaml.h>
+
+// Thread-local buffer for receiving strings from Scintilla
+static thread_local std::string s_sci_recv_buf;
+
+// Helper: map language name to a QsciLexer instance
+static QsciLexer* create_lexer_for_language(QsciScintilla* parent, const char* lang) {
+    std::string l(lang);
+    if (l == "bash" || l == "sh")     return new QsciLexerBash(parent);
+    if (l == "cpp" || l == "c" || l == "c++") return new QsciLexerCPP(parent);
+    if (l == "css")                   return new QsciLexerCSS(parent);
+    if (l == "html")                  return new QsciLexerHTML(parent);
+    if (l == "javascript" || l == "js") return new QsciLexerJavaScript(parent);
+    if (l == "json")                  return new QsciLexerJSON(parent);
+    if (l == "lua")                   return new QsciLexerLua(parent);
+    if (l == "makefile" || l == "make") return new QsciLexerMakefile(parent);
+    if (l == "markdown" || l == "md") return new QsciLexerMarkdown(parent);
+    if (l == "python" || l == "py")   return new QsciLexerPython(parent);
+    if (l == "ruby" || l == "rb")     return new QsciLexerRuby(parent);
+    if (l == "sql")                   return new QsciLexerSQL(parent);
+    if (l == "xml")                   return new QsciLexerXML(parent);
+    if (l == "yaml" || l == "yml")    return new QsciLexerYAML(parent);
+    return nullptr;  // no matching lexer
+}
+
+extern "C" qt_scintilla_t qt_scintilla_create(qt_widget_t parent) {
+    auto* p = parent ? static_cast<QWidget*>(parent) : nullptr;
+    auto* sci = new QsciScintilla(p);
+    sci->setUtf8(true);
+    return static_cast<void*>(sci);
+}
+
+extern "C" void qt_scintilla_destroy(qt_scintilla_t sci) {
+    delete static_cast<QsciScintilla*>(sci);
+}
+
+extern "C" long qt_scintilla_send_message(qt_scintilla_t sci, unsigned int msg,
+                                          unsigned long wparam, long lparam) {
+    return static_cast<QsciScintilla*>(sci)->SendScintilla(msg, wparam, lparam);
+}
+
+extern "C" long qt_scintilla_send_message_string(qt_scintilla_t sci, unsigned int msg,
+                                                 unsigned long wparam, const char* str) {
+    return static_cast<QsciScintilla*>(sci)->SendScintilla(
+        msg, wparam, reinterpret_cast<long>(str));
+}
+
+extern "C" const char* qt_scintilla_receive_string(qt_scintilla_t sci, unsigned int msg,
+                                                   unsigned long wparam) {
+    auto* s = static_cast<QsciScintilla*>(sci);
+    // First call: get length (lparam=0 means "return length needed")
+    long len = s->SendScintilla(msg, wparam, static_cast<long>(0));
+    if (len <= 0) {
+        s_sci_recv_buf.clear();
+        return s_sci_recv_buf.c_str();
+    }
+    s_sci_recv_buf.resize(len + 1, '\0');
+    // Second call: fill buffer
+    s->SendScintilla(msg, wparam, reinterpret_cast<long>(s_sci_recv_buf.data()));
+    s_sci_recv_buf[len] = '\0';
+    return s_sci_recv_buf.c_str();
+}
+
+extern "C" void qt_scintilla_set_text(qt_scintilla_t sci, const char* text) {
+    static_cast<QsciScintilla*>(sci)->setText(QString::fromUtf8(text));
+}
+
+extern "C" const char* qt_scintilla_get_text(qt_scintilla_t sci) {
+    s_return_buf = static_cast<QsciScintilla*>(sci)->text().toUtf8().constData();
+    return s_return_buf.c_str();
+}
+
+extern "C" int qt_scintilla_get_text_length(qt_scintilla_t sci) {
+    return static_cast<QsciScintilla*>(sci)->text().toUtf8().length();
+}
+
+extern "C" void qt_scintilla_set_lexer_language(qt_scintilla_t sci, const char* language) {
+    auto* s = static_cast<QsciScintilla*>(sci);
+    // Delete old lexer if any
+    QsciLexer* old = s->lexer();
+    QsciLexer* lex = create_lexer_for_language(s, language);
+    s->setLexer(lex);  // nullptr disables lexer
+    delete old;
+}
+
+extern "C" const char* qt_scintilla_get_lexer_language(qt_scintilla_t sci) {
+    auto* lex = static_cast<QsciScintilla*>(sci)->lexer();
+    if (!lex) {
+        s_return_buf = "";
+    } else {
+        s_return_buf = lex->language();
+    }
+    return s_return_buf.c_str();
+}
+
+extern "C" void qt_scintilla_set_read_only(qt_scintilla_t sci, int read_only) {
+    static_cast<QsciScintilla*>(sci)->setReadOnly(read_only != 0);
+}
+
+extern "C" int qt_scintilla_is_read_only(qt_scintilla_t sci) {
+    return static_cast<QsciScintilla*>(sci)->isReadOnly() ? 1 : 0;
+}
+
+extern "C" void qt_scintilla_set_margin_width(qt_scintilla_t sci, int margin, int width) {
+    static_cast<QsciScintilla*>(sci)->setMarginWidth(margin, width);
+}
+
+extern "C" void qt_scintilla_set_margin_type(qt_scintilla_t sci, int margin, int type) {
+    static_cast<QsciScintilla*>(sci)->setMarginType(
+        margin, static_cast<QsciScintilla::MarginType>(type));
+}
+
+extern "C" void qt_scintilla_set_focus(qt_scintilla_t sci) {
+    static_cast<QsciScintilla*>(sci)->setFocus();
+}
+
+// Signal connections
+extern "C" void qt_scintilla_on_text_changed(qt_scintilla_t sci,
+                                             qt_callback_void callback,
+                                             long callback_id) {
+    auto* s = static_cast<QsciScintilla*>(sci);
+    QObject::connect(s, &QsciScintilla::textChanged, [callback, callback_id]() {
+        callback(callback_id);
+    });
+}
+
+extern "C" void qt_scintilla_on_char_added(qt_scintilla_t sci,
+                                           qt_callback_int callback,
+                                           long callback_id) {
+    auto* s = static_cast<QsciScintilla*>(sci);
+    // QScintilla uses SCN_CHARADDED signal
+    QObject::connect(s, &QsciScintilla::SCN_CHARADDED, [callback, callback_id](int ch) {
+        callback(callback_id, ch);
+    });
+}
+
+extern "C" void qt_scintilla_on_save_point_reached(qt_scintilla_t sci,
+                                                   qt_callback_void callback,
+                                                   long callback_id) {
+    auto* s = static_cast<QsciScintilla*>(sci);
+    QObject::connect(s, &QsciScintilla::SCN_SAVEPOINTREACHED, [callback, callback_id]() {
+        callback(callback_id);
+    });
+}
+
+extern "C" void qt_scintilla_on_save_point_left(qt_scintilla_t sci,
+                                                qt_callback_void callback,
+                                                long callback_id) {
+    auto* s = static_cast<QsciScintilla*>(sci);
+    QObject::connect(s, &QsciScintilla::SCN_SAVEPOINTLEFT, [callback, callback_id]() {
+        callback(callback_id);
+    });
+}
+
+extern "C" void qt_scintilla_on_margin_clicked(qt_scintilla_t sci,
+                                               qt_callback_int callback,
+                                               long callback_id) {
+    auto* s = static_cast<QsciScintilla*>(sci);
+    QObject::connect(s, &QsciScintilla::marginClicked,
+        [callback, callback_id](int margin, int line, Qt::KeyboardModifiers) {
+        // Pack margin+line: margin in high 16 bits, line in low 16 bits
+        callback(callback_id, (margin << 16) | (line & 0xFFFF));
+    });
+}
+
+extern "C" void qt_scintilla_on_modified(qt_scintilla_t sci,
+                                         qt_callback_int callback,
+                                         long callback_id) {
+    auto* s = static_cast<QsciScintilla*>(sci);
+    QObject::connect(s, &QsciScintilla::modificationChanged,
+        [callback, callback_id](bool modified) {
+        callback(callback_id, modified ? 1 : 0);
+    });
+}
+
+#endif /* QT_SCINTILLA_AVAILABLE */

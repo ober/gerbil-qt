@@ -1536,6 +1536,65 @@ void qt_plain_text_edit_apply_extra_selections(qt_plain_text_edit_t editor);
 void qt_completer_set_widget(void* completer, void* widget);
 void qt_completer_complete_rect(void* completer, int x, int y, int w, int h);
 
+/* ====== QScintilla (Scintilla-compatible editor widget) ====== */
+#ifdef QT_SCINTILLA_AVAILABLE
+
+typedef void* qt_scintilla_t;
+
+/* Lifecycle */
+qt_scintilla_t qt_scintilla_create(qt_widget_t parent);
+void           qt_scintilla_destroy(qt_scintilla_t sci);
+
+/* Core Scintilla message passing — same protocol as SCI_* messages */
+long        qt_scintilla_send_message(qt_scintilla_t sci, unsigned int msg,
+                                      unsigned long wparam, long lparam);
+long        qt_scintilla_send_message_string(qt_scintilla_t sci, unsigned int msg,
+                                             unsigned long wparam, const char* str);
+const char* qt_scintilla_receive_string(qt_scintilla_t sci, unsigned int msg,
+                                        unsigned long wparam);
+
+/* Convenience: get/set full text (avoids SCI_GETTEXT buffer dance) */
+void        qt_scintilla_set_text(qt_scintilla_t sci, const char* text);
+const char* qt_scintilla_get_text(qt_scintilla_t sci);
+int         qt_scintilla_get_text_length(qt_scintilla_t sci);
+
+/* Lexer (uses Scintilla's built-in lexers via QScintilla) */
+void        qt_scintilla_set_lexer_language(qt_scintilla_t sci, const char* language);
+const char* qt_scintilla_get_lexer_language(qt_scintilla_t sci);
+
+/* Read-only */
+void qt_scintilla_set_read_only(qt_scintilla_t sci, int read_only);
+int  qt_scintilla_is_read_only(qt_scintilla_t sci);
+
+/* Margins */
+void qt_scintilla_set_margin_width(qt_scintilla_t sci, int margin, int width);
+void qt_scintilla_set_margin_type(qt_scintilla_t sci, int margin, int type);
+
+/* Focus & widget ops */
+void qt_scintilla_set_focus(qt_scintilla_t sci);
+
+/* Notifications — QScintilla signals */
+void qt_scintilla_on_text_changed(qt_scintilla_t sci,
+                                  qt_callback_void callback,
+                                  long callback_id);
+void qt_scintilla_on_char_added(qt_scintilla_t sci,
+                                qt_callback_int callback,
+                                long callback_id);
+void qt_scintilla_on_save_point_reached(qt_scintilla_t sci,
+                                        qt_callback_void callback,
+                                        long callback_id);
+void qt_scintilla_on_save_point_left(qt_scintilla_t sci,
+                                     qt_callback_void callback,
+                                     long callback_id);
+void qt_scintilla_on_margin_clicked(qt_scintilla_t sci,
+                                    qt_callback_int callback,
+                                    long callback_id);
+void qt_scintilla_on_modified(qt_scintilla_t sci,
+                              qt_callback_int callback,
+                              long callback_id);
+
+#endif /* QT_SCINTILLA_AVAILABLE */
+
 #ifdef __cplusplus
 }
 #endif

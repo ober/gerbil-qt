@@ -733,6 +733,19 @@
      ;; Completer on editor
      qt_completer_set_widget qt_completer_complete_rect
 
+     ;; QScintilla (Scintilla-compatible editor widget)
+     qt_scintilla_create qt_scintilla_destroy
+     qt_scintilla_send_message qt_scintilla_send_message_string
+     qt_scintilla_receive_string
+     qt_scintilla_set_text qt_scintilla_get_text qt_scintilla_get_text_length
+     qt_scintilla_set_lexer_language qt_scintilla_get_lexer_language
+     qt_scintilla_set_read_only qt_scintilla_is_read_only
+     qt_scintilla_set_margin_width qt_scintilla_set_margin_type
+     qt_scintilla_set_focus
+     raw_qt_scintilla_on_text_changed raw_qt_scintilla_on_char_added
+     raw_qt_scintilla_on_save_point_reached raw_qt_scintilla_on_save_point_left
+     raw_qt_scintilla_on_margin_clicked raw_qt_scintilla_on_modified
+
      ;; Callback management
      *qt-void-handlers* *qt-string-handlers*
      *qt-int-handlers* *qt-bool-handlers*
@@ -1458,6 +1471,67 @@ static char* ffi_qt_undo_stack_redo_text(void* stack) {
 static char* ffi_qt_file_system_model_file_path(void* model, int row, int column) {
     return (char*)qt_file_system_model_file_path(model, row, column);
 }
+
+/* QScintilla: const-cast wrappers and signal trampolines */
+#ifdef QT_SCINTILLA_AVAILABLE
+static char* ffi_qt_scintilla_receive_string(void* sci, unsigned int msg,
+                                             unsigned long wparam) {
+    return (char*)qt_scintilla_receive_string(sci, msg, wparam);
+}
+static char* ffi_qt_scintilla_get_text(void* sci) {
+    return (char*)qt_scintilla_get_text(sci);
+}
+static char* ffi_qt_scintilla_get_lexer_language(void* sci) {
+    return (char*)qt_scintilla_get_lexer_language(sci);
+}
+static void ffi_qt_scintilla_on_text_changed(void* sci, long callback_id) {
+    qt_scintilla_on_text_changed(sci, ffi_void_trampoline, callback_id);
+}
+static void ffi_qt_scintilla_on_char_added(void* sci, long callback_id) {
+    qt_scintilla_on_char_added(sci, ffi_int_trampoline, callback_id);
+}
+static void ffi_qt_scintilla_on_save_point_reached(void* sci, long callback_id) {
+    qt_scintilla_on_save_point_reached(sci, ffi_void_trampoline, callback_id);
+}
+static void ffi_qt_scintilla_on_save_point_left(void* sci, long callback_id) {
+    qt_scintilla_on_save_point_left(sci, ffi_void_trampoline, callback_id);
+}
+static void ffi_qt_scintilla_on_margin_clicked(void* sci, long callback_id) {
+    qt_scintilla_on_margin_clicked(sci, ffi_int_trampoline, callback_id);
+}
+static void ffi_qt_scintilla_on_modified(void* sci, long callback_id) {
+    qt_scintilla_on_modified(sci, ffi_int_trampoline, callback_id);
+}
+#else
+/* Stubs when QScintilla is not available — functions compile but return errors at runtime */
+static void* qt_scintilla_create(void* p) { (void)p; return (void*)0; }
+static void  qt_scintilla_destroy(void* s) { (void)s; }
+static long  qt_scintilla_send_message(void* s, unsigned int m, unsigned long w, long l) {
+    (void)s; (void)m; (void)w; (void)l; return 0;
+}
+static long  qt_scintilla_send_message_string(void* s, unsigned int m, unsigned long w, const char* str) {
+    (void)s; (void)m; (void)w; (void)str; return 0;
+}
+static char* ffi_qt_scintilla_receive_string(void* s, unsigned int m, unsigned long w) {
+    (void)s; (void)m; (void)w; return (char*)"";
+}
+static void  qt_scintilla_set_text(void* s, const char* t) { (void)s; (void)t; }
+static char* ffi_qt_scintilla_get_text(void* s) { (void)s; return (char*)""; }
+static int   qt_scintilla_get_text_length(void* s) { (void)s; return 0; }
+static void  qt_scintilla_set_lexer_language(void* s, const char* l) { (void)s; (void)l; }
+static char* ffi_qt_scintilla_get_lexer_language(void* s) { (void)s; return (char*)""; }
+static void  qt_scintilla_set_read_only(void* s, int r) { (void)s; (void)r; }
+static int   qt_scintilla_is_read_only(void* s) { (void)s; return 0; }
+static void  qt_scintilla_set_margin_width(void* s, int m, int w) { (void)s; (void)m; (void)w; }
+static void  qt_scintilla_set_margin_type(void* s, int m, int t) { (void)s; (void)m; (void)t; }
+static void  qt_scintilla_set_focus(void* s) { (void)s; }
+static void  ffi_qt_scintilla_on_text_changed(void* s, long i) { (void)s; (void)i; }
+static void  ffi_qt_scintilla_on_char_added(void* s, long i) { (void)s; (void)i; }
+static void  ffi_qt_scintilla_on_save_point_reached(void* s, long i) { (void)s; (void)i; }
+static void  ffi_qt_scintilla_on_save_point_left(void* s, long i) { (void)s; (void)i; }
+static void  ffi_qt_scintilla_on_margin_clicked(void* s, long i) { (void)s; (void)i; }
+static void  ffi_qt_scintilla_on_modified(void* s, long i) { (void)s; (void)i; }
+#endif /* QT_SCINTILLA_AVAILABLE */
 
 END-C
   )
@@ -3676,6 +3750,61 @@ END-C
     "qt_completer_set_widget")
   (define-c-lambda qt_completer_complete_rect ((pointer void) int int int int) void
     "qt_completer_complete_rect")
+
+  ;; ---- QScintilla (Scintilla-compatible editor widget) ----
+  ;; Lifecycle
+  (define-c-lambda qt_scintilla_create ((pointer void)) (pointer void)
+    "___return(qt_scintilla_create(___arg1));")
+  (define-c-lambda qt_scintilla_destroy ((pointer void)) void
+    "qt_scintilla_destroy(___arg1);")
+  ;; Core message passing (SCI_* protocol)
+  (define-c-lambda qt_scintilla_send_message
+    ((pointer void) unsigned-int unsigned-long long) long
+    "___return(qt_scintilla_send_message(___arg1, ___arg2, ___arg3, ___arg4));")
+  (define-c-lambda qt_scintilla_send_message_string
+    ((pointer void) unsigned-int unsigned-long UTF-8-string) long
+    "___return(qt_scintilla_send_message_string(___arg1, ___arg2, ___arg3, ___arg4));")
+  (define-c-lambda qt_scintilla_receive_string
+    ((pointer void) unsigned-int unsigned-long) UTF-8-string
+    "___return(ffi_qt_scintilla_receive_string(___arg1, ___arg2, ___arg3));")
+  ;; Convenience text ops
+  (define-c-lambda qt_scintilla_set_text ((pointer void) UTF-8-string) void
+    "qt_scintilla_set_text(___arg1, ___arg2);")
+  (define-c-lambda qt_scintilla_get_text ((pointer void)) UTF-8-string
+    "___return(ffi_qt_scintilla_get_text(___arg1));")
+  (define-c-lambda qt_scintilla_get_text_length ((pointer void)) int
+    "___return(qt_scintilla_get_text_length(___arg1));")
+  ;; Lexer
+  (define-c-lambda qt_scintilla_set_lexer_language ((pointer void) UTF-8-string) void
+    "qt_scintilla_set_lexer_language(___arg1, ___arg2);")
+  (define-c-lambda qt_scintilla_get_lexer_language ((pointer void)) UTF-8-string
+    "___return(ffi_qt_scintilla_get_lexer_language(___arg1));")
+  ;; Read-only
+  (define-c-lambda qt_scintilla_set_read_only ((pointer void) int) void
+    "qt_scintilla_set_read_only(___arg1, ___arg2);")
+  (define-c-lambda qt_scintilla_is_read_only ((pointer void)) int
+    "___return(qt_scintilla_is_read_only(___arg1));")
+  ;; Margins
+  (define-c-lambda qt_scintilla_set_margin_width ((pointer void) int int) void
+    "qt_scintilla_set_margin_width(___arg1, ___arg2, ___arg3);")
+  (define-c-lambda qt_scintilla_set_margin_type ((pointer void) int int) void
+    "qt_scintilla_set_margin_type(___arg1, ___arg2, ___arg3);")
+  ;; Focus
+  (define-c-lambda qt_scintilla_set_focus ((pointer void)) void
+    "qt_scintilla_set_focus(___arg1);")
+  ;; Signal connections
+  (define-c-lambda raw_qt_scintilla_on_text_changed ((pointer void) long) void
+    "ffi_qt_scintilla_on_text_changed(___arg1, ___arg2);")
+  (define-c-lambda raw_qt_scintilla_on_char_added ((pointer void) long) void
+    "ffi_qt_scintilla_on_char_added(___arg1, ___arg2);")
+  (define-c-lambda raw_qt_scintilla_on_save_point_reached ((pointer void) long) void
+    "ffi_qt_scintilla_on_save_point_reached(___arg1, ___arg2);")
+  (define-c-lambda raw_qt_scintilla_on_save_point_left ((pointer void) long) void
+    "ffi_qt_scintilla_on_save_point_left(___arg1, ___arg2);")
+  (define-c-lambda raw_qt_scintilla_on_margin_clicked ((pointer void) long) void
+    "ffi_qt_scintilla_on_margin_clicked(___arg1, ___arg2);")
+  (define-c-lambda raw_qt_scintilla_on_modified ((pointer void) long) void
+    "ffi_qt_scintilla_on_modified(___arg1, ___arg2);")
 
   ;; ---- Callback dispatch tables ----
   (define *qt-void-handlers* (make-hash-table))
