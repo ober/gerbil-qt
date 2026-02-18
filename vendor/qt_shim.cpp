@@ -1460,6 +1460,10 @@ extern "C" int qt_widget_height(qt_widget_t w) {
     return static_cast<QWidget*>(w)->height();
 }
 
+extern "C" void qt_widget_set_focus(qt_widget_t w) {
+    static_cast<QWidget*>(w)->setFocus();
+}
+
 // ============================================================
 // Scroll Area
 // ============================================================

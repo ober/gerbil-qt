@@ -177,6 +177,7 @@
   qt-widget-show-fullscreen! qt-widget-show-normal!
   qt-widget-window-state qt-widget-move!
   qt-widget-x qt-widget-y qt-widget-width qt-widget-height
+  qt-widget-set-focus!
 
   ;; Scroll Area
   qt-scroll-area-create qt-scroll-area-set-widget!
@@ -1561,6 +1562,9 @@
 
 (def (qt-widget-height w)
   (qt_widget_height w))
+
+(def (qt-widget-set-focus! w)
+  (qt_widget_set_focus w))
 
 ;;; ---- Scroll Area ----
 

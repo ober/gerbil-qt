@@ -317,6 +317,7 @@ int  qt_widget_x(qt_widget_t w);
 int  qt_widget_y(qt_widget_t w);
 int  qt_widget_width(qt_widget_t w);
 int  qt_widget_height(qt_widget_t w);
+void qt_widget_set_focus(qt_widget_t w);
 
 /* --- Scroll Area --- */
 qt_scroll_area_t qt_scroll_area_create(qt_widget_t parent);

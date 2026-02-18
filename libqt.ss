@@ -192,6 +192,7 @@
      qt_widget_show_fullscreen qt_widget_show_normal
      qt_widget_window_state qt_widget_move
      qt_widget_x qt_widget_y qt_widget_width qt_widget_height
+     qt_widget_set_focus
 
      ;; Window state constants
      QT_WINDOW_NO_STATE QT_WINDOW_MINIMIZED
@@ -2186,6 +2187,8 @@ END-C
     "qt_widget_width")
   (define-c-lambda qt_widget_height ((pointer void)) int
     "qt_widget_height")
+  (define-c-lambda qt_widget_set_focus ((pointer void)) void
+    "qt_widget_set_focus")
 
   ;; ---- Scroll Area ----
   (define-c-lambda qt_scroll_area_create ((pointer void)) (pointer void)
