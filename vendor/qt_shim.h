@@ -329,6 +329,9 @@ void qt_scroll_area_set_vertical_scrollbar_policy(qt_scroll_area_t s, int policy
 /* --- Splitter --- */
 qt_splitter_t qt_splitter_create(int orientation, qt_widget_t parent);
 void qt_splitter_add_widget(qt_splitter_t s, qt_widget_t w);
+void qt_splitter_insert_widget(qt_splitter_t s, int index, qt_widget_t w);
+int  qt_splitter_index_of(qt_splitter_t s, qt_widget_t w);
+qt_widget_t qt_splitter_widget(qt_splitter_t s, int index);
 int  qt_splitter_count(qt_splitter_t s);
 void qt_splitter_set_sizes_2(qt_splitter_t s, int a, int b);
 void qt_splitter_set_sizes_3(qt_splitter_t s, int a, int b, int c);

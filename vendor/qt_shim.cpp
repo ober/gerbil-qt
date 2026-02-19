@@ -1507,6 +1507,18 @@ extern "C" void qt_splitter_add_widget(qt_splitter_t s, qt_widget_t w) {
     static_cast<QSplitter*>(s)->addWidget(static_cast<QWidget*>(w));
 }
 
+extern "C" void qt_splitter_insert_widget(qt_splitter_t s, int index, qt_widget_t w) {
+    static_cast<QSplitter*>(s)->insertWidget(index, static_cast<QWidget*>(w));
+}
+
+extern "C" int qt_splitter_index_of(qt_splitter_t s, qt_widget_t w) {
+    return static_cast<QSplitter*>(s)->indexOf(static_cast<QWidget*>(w));
+}
+
+extern "C" qt_widget_t qt_splitter_widget(qt_splitter_t s, int index) {
+    return static_cast<QSplitter*>(s)->widget(index);
+}
+
 extern "C" int qt_splitter_count(qt_splitter_t s) {
     return static_cast<QSplitter*>(s)->count();
 }

@@ -212,7 +212,9 @@
      QT_CURSOR_POINTING_HAND QT_CURSOR_FORBIDDEN QT_CURSOR_BUSY
 
      ;; Splitter
-     qt_splitter_create qt_splitter_add_widget qt_splitter_count
+     qt_splitter_create qt_splitter_add_widget
+     qt_splitter_insert_widget qt_splitter_index_of qt_splitter_widget
+     qt_splitter_count
      qt_splitter_set_sizes_2 qt_splitter_set_sizes_3
      qt_splitter_size_at qt_splitter_set_stretch_factor
      qt_splitter_set_handle_width
@@ -2211,6 +2213,12 @@ END-C
     "qt_splitter_create")
   (define-c-lambda qt_splitter_add_widget ((pointer void) (pointer void)) void
     "qt_splitter_add_widget")
+  (define-c-lambda qt_splitter_insert_widget ((pointer void) int (pointer void)) void
+    "qt_splitter_insert_widget")
+  (define-c-lambda qt_splitter_index_of ((pointer void) (pointer void)) int
+    "qt_splitter_index_of")
+  (define-c-lambda qt_splitter_widget ((pointer void) int) (pointer void)
+    "qt_splitter_widget")
   (define-c-lambda qt_splitter_count ((pointer void)) int
     "qt_splitter_count")
   (define-c-lambda qt_splitter_set_sizes_2 ((pointer void) int int) void

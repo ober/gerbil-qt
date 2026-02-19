@@ -186,7 +186,8 @@
   qt-scroll-area-set-vertical-scrollbar-policy!
 
   ;; Splitter
-  qt-splitter-create qt-splitter-add-widget! qt-splitter-count
+  qt-splitter-create qt-splitter-add-widget! qt-splitter-insert-widget!
+  qt-splitter-index-of qt-splitter-widget qt-splitter-count
   qt-splitter-set-sizes! qt-splitter-size-at
   qt-splitter-set-stretch-factor! qt-splitter-set-handle-width!
   qt-splitter-set-collapsible! qt-splitter-collapsible?
@@ -1590,6 +1591,15 @@
 
 (def (qt-splitter-add-widget! s w)
   (qt_splitter_add_widget s w))
+
+(def (qt-splitter-insert-widget! s index w)
+  (qt_splitter_insert_widget s index w))
+
+(def (qt-splitter-index-of s w)
+  (qt_splitter_index_of s w))
+
+(def (qt-splitter-widget s index)
+  (qt_splitter_widget s index))
 
 (def (qt-splitter-count s)
   (qt_splitter_count s))
