@@ -1289,7 +1289,7 @@ typedef void* qt_mdi_sub_window_t;
 
 /* --- QProcess --- */
 qt_process_t qt_process_create(qt_widget_t parent);
-void         qt_process_start(qt_process_t proc, const char* program,
+int          qt_process_start(qt_process_t proc, const char* program,
                                const char* args_str);
 void         qt_process_write(qt_process_t proc, const char* data);
 void         qt_process_close_write(qt_process_t proc);

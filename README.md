@@ -1463,8 +1463,8 @@ RAII-style macros that guarantee cleanup even if the body throws an exception.
 | `(with-font (f family keyword-args ...) body ...)` | Create QFont, auto destroy |
 | `(with-color (c r g b keyword-args ...) body ...)` | Create QColor, auto destroy |
 | `(with-pixmap (pm w h) body ...)` | Create blank QPixmap, auto destroy |
-| `(with-icon var expr body ...)` | Evaluate expr to get QIcon, auto destroy |
-| `(with-settings var expr body ...)` | Evaluate expr to get QSettings, auto destroy |
+| `(with-icon (var expr) body ...)` | Evaluate expr to get QIcon, auto destroy |
+| `(with-settings (var expr) body ...)` | Evaluate expr to get QSettings, auto destroy |
 
 ```scheme
 ;; Paint onto a pixmap with guaranteed cleanup

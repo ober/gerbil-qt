@@ -2066,7 +2066,7 @@
 
 (def (qt-on-double-value-changed! dsb handler)
   (let ((id (register-qt-string-handler!
-             (lambda (str) (handler (string->number str))))))
+             (lambda (str) (handler (or (string->number str) 0.0))))))
     (raw_qt_double_spin_box_on_value_changed dsb id)
     (track-handler! dsb id)))
 
@@ -3208,7 +3208,7 @@
                 (error "qt-process-start!: argument must not contain newlines" a)))
             args)
   (let ((args-str (string-join args "\n")))
-    (qt_process_start proc program args-str)))
+    (not (= 0 (qt_process_start proc program args-str)))))
 
 (def (qt-process-write! proc data)
   (qt_process_write proc data))
@@ -3572,12 +3572,12 @@
     (try body ...
       (finally (qt-pixmap-destroy! pm)))))
 
-(defrule (with-icon var expr body ...)
+(defrule (with-icon (var expr) body ...)
   (let ((var expr))
     (try body ...
       (finally (qt-icon-destroy! var)))))
 
-(defrule (with-settings var expr body ...)
+(defrule (with-settings (var expr) body ...)
   (let ((var expr))
     (try body ...
       (finally (qt-settings-destroy! var)))))
@@ -3640,6 +3640,10 @@
   (qt_scintilla_create parent))
 
 (def (qt-scintilla-destroy! sci)
+  ;; M7: Clean up handler tracking (matches qt-widget-destroy! pattern)
+  (let ((ids (hash-ref *qt-widget-handlers* sci '())))
+    (for-each unregister-qt-handler! ids)
+    (hash-remove! *qt-widget-handlers* sci))
   (qt_scintilla_destroy sci))
 
 ;; Core Scintilla message passing — same SCI_* protocol as gerbil-scintilla

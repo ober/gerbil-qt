@@ -1197,17 +1197,7 @@ static char* ffi_qt_input_dialog_get_item(void* parent, const char* title,
                                             items_newline, current, editable);
 }
 
-/* Frame constants */
-#define QT_FRAME_NO_FRAME     0
-#define QT_FRAME_BOX          1
-#define QT_FRAME_PANEL        2
-#define QT_FRAME_WIN_PANEL    3
-#define QT_FRAME_HLINE        4
-#define QT_FRAME_VLINE        5
-#define QT_FRAME_STYLED_PANEL 6
-#define QT_FRAME_PLAIN        0x0010
-#define QT_FRAME_RAISED       0x0020
-#define QT_FRAME_SUNKEN       0x0030
+/* L5: Frame constants defined in qt_shim.h — no longer duplicated here */
 
 /* ---- Phase 10: form layout / shortcut / text browser / button box / calendar wrappers ---- */
 
@@ -1252,38 +1242,7 @@ static char* ffi_qt_calendar_selected_date_string(void* c) {
     return (char*)qt_calendar_selected_date_string(c);
 }
 
-/* Button box constants */
-#define QT_BUTTON_OK        0x00000400
-#define QT_BUTTON_CANCEL    0x00400000
-#define QT_BUTTON_APPLY     0x02000000
-#define QT_BUTTON_CLOSE     0x00200000
-#define QT_BUTTON_YES       0x00004000
-#define QT_BUTTON_NO        0x00010000
-#define QT_BUTTON_RESET     0x04000000
-#define QT_BUTTON_HELP      0x01000000
-#define QT_BUTTON_SAVE      0x00000800
-#define QT_BUTTON_DISCARD   0x00800000
-
-/* Button box role constants */
-#define QT_BUTTON_ROLE_INVALID       -1
-#define QT_BUTTON_ROLE_ACCEPT         0
-#define QT_BUTTON_ROLE_REJECT         1
-#define QT_BUTTON_ROLE_DESTRUCTIVE    2
-#define QT_BUTTON_ROLE_ACTION         3
-#define QT_BUTTON_ROLE_HELP           4
-#define QT_BUTTON_ROLE_YES            5
-#define QT_BUTTON_ROLE_NO             6
-#define QT_BUTTON_ROLE_APPLY          8
-#define QT_BUTTON_ROLE_RESET          7
-
-/* Day-of-week constants */
-#define QT_MONDAY     1
-#define QT_TUESDAY    2
-#define QT_WEDNESDAY  3
-#define QT_THURSDAY   4
-#define QT_FRIDAY     5
-#define QT_SATURDAY   6
-#define QT_SUNDAY     7
+/* L5: Button box, button role, and day-of-week constants defined in qt_shim.h */
 
 /* ---- Phase 11: QSettings / QCompleter / QToolTip wrappers ---- */
 
@@ -1324,17 +1283,7 @@ static char* ffi_qt_widget_whats_this(void* w) {
     return (char*)qt_widget_whats_this(w);
 }
 
-/* Phase 11 constants */
-#define QT_SETTINGS_NATIVE  0
-#define QT_SETTINGS_INI     1
-#define QT_COMPLETER_POPUP              0
-#define QT_COMPLETER_INLINE             1
-#define QT_COMPLETER_UNFILTERED_POPUP   2
-#define QT_CASE_INSENSITIVE  0
-#define QT_CASE_SENSITIVE    1
-#define QT_MATCH_STARTS_WITH  0
-#define QT_MATCH_CONTAINS     1
-#define QT_MATCH_ENDS_WITH    2
+/* L5: Settings, completer, case-sensitivity, and match-filter constants defined in qt_shim.h */
 
 /* Phase 12: Model/View constants */
 #define QT_DISPLAY_ROLE      0
@@ -3508,7 +3457,7 @@ END-C
   (define-c-lambda qt_process_create ((pointer void)) (pointer void)
     "qt_process_create")
   (define-c-lambda qt_process_start
-    ((pointer void) UTF-8-string UTF-8-string) void
+    ((pointer void) UTF-8-string UTF-8-string) int
     "qt_process_start")
   (define-c-lambda qt_process_write ((pointer void) UTF-8-string) void
     "qt_process_write")
