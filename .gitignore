@@ -4,3 +4,6 @@ vendor/*.so
 
 # Session notes
 resume.md
+
+# Generated manifest
+manifest.ss
