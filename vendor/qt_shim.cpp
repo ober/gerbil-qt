@@ -6014,15 +6014,53 @@ extern "C" void qt_scintilla_destroy(qt_scintilla_t sci) {
     delete static_cast<QsciScintilla*>(sci);
 }
 
+// Text-modifying Scintilla messages that can trigger SCN_MODIFIED notifications.
+// During these operations, the document may be transiently empty (e.g. SCI_SETTEXT
+// does DeleteChars + InsertString). If SCN_MODIFIED fires in between, handlers
+// (accessibility, input method) may call SCI_GETTEXTRANGE with stale positions,
+// causing PLATFORM_ASSERT(cpMax <= pdoc->Length()) crash at Editor.cpp:6096.
+// We suppress modification events during these messages to prevent the crash.
+static bool is_text_modifying_msg(unsigned int msg) {
+    switch (msg) {
+        case QsciScintillaBase::SCI_SETTEXT:
+        case QsciScintillaBase::SCI_REPLACESEL:
+        case QsciScintillaBase::SCI_APPENDTEXT:
+        case QsciScintillaBase::SCI_INSERTTEXT:
+        case QsciScintillaBase::SCI_CLEARALL:
+        case QsciScintillaBase::SCI_DELETERANGE:
+        case QsciScintillaBase::SCI_ADDTEXT:
+        case QsciScintillaBase::SCI_REPLACETARGET:
+        case QsciScintillaBase::SCI_REPLACETARGETRE:
+            return true;
+        default:
+            return false;
+    }
+}
+
 extern "C" long qt_scintilla_send_message(qt_scintilla_t sci, unsigned int msg,
                                           unsigned long wparam, long lparam) {
-    return static_cast<QsciScintilla*>(sci)->SendScintilla(msg, wparam, lparam);
+    auto* s = static_cast<QsciScintilla*>(sci);
+    if (is_text_modifying_msg(msg)) {
+        long old_mask = s->SendScintilla(QsciScintillaBase::SCI_GETMODEVENTMASK);
+        s->SendScintilla(QsciScintillaBase::SCI_SETMODEVENTMASK, 0L);
+        long result = s->SendScintilla(msg, wparam, lparam);
+        s->SendScintilla(QsciScintillaBase::SCI_SETMODEVENTMASK, old_mask);
+        return result;
+    }
+    return s->SendScintilla(msg, wparam, lparam);
 }
 
 extern "C" long qt_scintilla_send_message_string(qt_scintilla_t sci, unsigned int msg,
                                                  unsigned long wparam, const char* str) {
-    return static_cast<QsciScintilla*>(sci)->SendScintilla(
-        msg, wparam, reinterpret_cast<long>(str));
+    auto* s = static_cast<QsciScintilla*>(sci);
+    if (is_text_modifying_msg(msg)) {
+        long old_mask = s->SendScintilla(QsciScintillaBase::SCI_GETMODEVENTMASK);
+        s->SendScintilla(QsciScintillaBase::SCI_SETMODEVENTMASK, 0L);
+        long result = s->SendScintilla(msg, wparam, reinterpret_cast<long>(str));
+        s->SendScintilla(QsciScintillaBase::SCI_SETMODEVENTMASK, old_mask);
+        return result;
+    }
+    return s->SendScintilla(msg, wparam, reinterpret_cast<long>(str));
 }
 
 extern "C" const char* qt_scintilla_receive_string(qt_scintilla_t sci, unsigned int msg,
@@ -6045,11 +6083,14 @@ extern "C" const char* qt_scintilla_receive_string(qt_scintilla_t sci, unsigned 
 extern "C" void qt_scintilla_set_text(qt_scintilla_t sci, const char* text) {
     QT_NULL_CHECK_VOID(sci);
     auto* s = static_cast<QsciScintilla*>(sci);
-    // Use SCI_SETTEXT directly instead of QsciScintilla::setText() which
-    // does SCI_CLEARALL + SCI_ADDTEXT as two separate operations.
     bool ro = s->isReadOnly();
     if (ro) s->SendScintilla(QsciScintillaBase::SCI_SETREADONLY, 0L);
+    // Suppress SCN_MODIFIED during text replacement to prevent handlers
+    // from calling SCI_GETTEXTRANGE with stale positions.
+    long old_mask = s->SendScintilla(QsciScintillaBase::SCI_GETMODEVENTMASK);
+    s->SendScintilla(QsciScintillaBase::SCI_SETMODEVENTMASK, 0L);
     s->SendScintilla(QsciScintillaBase::SCI_SETTEXT, text);
+    s->SendScintilla(QsciScintillaBase::SCI_SETMODEVENTMASK, old_mask);
     s->SendScintilla(QsciScintillaBase::SCI_EMPTYUNDOBUFFER);
     if (ro) s->SendScintilla(QsciScintillaBase::SCI_SETREADONLY, 1L);
 }
