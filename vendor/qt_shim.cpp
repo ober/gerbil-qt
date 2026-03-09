@@ -5988,6 +5988,12 @@ extern "C" qt_scintilla_t qt_scintilla_create(qt_widget_t parent) {
     auto* p = parent ? static_cast<QWidget*>(parent) : nullptr;
     auto* sci = new QsciScintilla(p);
     sci->setUtf8(true);
+    // Disable input method interaction to prevent Scintilla assertion crash.
+    // Qt's input method framework (even with compose) calls inputMethodQuery()
+    // which queries Qt::ImSurroundingText via SCI_GETTEXTRANGE. When terminal
+    // PTY output rapidly replaces document text, stale positions cause
+    // cpMax > pdoc->Length() assertion failure at Editor.cpp:6096.
+    sci->setAttribute(Qt::WA_InputMethodEnabled, false);
     return static_cast<void*>(sci);
 }
 
