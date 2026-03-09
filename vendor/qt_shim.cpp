@@ -6032,7 +6032,20 @@ extern "C" const char* qt_scintilla_receive_string(qt_scintilla_t sci, unsigned 
 
 extern "C" void qt_scintilla_set_text(qt_scintilla_t sci, const char* text) {
     QT_NULL_CHECK_VOID(sci);
-    static_cast<QsciScintilla*>(sci)->setText(QString::fromUtf8(text));
+    auto* s = static_cast<QsciScintilla*>(sci);
+    // Use SCI_SETTEXT directly instead of QsciScintilla::setText().
+    // setText() does SCI_CLEARALL + SCI_ADDTEXT as two separate operations.
+    // Between clear (doc length=0) and add, SCN_MODIFIED fires and the
+    // accessibility layer (SciAccessibility.cpp) may call SCI_GETTEXTRANGE
+    // with positions from before the clear, triggering:
+    //   PLATFORM_ASSERT(cpMax <= pdoc->Length()) at Editor.cpp:6096
+    // SCI_SETTEXT is atomic — it replaces the document in a single operation,
+    // so no intermediate state where doc length=0 with stale positions.
+    bool ro = s->isReadOnly();
+    if (ro) s->SendScintilla(QsciScintillaBase::SCI_SETREADONLY, 0L);
+    s->SendScintilla(QsciScintillaBase::SCI_SETTEXT, text);
+    s->SendScintilla(QsciScintillaBase::SCI_EMPTYUNDOBUFFER);
+    if (ro) s->SendScintilla(QsciScintillaBase::SCI_SETREADONLY, 1L);
 }
 
 extern "C" const char* qt_scintilla_get_text(qt_scintilla_t sci) {
