@@ -1,5 +1,6 @@
 #include "qt_shim.h"
 
+#include <QAccessible>
 #include <QApplication>
 #include <QMainWindow>
 #include <QWidget>
@@ -200,7 +201,18 @@ extern "C" qt_application_t qt_application_create(int argc, char** argv) {
     // QApplication takes argc by REFERENCE — must use static storage.
     // Always use our static argc/argv to avoid dangling references.
     (void)argc; (void)argv;
-    return new QApplication(s_argc, s_argv);
+    auto* app = new QApplication(s_argc, s_argv);
+    // Disable Qt accessibility (AT-SPI) to prevent Scintilla assertion crash.
+    // QScintilla registers an accessibility factory that handles SCN_MODIFIED
+    // notifications. During SCI_SETTEXT (which internally does DeleteChars +
+    // InsertString), the accessibility handler can call SCI_GETTEXTRANGE with
+    // cached positions that exceed the transient empty document state, causing:
+    //   PLATFORM_ASSERT(cpMax <= pdoc->Length()) at Editor.cpp:6096
+    // This crashes reliably when running terminal programs like `top` that
+    // replace document text every 50ms. Disabling accessibility globally
+    // prevents the handler from ever being called with stale positions.
+    QAccessible::setActive(false);
+    return app;
 }
 
 extern "C" int qt_application_exec(qt_application_t app) {
@@ -6033,14 +6045,8 @@ extern "C" const char* qt_scintilla_receive_string(qt_scintilla_t sci, unsigned 
 extern "C" void qt_scintilla_set_text(qt_scintilla_t sci, const char* text) {
     QT_NULL_CHECK_VOID(sci);
     auto* s = static_cast<QsciScintilla*>(sci);
-    // Use SCI_SETTEXT directly instead of QsciScintilla::setText().
-    // setText() does SCI_CLEARALL + SCI_ADDTEXT as two separate operations.
-    // Between clear (doc length=0) and add, SCN_MODIFIED fires and the
-    // accessibility layer (SciAccessibility.cpp) may call SCI_GETTEXTRANGE
-    // with positions from before the clear, triggering:
-    //   PLATFORM_ASSERT(cpMax <= pdoc->Length()) at Editor.cpp:6096
-    // SCI_SETTEXT is atomic — it replaces the document in a single operation,
-    // so no intermediate state where doc length=0 with stale positions.
+    // Use SCI_SETTEXT directly instead of QsciScintilla::setText() which
+    // does SCI_CLEARALL + SCI_ADDTEXT as two separate operations.
     bool ro = s->isReadOnly();
     if (ro) s->SendScintilla(QsciScintillaBase::SCI_SETREADONLY, 0L);
     s->SendScintilla(QsciScintillaBase::SCI_SETTEXT, text);
