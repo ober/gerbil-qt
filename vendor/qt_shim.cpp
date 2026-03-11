@@ -121,6 +121,8 @@
 #include <QCoreApplication>
 #include <functional>
 #include <atomic>
+#include <pthread.h>
+#include <semaphore.h>
 
 // Null-pointer guard macros (H1): return safely instead of crashing on nullptr.
 // Use QT_NULL_CHECK_VOID for void functions, QT_NULL_CHECK_RET for returning ones.
@@ -147,33 +149,42 @@ static char*  s_argv[] = { s_arg0, nullptr };
 // the Qt main thread via BlockingQueuedConnection.
 // ============================================================
 
-// The Qt main thread, set during qt_application_create().
-static QThread* g_qt_main_thread = nullptr;
+// ============================================================
+// Qt runs on a dedicated pthread, never on a Gambit VP.
+//
+// Gambit's M:N SMP scheduler freely migrates green threads between
+// OS threads (VPs) at heartbeat preemption points.  Qt requires that
+// QApplication::create(), all widget operations, and exec() all run
+// on the SAME OS thread.  Running Qt on a dedicated pthread that
+// Gambit never touches solves this completely.
+//
+// qt_application_create()  → spawns g_qt_thread, waits for ready
+// qt_application_exec()    → pthread_join (waits until Qt quits)
+// All other Qt calls       → BlockingQueuedConnection to g_qt_thread
+// ============================================================
 
-// Set to true once exec() starts, false after exec() returns.
-// BlockingQueuedConnection requires a running event loop on the target thread.
-// During init (before exec()), we call Qt directly regardless of thread —
-// no background Gambit threads exist yet, so this is safe.
+// The Qt thread (a dedicated pthread, never a Gambit VP).
+static pthread_t     g_qt_thread;
+static QThread*      g_qt_main_thread = nullptr;
+
+// Semaphore: qt_application_create() blocks until Qt is ready.
+static sem_t         g_qt_ready_sem;
+
+// Set to true once the Qt event loop is running.
+// Required for BlockingQueuedConnection to work — there must be a
+// running event loop on the target thread to process queued events.
 static std::atomic<bool> g_event_loop_running{false};
 
 static inline bool is_qt_main_thread() {
-    // Before QApplication exists, or already on the correct thread: call directly.
     return !g_qt_main_thread ||
            QThread::currentThread() == g_qt_main_thread;
 }
 
-// True when it is safe to use BlockingQueuedConnection: event loop is running
-// AND we are not already on the Qt main thread.
-static inline bool needs_dispatch() {
-    return g_event_loop_running.load(std::memory_order_relaxed) &&
-           !is_qt_main_thread();
-}
-
 // Dispatch a void body to the Qt main thread.
-// If already on the Qt thread, or event loop not yet running: calls directly.
-// Otherwise: marshals via BlockingQueuedConnection (blocks caller until done).
+// If already on Qt thread: calls directly (zero overhead).
+// Otherwise: marshals via BlockingQueuedConnection.
 #define QT_VOID(...) do {                                           \
-    if (!needs_dispatch()) { __VA_ARGS__; }                        \
+    if (is_qt_main_thread()) { __VA_ARGS__; }                      \
     else {                                                          \
         QMetaObject::invokeMethod(                                  \
             QCoreApplication::instance(),                           \
@@ -183,9 +194,8 @@ static inline bool needs_dispatch() {
 } while(0)
 
 // Dispatch a function returning a value.
-// Uses [&] capture so the result is written to the caller's stack frame.
 #define QT_RETURN(type, expr) do {                                  \
-    if (!needs_dispatch()) { return (expr); }                      \
+    if (is_qt_main_thread()) { return (expr); }                    \
     type _result{};                                                 \
     QMetaObject::invokeMethod(                                      \
         QCoreApplication::instance(),                               \
@@ -195,11 +205,8 @@ static inline bool needs_dispatch() {
 } while(0)
 
 // Dispatch a function returning const char* via s_return_buf.
-// Cannot use thread_local s_return_buf in the cross-thread case because
-// the lambda runs on the Qt thread's copy; instead capture into a local
-// std::string and assign to s_return_buf in the caller after the call.
 #define QT_RETURN_STRING(expr) do {                                 \
-    if (!needs_dispatch()) {                                        \
+    if (is_qt_main_thread()) {                                      \
         s_return_buf = (expr);                                      \
         return s_return_buf.c_str();                                \
     }                                                               \
@@ -286,51 +293,79 @@ private:
 // Application lifecycle
 // ============================================================
 
-extern "C" qt_application_t qt_application_create(int argc, char** argv) {
-    // QApplication takes argc by REFERENCE — must use static storage.
-    // Always use our static argc/argv to avoid dangling references.
-    (void)argc; (void)argv;
-    // Record the Qt main thread BEFORE creating QApplication.
-    // All dispatch macros compare against this pointer.
+// Thread entry point for the dedicated Qt thread.
+// Creates QApplication, signals ready, runs exec(), cleans up.
+static void* qt_thread_main(void* arg) {
+    (void)arg;
+    // Record THIS thread as the Qt main thread before creating QApplication.
     g_qt_main_thread = QThread::currentThread();
     auto* app = new QApplication(s_argc, s_argv);
-    // Disable Qt accessibility (AT-SPI) to prevent Scintilla assertion crash.
-    // QScintilla registers an accessibility factory that handles SCN_MODIFIED
-    // notifications. During SCI_SETTEXT (which internally does DeleteChars +
-    // InsertString), the accessibility handler can call SCI_GETTEXTRANGE with
-    // cached positions that exceed the transient empty document state, causing:
-    //   PLATFORM_ASSERT(cpMax <= pdoc->Length()) at Editor.cpp:6096
-    // This crashes reliably when running terminal programs like `top` that
-    // replace document text every 50ms. Disabling accessibility globally
-    // prevents the handler from ever being called with stale positions.
+    // Disable accessibility to prevent Scintilla assertion crash.
+    // See detailed comment in original qt_application_create.
     QAccessible::setActive(false);
-    return app;
+
+    // Signal qt_application_create() that Qt is ready.
+    g_event_loop_running.store(true, std::memory_order_release);
+    sem_post(&g_qt_ready_sem);
+
+    // Run the Qt event loop.  Blocks until QApplication::quit() is called.
+    app->exec();
+
+    g_event_loop_running.store(false, std::memory_order_release);
+    delete app;
+    return nullptr;
+}
+
+extern "C" qt_application_t qt_application_create(int argc, char** argv) {
+    (void)argc; (void)argv;
+    // Initialize the ready semaphore.
+    sem_init(&g_qt_ready_sem, 0, 0);
+    // Start the dedicated Qt thread.
+    pthread_attr_t attr;
+    pthread_attr_init(&attr);
+    pthread_create(&g_qt_thread, &attr, qt_thread_main, nullptr);
+    pthread_attr_destroy(&attr);
+    // Block until the Qt event loop is running and g_qt_main_thread is set.
+    sem_wait(&g_qt_ready_sem);
+    sem_destroy(&g_qt_ready_sem);
+    return QCoreApplication::instance();
 }
 
 extern "C" int qt_application_exec(qt_application_t app) {
-    g_event_loop_running.store(true, std::memory_order_release);
-    int result = static_cast<QApplication*>(app)->exec();
-    g_event_loop_running.store(false, std::memory_order_release);
-    return result;
+    // Wait for the Qt thread to finish (i.e., until the user closes the app).
+    // The Gambit VP calling this will block here, but other VPs continue
+    // running other green threads (LSP, timers, async I/O, etc.).
+    (void)app;
+    pthread_join(g_qt_thread, nullptr);
+    return 0;
 }
 
 extern "C" void qt_application_quit(qt_application_t app) {
-    static_cast<QApplication*>(app)->quit();
+    // QCoreApplication::quit() posts a QuitEvent — thread-safe.
+    (void)app;
+    QCoreApplication::quit();
 }
 
 extern "C" void qt_application_process_events(qt_application_t app) {
-    static_cast<QApplication*>(app)->processEvents();
+    // Must run on Qt thread — use dispatch.
+    QT_VOID((void)app; QCoreApplication::processEvents());
 }
 
 extern "C" void qt_application_destroy(qt_application_t app) {
-    delete static_cast<QApplication*>(app);
+    // Qt thread owns the QApplication and deletes it in qt_thread_main.
+    (void)app;
+}
+
+// Expose is_qt_main_thread() to C code (for use by Gerbil trampolines in libqt.ss).
+// Returns 1 if the current thread is the Qt main thread, 0 otherwise.
+extern "C" int qt_is_main_thread(void) {
+    return is_qt_main_thread() ? 1 : 0;
 }
 
 // Schedule a callback to run once the Qt event loop starts.
-// Must be called AFTER qt_application_create, BEFORE qt_application_exec.
-// The 0ms single-shot timer fires as soon as exec() begins processing events.
-// This is required so that BlockingQueuedConnection dispatch (used by the
-// thread-safe shim) has a running event loop to post to during init.
+// With the dedicated Qt thread, the event loop is ALREADY running by the
+// time qt_application_create() returns.  This function remains for API
+// compatibility but simply posts the callback via a 0ms timer.
 extern "C" void qt_schedule_init(qt_callback_void callback, long callback_id) {
     QTimer::singleShot(0, [callback, callback_id]() {
         callback(callback_id);
@@ -3030,15 +3065,24 @@ extern "C" void qt_frame_set_mid_line_width(qt_frame_t f, int width) {
 extern "C" qt_progress_dialog_t qt_progress_dialog_create(
     const char* label, const char* cancel_text,
     int minimum, int maximum, qt_widget_t parent) {
-    auto* pd = new QProgressDialog(
-        QString::fromUtf8(label),
-        QString::fromUtf8(cancel_text),
-        minimum, maximum,
-        static_cast<QWidget*>(parent));
-    // Don't auto-show — let the user control visibility
-    pd->setMinimumDuration(0);
-    pd->reset();
-    QT_RETURN(qt_progress_dialog_t, pd);
+    // Capture string args by value into std::string before dispatching
+    std::string _label(label ? label : "");
+    std::string _cancel(cancel_text ? cancel_text : "");
+    qt_progress_dialog_t _result = nullptr;
+    auto _create = [&]() {
+        auto* pd = new QProgressDialog(
+            QString::fromUtf8(_label.c_str()),
+            QString::fromUtf8(_cancel.c_str()),
+            minimum, maximum,
+            static_cast<QWidget*>(parent));
+        // Don't auto-show — let the user control visibility
+        pd->setMinimumDuration(0);
+        pd->reset();
+        _result = static_cast<qt_progress_dialog_t>(pd);
+    };
+    if (is_qt_main_thread()) { _create(); }
+    else { QMetaObject::invokeMethod(QCoreApplication::instance(), _create, Qt::BlockingQueuedConnection); }
+    return _result;
 }
 
 extern "C" void qt_progress_dialog_set_value(qt_progress_dialog_t pd, int value) {
@@ -5949,10 +5993,16 @@ extern "C" void* qt_text_document_create(void) {
 }
 
 extern "C" void* qt_plain_text_document_create(void) {
-    auto* doc = new QTextDocument();
-    auto* layout = new QPlainTextDocumentLayout(doc);
-    doc->setDocumentLayout(layout);
-    QT_RETURN(void*, static_cast<void*>(doc));
+    void* _result = nullptr;
+    auto _create = [&]() {
+        auto* doc = new QTextDocument();
+        auto* layout = new QPlainTextDocumentLayout(doc);
+        doc->setDocumentLayout(layout);
+        _result = static_cast<void*>(doc);
+    };
+    if (is_qt_main_thread()) { _create(); }
+    else { QMetaObject::invokeMethod(QCoreApplication::instance(), _create, Qt::BlockingQueuedConnection); }
+    return _result;
 }
 
 extern "C" void qt_text_document_destroy(void* doc) {
@@ -6222,22 +6272,28 @@ protected:
 };
 
 extern "C" void* qt_line_number_area_create(qt_plain_text_edit_t editor) {
-    auto* ed = static_cast<QPlainTextEdit*>(editor);
-    auto* area = new LineNumberArea(ed);
-    area->setFont(ed->font());
-    // Connect signals for updating
-    QObject::connect(ed, &QPlainTextEdit::blockCountChanged, area, [area](int) {
-        area->updateWidth();
-        area->update();
-    });
-    QObject::connect(ed, &QPlainTextEdit::updateRequest, area,
-        [area](const QRect &rect, int dy) {
-            if (dy) area->scroll(0, dy);
-            else area->update(0, rect.y(), area->width(), rect.height());
+    void* _result = nullptr;
+    auto _create = [&]() {
+        auto* ed = static_cast<QPlainTextEdit*>(editor);
+        auto* area = new LineNumberArea(ed);
+        area->setFont(ed->font());
+        // Connect signals for updating
+        QObject::connect(ed, &QPlainTextEdit::blockCountChanged, area, [area](int) {
+            area->updateWidth();
+            area->update();
         });
-    area->updateWidth();
-    area->show();
-    QT_RETURN(void*, area);
+        QObject::connect(ed, &QPlainTextEdit::updateRequest, area,
+            [area](const QRect &rect, int dy) {
+                if (dy) area->scroll(0, dy);
+                else area->update(0, rect.y(), area->width(), rect.height());
+            });
+        area->updateWidth();
+        area->show();
+        _result = area;
+    };
+    if (is_qt_main_thread()) { _create(); }
+    else { QMetaObject::invokeMethod(QCoreApplication::instance(), _create, Qt::BlockingQueuedConnection); }
+    return _result;
 }
 
 extern "C" void qt_line_number_area_destroy(void* area) {
@@ -6411,16 +6467,22 @@ static QsciLexer* create_lexer_for_language(QsciScintilla* parent, const char* l
 }
 
 extern "C" qt_scintilla_t qt_scintilla_create(qt_widget_t parent) {
-    auto* p = parent ? static_cast<QWidget*>(parent) : nullptr;
-    auto* sci = new QsciScintilla(p);
-    sci->setUtf8(true);
-    // Disable input method interaction to prevent Scintilla assertion crash.
-    // Qt's input method framework (even with compose) calls inputMethodQuery()
-    // which queries Qt::ImSurroundingText via SCI_GETTEXTRANGE. When terminal
-    // PTY output rapidly replaces document text, stale positions cause
-    // cpMax > pdoc->Length() assertion failure at Editor.cpp:6096.
-    sci->setAttribute(Qt::WA_InputMethodEnabled, false);
-    QT_RETURN(qt_scintilla_t, static_cast<void*>(sci));
+    qt_scintilla_t _result = nullptr;
+    auto _create = [&]() {
+        auto* p = parent ? static_cast<QWidget*>(parent) : nullptr;
+        auto* sci = new QsciScintilla(p);
+        sci->setUtf8(true);
+        // Disable input method interaction to prevent Scintilla assertion crash.
+        // Qt's input method framework (even with compose) calls inputMethodQuery()
+        // which queries Qt::ImSurroundingText via SCI_GETTEXTRANGE. When terminal
+        // PTY output rapidly replaces document text, stale positions cause
+        // cpMax > pdoc->Length() assertion failure at Editor.cpp:6096.
+        sci->setAttribute(Qt::WA_InputMethodEnabled, false);
+        _result = static_cast<qt_scintilla_t>(sci);
+    };
+    if (is_qt_main_thread()) { _create(); }
+    else { QMetaObject::invokeMethod(QCoreApplication::instance(), _create, Qt::BlockingQueuedConnection); }
+    return _result;
 }
 
 extern "C" void qt_scintilla_destroy(qt_scintilla_t sci) {
@@ -6455,26 +6517,50 @@ extern "C" long qt_scintilla_send_message(qt_scintilla_t sci, unsigned int msg,
                                           unsigned long wparam, long lparam) {
     auto* s = static_cast<QsciScintilla*>(sci);
     if (is_text_modifying_msg(msg)) {
-        long old_mask = s->SendScintilla(QsciScintillaBase::SCI_GETMODEVENTMASK);
-        s->SendScintilla(QsciScintillaBase::SCI_SETMODEVENTMASK, 0L);
-        long result = s->SendScintilla(msg, wparam, lparam);
-        s->SendScintilla(QsciScintillaBase::SCI_SETMODEVENTMASK, old_mask);
-    QT_RETURN(long, result);
+        // Disable updates to prevent sendPostedEvents from processing a
+        // repaint mid-modification when called via BlockingQueuedConnection.
+        // QT_VOID uses [=] capture (const), so we dispatch manually with [&].
+        auto do_op = [&]() -> long {
+            s->setUpdatesEnabled(false);
+            long old_mask = s->SendScintilla(QsciScintillaBase::SCI_GETMODEVENTMASK);
+            s->SendScintilla(QsciScintillaBase::SCI_SETMODEVENTMASK, 0L);
+            long r = s->SendScintilla(msg, wparam, lparam);
+            s->SendScintilla(QsciScintillaBase::SCI_SETMODEVENTMASK, old_mask);
+            s->setUpdatesEnabled(true);
+            return r;
+        };
+        if (is_qt_main_thread()) { return do_op(); }
+        long result = 0;
+        QMetaObject::invokeMethod(QCoreApplication::instance(),
+            [&]() { result = do_op(); }, Qt::BlockingQueuedConnection);
+        return result;
     }
-    return s->SendScintilla(msg, wparam, lparam);
+    QT_RETURN(long, s->SendScintilla(msg, wparam, lparam));
 }
 
 extern "C" long qt_scintilla_send_message_string(qt_scintilla_t sci, unsigned int msg,
                                                  unsigned long wparam, const char* str) {
     auto* s = static_cast<QsciScintilla*>(sci);
     if (is_text_modifying_msg(msg)) {
-        long old_mask = s->SendScintilla(QsciScintillaBase::SCI_GETMODEVENTMASK);
-        s->SendScintilla(QsciScintillaBase::SCI_SETMODEVENTMASK, 0L);
-        long result = s->SendScintilla(msg, wparam, reinterpret_cast<long>(str));
-        s->SendScintilla(QsciScintillaBase::SCI_SETMODEVENTMASK, old_mask);
-    QT_RETURN(long, result);
+        // Disable updates to prevent sendPostedEvents from processing a
+        // repaint mid-modification when called via BlockingQueuedConnection.
+        // QT_VOID uses [=] capture (const), so we dispatch manually with [&].
+        auto do_op = [&]() -> long {
+            s->setUpdatesEnabled(false);
+            long old_mask = s->SendScintilla(QsciScintillaBase::SCI_GETMODEVENTMASK);
+            s->SendScintilla(QsciScintillaBase::SCI_SETMODEVENTMASK, 0L);
+            long r = s->SendScintilla(msg, wparam, reinterpret_cast<long>(str));
+            s->SendScintilla(QsciScintillaBase::SCI_SETMODEVENTMASK, old_mask);
+            s->setUpdatesEnabled(true);
+            return r;
+        };
+        if (is_qt_main_thread()) { return do_op(); }
+        long result = 0;
+        QMetaObject::invokeMethod(QCoreApplication::instance(),
+            [&]() { result = do_op(); }, Qt::BlockingQueuedConnection);
+        return result;
     }
-    return s->SendScintilla(msg, wparam, reinterpret_cast<long>(str));
+    QT_RETURN(long, s->SendScintilla(msg, wparam, reinterpret_cast<long>(str)));
 }
 
 extern "C" const char* qt_scintilla_receive_string(qt_scintilla_t sci, unsigned int msg,
@@ -6502,6 +6588,14 @@ extern "C" void qt_scintilla_set_text(qt_scintilla_t sci, const char* text) {
     QT_VOID(
         auto* s = static_cast<QsciScintilla*>(sci);
         bool ro = s->isReadOnly();
+        // Disable widget updates during text replacement.  When called via
+        // BlockingQueuedConnection (from a Gambit VP thread), Qt's
+        // sendPostedEvents loop can process a repaint event posted by
+        // SCI_SETTEXT while QScintilla is still in an intermediate state
+        // (document partially modified), causing a crash in the paint path.
+        // setUpdatesEnabled(false) prevents any update() calls from posting
+        // paint events until we re-enable at the end with a consistent state.
+        s->setUpdatesEnabled(false);
         if (ro) s->SendScintilla(QsciScintillaBase::SCI_SETREADONLY, 0L);
         // Suppress SCN_MODIFIED during text replacement to prevent handlers
         // from calling SCI_GETTEXTRANGE with stale positions.
@@ -6510,7 +6604,10 @@ extern "C" void qt_scintilla_set_text(qt_scintilla_t sci, const char* text) {
         s->SendScintilla(QsciScintillaBase::SCI_SETTEXT, text);
         s->SendScintilla(QsciScintillaBase::SCI_SETMODEVENTMASK, old_mask);
         s->SendScintilla(QsciScintillaBase::SCI_EMPTYUNDOBUFFER);
-        if (ro) s->SendScintilla(QsciScintillaBase::SCI_SETREADONLY, 1L)
+        if (ro) s->SendScintilla(QsciScintillaBase::SCI_SETREADONLY, 1L);
+        // Re-enable updates now that the document is fully consistent.
+        // This posts an update() which schedules an async repaint.
+        s->setUpdatesEnabled(true)
     );
 }
 
