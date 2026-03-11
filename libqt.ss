@@ -12,7 +12,12 @@
      ;; Application lifecycle
      qt_application_create qt_application_exec qt_application_quit
      qt_application_process_events qt_application_destroy
+     qt_drain_pending_callbacks
      raw_qt_schedule_init
+
+     ;; Verbose hang-diagnosis logging
+     qt_verbose_log_enable
+     qt_verbose_log
 
      ;; Widget base
      qt_widget_create qt_widget_show qt_widget_hide qt_widget_close
@@ -762,6 +767,9 @@
 
   (c-declare #<<END-C
 #include "qt_shim.h"
+#include <stdlib.h>
+#include <string.h>
+#include <pthread.h>
 
 /* Forward declarations for Scheme trampolines (defined by c-define below).
    Note: char* (not const char*) to match Gambit c-define UTF-8-string type. */
@@ -770,18 +778,82 @@ void ffi_qt_callback_string(long callback_id, char* value);
 void ffi_qt_callback_int(long callback_id, int value);
 void ffi_qt_callback_bool(long callback_id, int value);
 
-/* ---- Static trampolines (same compilation unit as c-define) ---- */
+/* ---- Thread-safe callback queue ----
+ *
+ * Qt signals can fire synchronously from inside a BlockingQueuedConnection
+ * dispatch lambda (on the Qt thread).  Calling Gerbil c-define functions from
+ * a non-Gambit thread crashes because ___ps (Gambit processor state) is NULL.
+ *
+ * Solution: if a trampoline is called from the Qt thread, it ENQUEUES the
+ * callback.  A Gambit VP later drains the queue via qt_drain_pending_callbacks()
+ * (called from the master timer in app.ss and from test infrastructure).
+ */
+typedef enum { CB_VOID=0, CB_STRING=1, CB_INT=2, CB_BOOL=3 } CbType;
+typedef struct CbEntry {
+    CbType    type;
+    long      id;
+    char*     str_val;  /* heap-allocated, freed after dispatch */
+    int       int_val;
+    struct CbEntry* next;
+} CbEntry;
+
+static pthread_mutex_t g_cb_mutex = PTHREAD_MUTEX_INITIALIZER;
+static CbEntry* g_cb_head = NULL;
+static CbEntry* g_cb_tail = NULL;
+
+static void enqueue_cb(CbType type, long id, const char* str, int ival) {
+    CbEntry* e = (CbEntry*)malloc(sizeof(CbEntry));
+    e->type    = type;
+    e->id      = id;
+    e->str_val = str ? strdup(str) : NULL;
+    e->int_val = ival;
+    e->next    = NULL;
+    pthread_mutex_lock(&g_cb_mutex);
+    if (g_cb_tail) { g_cb_tail->next = e; g_cb_tail = e; }
+    else            { g_cb_head = g_cb_tail = e; }
+    pthread_mutex_unlock(&g_cb_mutex);
+}
+
+/* Drain all pending callbacks.  MUST be called from a Gambit VP. */
+void qt_drain_pending_callbacks(void) {
+    while (1) {
+        CbEntry* e;
+        pthread_mutex_lock(&g_cb_mutex);
+        e = g_cb_head;
+        if (e) {
+            g_cb_head = e->next;
+            if (!g_cb_head) g_cb_tail = NULL;
+        }
+        pthread_mutex_unlock(&g_cb_mutex);
+        if (!e) break;
+        switch (e->type) {
+            case CB_VOID:   ffi_qt_callback_void(e->id); break;
+            case CB_STRING: ffi_qt_callback_string(e->id, e->str_val); break;
+            case CB_INT:    ffi_qt_callback_int(e->id, e->int_val); break;
+            case CB_BOOL:   ffi_qt_callback_bool(e->id, e->int_val); break;
+        }
+        if (e->str_val) free(e->str_val);
+        free(e);
+    }
+}
+
+/* ---- Static trampolines ----
+   Called directly when on a Gambit VP; queued when on the Qt thread. */
 static void ffi_void_trampoline(long callback_id) {
-    ffi_qt_callback_void(callback_id);
+    if (qt_is_main_thread()) { enqueue_cb(CB_VOID, callback_id, NULL, 0); }
+    else { ffi_qt_callback_void(callback_id); }
 }
 static void ffi_string_trampoline(long callback_id, const char* value) {
-    ffi_qt_callback_string(callback_id, (char*)value);
+    if (qt_is_main_thread()) { enqueue_cb(CB_STRING, callback_id, value, 0); }
+    else { ffi_qt_callback_string(callback_id, (char*)value); }
 }
 static void ffi_int_trampoline(long callback_id, int value) {
-    ffi_qt_callback_int(callback_id, value);
+    if (qt_is_main_thread()) { enqueue_cb(CB_INT, callback_id, NULL, value); }
+    else { ffi_qt_callback_int(callback_id, value); }
 }
 static void ffi_bool_trampoline(long callback_id, int value) {
-    ffi_qt_callback_bool(callback_id, value);
+    if (qt_is_main_thread()) { enqueue_cb(CB_BOOL, callback_id, NULL, value); }
+    else { ffi_qt_callback_bool(callback_id, value); }
 }
 
 /* ---- C wrappers ---- */
@@ -1609,10 +1681,19 @@ END-C
     "qt_application_process_events")
   (define-c-lambda qt_application_destroy ((pointer void)) void
     "qt_application_destroy")
+  ;; Drain callbacks that were queued by Qt signal handlers firing on the Qt thread.
+  ;; Must be called from a Gambit VP.
+  (define-c-lambda qt_drain_pending_callbacks () void
+    "qt_drain_pending_callbacks")
   ;; Schedule a one-shot callback to fire once the Qt event loop starts.
   ;; Call after qt-app-create, before qt-app-exec!.
   (define-c-lambda raw_qt_schedule_init (long) void
     "ffi_qt_schedule_init")
+  ;; Verbose hang-diagnosis logging — wraps qt_verbose_log_enable / qt_verbose_log.
+  (define-c-lambda qt_verbose_log_enable (char-string) void
+    "qt_verbose_log_enable")
+  (define-c-lambda qt_verbose_log (char-string) void
+    "qt_verbose_log")
 
   ;; ---- Widget base ----
   (define-c-lambda qt_widget_create ((pointer void)) (pointer void)

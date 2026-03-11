@@ -3,7 +3,12 @@
   qt-app-create qt-app-exec! qt-app-quit!
   qt-app-process-events! qt-app-destroy!
   qt-schedule-init!
+  qt-drain-pending-callbacks!
   with-qt-app
+
+  ;; Verbose hang-diagnosis logging
+  qt-verbose-log-enable!
+  qt-verbose-log!
 
   ;; Widget
   qt-widget-create qt-widget-show! qt-widget-hide! qt-widget-close!
@@ -715,6 +720,22 @@
 
 (def (qt-app-quit! app)
   (qt_application_quit app))
+
+(def (qt-drain-pending-callbacks!)
+  "Dispatch all callbacks that were queued by Qt signal handlers firing from
+   the Qt thread (non-Gambit VP).  Must be called from a Gambit VP.
+   Called automatically by the master timer in app.ss (50ms interval)."
+  (qt_drain_pending_callbacks))
+
+(def (qt-verbose-log-enable! path)
+  "Enable verbose BQC-level logging to PATH.  Every BlockingQueuedConnection
+   dispatch (entry and exit) is logged with a monotonic timestamp and thread id.
+   Call before qt-app-exec!."
+  (qt_verbose_log_enable path))
+
+(def (qt-verbose-log! msg)
+  "Write one annotated line from Gerbil code to the verbose log."
+  (qt_verbose_log msg))
 
 (def (qt-app-process-events! app)
   (qt_application_process_events app))

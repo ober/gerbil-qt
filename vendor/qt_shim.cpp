@@ -123,6 +123,60 @@
 #include <atomic>
 #include <pthread.h>
 #include <semaphore.h>
+#include <time.h>
+
+// ============================================================
+// Verbose logging — enabled via qt_verbose_log_enable(path).
+// Logs every BlockingQueuedConnection dispatch and explicit
+// qt_verbose_log() calls to a file, for hang diagnosis.
+// Placed before the SMP section so vlog_bqc_enter/exit are
+// visible to the QT_VOID/QT_RETURN macros that follow.
+// ============================================================
+static FILE*              s_vlog       = nullptr;
+static std::atomic<bool>  s_vlog_on    { false };
+// Cached Qt thread pointer for vlog_write — set by qt_verbose_log_note_qt_thread().
+static pthread_t          s_vlog_qt_pthread = 0;
+
+// Write one timestamped line to the verbose log.
+// Uses clock_gettime(CLOCK_MONOTONIC) for microsecond timestamps.
+static void vlog_write(const char* prefix, const char* msg) {
+    if (!s_vlog_on.load(std::memory_order_relaxed)) return;
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    pthread_t self = pthread_self();
+    int on_qt = (s_vlog_qt_pthread && pthread_equal(self, s_vlog_qt_pthread)) ? 1 : 0;
+    fprintf(s_vlog, "[%ld.%06ld] [t%lu%s] %s%s\n",
+            (long)ts.tv_sec, (long)(ts.tv_nsec / 1000),
+            (unsigned long)self, on_qt ? "/QT" : "",
+            prefix, msg);
+    fflush(s_vlog);
+}
+
+extern "C" void qt_verbose_log_enable(const char* path) {
+    if (s_vlog) { fclose(s_vlog); s_vlog = nullptr; }
+    s_vlog = fopen(path, "a");
+    if (s_vlog) {
+        s_vlog_on.store(true, std::memory_order_release);
+        vlog_write("VERBOSE ", "qt_shim verbose logging enabled");
+    }
+}
+
+// Called once the Qt thread starts so we can annotate "[t.../QT]" in logs.
+extern "C" void qt_verbose_log_note_qt_thread(void) {
+    s_vlog_qt_pthread = pthread_self();
+    vlog_write("QT-THREAD ", "Qt event thread identified");
+}
+
+extern "C" void qt_verbose_log(const char* msg) {
+    vlog_write("", msg);
+}
+
+static void vlog_bqc_enter(const char* fn) {
+    vlog_write("BQC-ENTER ", fn);
+}
+static void vlog_bqc_exit(const char* fn) {
+    vlog_write("BQC-EXIT  ", fn);
+}
 
 // Null-pointer guard macros (H1): return safely instead of crashing on nullptr.
 // Use QT_NULL_CHECK_VOID for void functions, QT_NULL_CHECK_RET for returning ones.
@@ -182,25 +236,29 @@ static inline bool is_qt_main_thread() {
 
 // Dispatch a void body to the Qt main thread.
 // If already on Qt thread: calls directly (zero overhead).
-// Otherwise: marshals via BlockingQueuedConnection.
+// Otherwise: marshals via BlockingQueuedConnection with verbose logging.
 #define QT_VOID(...) do {                                           \
     if (is_qt_main_thread()) { __VA_ARGS__; }                      \
     else {                                                          \
+        vlog_bqc_enter(__func__);                                   \
         QMetaObject::invokeMethod(                                  \
             QCoreApplication::instance(),                           \
             [=]() { __VA_ARGS__; },                                \
             Qt::BlockingQueuedConnection);                          \
+        vlog_bqc_exit(__func__);                                    \
     }                                                               \
 } while(0)
 
 // Dispatch a function returning a value.
 #define QT_RETURN(type, expr) do {                                  \
     if (is_qt_main_thread()) { return (expr); }                    \
+    vlog_bqc_enter(__func__);                                       \
     type _result{};                                                 \
     QMetaObject::invokeMethod(                                      \
         QCoreApplication::instance(),                               \
         [&]() { _result = (expr); },                               \
         Qt::BlockingQueuedConnection);                              \
+    vlog_bqc_exit(__func__);                                        \
     return _result;                                                 \
 } while(0)
 
@@ -210,12 +268,14 @@ static inline bool is_qt_main_thread() {
         s_return_buf = (expr);                                      \
         return s_return_buf.c_str();                                \
     }                                                               \
+    vlog_bqc_enter(__func__);                                       \
     std::string _str_result;                                        \
     QMetaObject::invokeMethod(                                      \
         QCoreApplication::instance(),                               \
         [&]() { _str_result = (expr); },                           \
         Qt::BlockingQueuedConnection);                              \
     s_return_buf = std::move(_str_result);                         \
+    vlog_bqc_exit(__func__);                                        \
     return s_return_buf.c_str();                                    \
 } while(0)
 
@@ -304,6 +364,8 @@ static void* qt_thread_main(void* arg) {
     // See detailed comment in original qt_application_create.
     QAccessible::setActive(false);
 
+    // Record this as the Qt thread for verbose log annotations.
+    qt_verbose_log_note_qt_thread();
     // Signal qt_application_create() that Qt is ready.
     g_event_loop_running.store(true, std::memory_order_release);
     sem_post(&g_qt_ready_sem);
@@ -6530,9 +6592,13 @@ extern "C" long qt_scintilla_send_message(qt_scintilla_t sci, unsigned int msg,
             return r;
         };
         if (is_qt_main_thread()) { return do_op(); }
+        char fn_buf[64];
+        snprintf(fn_buf, sizeof(fn_buf), "qt_scintilla_send_message(sci,msg=%u)", msg);
+        vlog_bqc_enter(fn_buf);
         long result = 0;
         QMetaObject::invokeMethod(QCoreApplication::instance(),
             [&]() { result = do_op(); }, Qt::BlockingQueuedConnection);
+        vlog_bqc_exit(fn_buf);
         return result;
     }
     QT_RETURN(long, s->SendScintilla(msg, wparam, lparam));
@@ -6555,9 +6621,13 @@ extern "C" long qt_scintilla_send_message_string(qt_scintilla_t sci, unsigned in
             return r;
         };
         if (is_qt_main_thread()) { return do_op(); }
+        char fn_buf[64];
+        snprintf(fn_buf, sizeof(fn_buf), "qt_scintilla_send_message_string(msg=%u)", msg);
+        vlog_bqc_enter(fn_buf);
         long result = 0;
         QMetaObject::invokeMethod(QCoreApplication::instance(),
             [&]() { result = do_op(); }, Qt::BlockingQueuedConnection);
+        vlog_bqc_exit(fn_buf);
         return result;
     }
     QT_RETURN(long, s->SendScintilla(msg, wparam, reinterpret_cast<long>(str)));

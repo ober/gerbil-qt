@@ -1604,6 +1604,19 @@ void qt_scintilla_on_modified(qt_scintilla_t sci,
 
 #endif /* QT_SCINTILLA_AVAILABLE */
 
+/* Returns 1 if the current thread is the Qt main thread, 0 otherwise.
+   Used by Gerbil trampolines to decide whether to enqueue callbacks
+   instead of calling c-define functions directly (which require a Gambit VP). */
+int qt_is_main_thread(void);
+
+/* Verbose hang-diagnosis logging.
+   qt_verbose_log_enable: open path for append and enable per-BQC tracing.
+   qt_verbose_log: write one annotated line from Gerbil code.
+   qt_verbose_log_note_qt_thread: called internally at Qt thread startup. */
+void qt_verbose_log_enable(const char* path);
+void qt_verbose_log(const char* msg);
+void qt_verbose_log_note_qt_thread(void);
+
 #ifdef __cplusplus
 }
 #endif
