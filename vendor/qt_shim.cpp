@@ -120,6 +120,7 @@
 #include <QMetaObject>
 #include <QCoreApplication>
 #include <functional>
+#include <atomic>
 
 // Null-pointer guard macros (H1): return safely instead of crashing on nullptr.
 // Use QT_NULL_CHECK_VOID for void functions, QT_NULL_CHECK_RET for returning ones.
@@ -149,17 +150,30 @@ static char*  s_argv[] = { s_arg0, nullptr };
 // The Qt main thread, set during qt_application_create().
 static QThread* g_qt_main_thread = nullptr;
 
+// Set to true once exec() starts, false after exec() returns.
+// BlockingQueuedConnection requires a running event loop on the target thread.
+// During init (before exec()), we call Qt directly regardless of thread —
+// no background Gambit threads exist yet, so this is safe.
+static std::atomic<bool> g_event_loop_running{false};
+
 static inline bool is_qt_main_thread() {
     // Before QApplication exists, or already on the correct thread: call directly.
     return !g_qt_main_thread ||
            QThread::currentThread() == g_qt_main_thread;
 }
 
+// True when it is safe to use BlockingQueuedConnection: event loop is running
+// AND we are not already on the Qt main thread.
+static inline bool needs_dispatch() {
+    return g_event_loop_running.load(std::memory_order_relaxed) &&
+           !is_qt_main_thread();
+}
+
 // Dispatch a void body to the Qt main thread.
-// If already on the Qt thread: calls directly (zero overhead — one pointer cmp).
+// If already on the Qt thread, or event loop not yet running: calls directly.
 // Otherwise: marshals via BlockingQueuedConnection (blocks caller until done).
 #define QT_VOID(...) do {                                           \
-    if (is_qt_main_thread()) { __VA_ARGS__; }                      \
+    if (!needs_dispatch()) { __VA_ARGS__; }                        \
     else {                                                          \
         QMetaObject::invokeMethod(                                  \
             QCoreApplication::instance(),                           \
@@ -171,7 +185,7 @@ static inline bool is_qt_main_thread() {
 // Dispatch a function returning a value.
 // Uses [&] capture so the result is written to the caller's stack frame.
 #define QT_RETURN(type, expr) do {                                  \
-    if (is_qt_main_thread()) { return (expr); }                    \
+    if (!needs_dispatch()) { return (expr); }                      \
     type _result{};                                                 \
     QMetaObject::invokeMethod(                                      \
         QCoreApplication::instance(),                               \
@@ -185,7 +199,7 @@ static inline bool is_qt_main_thread() {
 // the lambda runs on the Qt thread's copy; instead capture into a local
 // std::string and assign to s_return_buf in the caller after the call.
 #define QT_RETURN_STRING(expr) do {                                 \
-    if (is_qt_main_thread()) {                                      \
+    if (!needs_dispatch()) {                                        \
         s_return_buf = (expr);                                      \
         return s_return_buf.c_str();                                \
     }                                                               \
@@ -294,7 +308,10 @@ extern "C" qt_application_t qt_application_create(int argc, char** argv) {
 }
 
 extern "C" int qt_application_exec(qt_application_t app) {
-    return static_cast<QApplication*>(app)->exec();
+    g_event_loop_running.store(true, std::memory_order_release);
+    int result = static_cast<QApplication*>(app)->exec();
+    g_event_loop_running.store(false, std::memory_order_release);
+    return result;
 }
 
 extern "C" void qt_application_quit(qt_application_t app) {
