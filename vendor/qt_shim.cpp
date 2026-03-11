@@ -395,10 +395,24 @@ extern "C" qt_application_t qt_application_create(int argc, char** argv) {
 
 extern "C" int qt_application_exec(qt_application_t app) {
     // Wait for the Qt thread to finish (i.e., until the user closes the app).
-    // The Gambit VP calling this will block here, but other VPs continue
-    // running other green threads (LSP, timers, async I/O, etc.).
+    //
+    // We CANNOT use a blocking pthread_join here: Gambit's SMP stop-the-world
+    // GC requires ALL processor VPs to reach the GC barrier.  Processor 0 (the
+    // primordial VP) calls this function, and if it blocks on a futex (as
+    // pthread_join does) it cannot respond to the condvar signal that GC sends
+    // to each processor.  This causes a deadlock whenever a GC is triggered on
+    // another VP while image data or other large allocations are in flight.
+    //
+    // Fix: poll with pthread_tryjoin_np + nanosleep(10ms).  Each nanosleep call
+    // is interruptible by Gambit's SIGALRM heartbeat, which runs the per-VP
+    // signal handler and allows processor 0 to service GC sync requests.
     (void)app;
-    pthread_join(g_qt_thread, nullptr);
+    struct timespec ts;
+    ts.tv_sec  = 0;
+    ts.tv_nsec = 10 * 1000 * 1000; // 10 ms
+    while (pthread_tryjoin_np(g_qt_thread, nullptr) != 0) {
+        nanosleep(&ts, nullptr);
+    }
     return 0;
 }
 

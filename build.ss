@@ -32,6 +32,7 @@
 (def have-qscintilla?
   (or (file-exists? "/opt/homebrew/lib/libqscintilla2_qt6.dylib")
       (file-exists? "/usr/lib/libqscintilla2_qt6.so")
+      (file-exists? "/usr/lib/x86_64-linux-gnu/libqscintilla2_qt6.so")
       (with-catch (lambda (_) #f)
         (lambda ()
           (run-process ["pkg-config" "--exists" "QScintilla"] coprocess: void)
