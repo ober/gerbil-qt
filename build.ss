@@ -28,18 +28,14 @@
 (def shim-cpp (path-expand "qt_shim.cpp" vendor-dir))
 (def shim-h (path-expand "qt_shim.h" vendor-dir))
 
-;; Detect QScintilla availability: try pkg-config first, then check for headers
+;; Detect QScintilla availability: check for library file
 (def have-qscintilla?
-  (or (with-catch (lambda (_) #f)
+  (or (file-exists? "/opt/homebrew/lib/libqscintilla2_qt6.dylib")
+      (file-exists? "/usr/lib/libqscintilla2_qt6.so")
+      (with-catch (lambda (_) #f)
         (lambda ()
           (run-process ["pkg-config" "--exists" "QScintilla"] coprocess: void)
-          #t))
-      (let ((arch (with-catch (lambda (_) "x86_64-linux-gnu")
-                    (lambda () (run-process ["gcc" "-dumpmachine"] coprocess: read-line)))))
-        (or (file-exists? (string-append "/usr/include/" arch "/qt6/Qsci/qsciscintilla.h"))
-            (file-exists? "/usr/include/qt6/Qsci/qsciscintilla.h")
-            (file-exists? "/usr/include/Qsci/qsciscintilla.h")
-            (file-exists? (string-append "/usr/include/" arch "/Qsci/qsciscintilla.h"))))))
+          #t))))
 
 (when have-qscintilla?
   (displayln "... QScintilla detected — enabling QScintilla bindings"))
@@ -55,7 +51,10 @@
 
 (def qsci-ldflags
   (if have-qscintilla?
-    (with-catch (lambda (_) "-lqscintilla2_qt6")
+    (with-catch (lambda (_)
+                  (if (file-exists? "/opt/homebrew/lib/libqscintilla2_qt6.dylib")
+                      "-L/opt/homebrew/lib -lqscintilla2_qt6"
+                      "-lqscintilla2_qt6"))
       (lambda () (run-process ["pkg-config" "--libs" "QScintilla"]
                               coprocess: read-line)))
     ""))
