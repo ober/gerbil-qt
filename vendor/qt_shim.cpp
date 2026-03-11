@@ -116,6 +116,10 @@
 #include <unordered_map>
 #include <sys/wait.h>
 #include <signal.h>
+#include <QThread>
+#include <QMetaObject>
+#include <QCoreApplication>
+#include <functional>
 
 // Null-pointer guard macros (H1): return safely instead of crashing on nullptr.
 // Use QT_NULL_CHECK_VOID for void functions, QT_NULL_CHECK_RET for returning ones.
@@ -127,22 +131,93 @@ static int    s_argc = 1;
 static char   s_arg0[] = "gerbil-qt";
 static char*  s_argv[] = { s_arg0, nullptr };
 
-// Thread-local string buffer for returning strings to FFI safely.
+// ============================================================
+// SMP Thread-safety dispatch infrastructure
+//
+// Gambit's M:N scheduler can migrate green threads between OS
+// threads at heartbeat preemption points.  Qt requires ALL widget
+// operations on the OS thread where QApplication was created.
+//
+// Primary defense: GAMBCOPT=,-:p1 (single OS processor) ensures
+// is_qt_main_thread() always returns true → zero overhead.
+//
+// Defense-in-depth: when running with multiple OS processors,
+// QT_VOID / QT_RETURN / QT_RETURN_STRING marshal the call to
+// the Qt main thread via BlockingQueuedConnection.
+// ============================================================
+
+// The Qt main thread, set during qt_application_create().
+static QThread* g_qt_main_thread = nullptr;
+
+static inline bool is_qt_main_thread() {
+    // Before QApplication exists, or already on the correct thread: call directly.
+    return !g_qt_main_thread ||
+           QThread::currentThread() == g_qt_main_thread;
+}
+
+// Dispatch a void body to the Qt main thread.
+// If already on the Qt thread: calls directly (zero overhead — one pointer cmp).
+// Otherwise: marshals via BlockingQueuedConnection (blocks caller until done).
+#define QT_VOID(...) do {                                           \
+    if (is_qt_main_thread()) { __VA_ARGS__; }                      \
+    else {                                                          \
+        QMetaObject::invokeMethod(                                  \
+            QCoreApplication::instance(),                           \
+            [=]() { __VA_ARGS__; },                                \
+            Qt::BlockingQueuedConnection);                          \
+    }                                                               \
+} while(0)
+
+// Dispatch a function returning a value.
+// Uses [&] capture so the result is written to the caller's stack frame.
+#define QT_RETURN(type, expr) do {                                  \
+    if (is_qt_main_thread()) { return (expr); }                    \
+    type _result{};                                                 \
+    QMetaObject::invokeMethod(                                      \
+        QCoreApplication::instance(),                               \
+        [&]() { _result = (expr); },                               \
+        Qt::BlockingQueuedConnection);                              \
+    return _result;                                                 \
+} while(0)
+
+// Dispatch a function returning const char* via s_return_buf.
+// Cannot use thread_local s_return_buf in the cross-thread case because
+// the lambda runs on the Qt thread's copy; instead capture into a local
+// std::string and assign to s_return_buf in the caller after the call.
+#define QT_RETURN_STRING(expr) do {                                 \
+    if (is_qt_main_thread()) {                                      \
+        s_return_buf = (expr);                                      \
+        return s_return_buf.c_str();                                \
+    }                                                               \
+    std::string _str_result;                                        \
+    QMetaObject::invokeMethod(                                      \
+        QCoreApplication::instance(),                               \
+        [&]() { _str_result = (expr); },                           \
+        Qt::BlockingQueuedConnection);                              \
+    s_return_buf = std::move(_str_result);                         \
+    return s_return_buf.c_str();                                    \
+} while(0)
+
+// String buffer for returning strings to FFI safely.
 // Qt's QString::toUtf8().constData() returns a pointer to a temporary;
 // we copy into this buffer so the pointer remains valid until the next call.
-static thread_local std::string s_return_buf;
+// Safe as a regular static because BlockingQueuedConnection serializes all
+// cross-thread calls, and same-thread calls are inherently sequential.
+static std::string s_return_buf;
 
-// Thread-local storage for last key event (separate from s_return_buf)
-static thread_local int s_last_key_code = 0;
-static thread_local int s_last_key_modifiers = 0;
-static thread_local std::string s_last_key_text;
+// Storage for last key event (separate from s_return_buf).
+// These are set and read within a single Qt callback invocation — always
+// on the Qt main thread — so regular statics are safe.
+static int s_last_key_code = 0;
+static int s_last_key_modifiers = 0;
+static std::string s_last_key_text;
 
-// Thread-local storage for QInputDialog ok/cancel flag
-static thread_local bool s_last_input_ok = false;
+// Storage for QInputDialog ok/cancel flag
+static bool s_last_input_ok = false;
 
-// Thread-local storage for view signal row/col (Phase 12)
-static thread_local int s_last_view_row = -1;
-static thread_local int s_last_view_col = -1;
+// Storage for view signal row/col (Phase 12)
+static int s_last_view_row = -1;
+static int s_last_view_col = -1;
 
 // KeyPressFilter: QObject subclass that intercepts key events.
 // No Q_OBJECT macro needed — just overrides the virtual eventFilter method.
@@ -201,6 +276,9 @@ extern "C" qt_application_t qt_application_create(int argc, char** argv) {
     // QApplication takes argc by REFERENCE — must use static storage.
     // Always use our static argc/argv to avoid dangling references.
     (void)argc; (void)argv;
+    // Record the Qt main thread BEFORE creating QApplication.
+    // All dispatch macros compare against this pointer.
+    g_qt_main_thread = QThread::currentThread();
     auto* app = new QApplication(s_argc, s_argv);
     // Disable Qt accessibility (AT-SPI) to prevent Scintilla assertion crash.
     // QScintilla registers an accessibility factory that handles SCN_MODIFIED
@@ -229,6 +307,17 @@ extern "C" void qt_application_process_events(qt_application_t app) {
 
 extern "C" void qt_application_destroy(qt_application_t app) {
     delete static_cast<QApplication*>(app);
+}
+
+// Schedule a callback to run once the Qt event loop starts.
+// Must be called AFTER qt_application_create, BEFORE qt_application_exec.
+// The 0ms single-shot timer fires as soon as exec() begins processing events.
+// This is required so that BlockingQueuedConnection dispatch (used by the
+// thread-safe shim) has a running event loop to post to during init.
+extern "C" void qt_schedule_init(qt_callback_void callback, long callback_id) {
+    QTimer::singleShot(0, [callback, callback_id]() {
+        callback(callback_id);
+    });
 }
 
 // ============================================================

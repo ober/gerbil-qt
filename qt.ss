@@ -2,6 +2,7 @@
   ;; Lifecycle
   qt-app-create qt-app-exec! qt-app-quit!
   qt-app-process-events! qt-app-destroy!
+  qt-schedule-init!
   with-qt-app
 
   ;; Widget
@@ -723,6 +724,13 @@
     (for-each unregister-qt-handler! ids)
     (hash-remove! *qt-widget-handlers* app))
   (qt_application_destroy app))
+
+;; Schedule a callback to run once the Qt event loop starts (0ms single-shot timer).
+;; Call after qt-app-create, before qt-app-exec!.
+;; Required so BlockingQueuedConnection dispatch has a running event loop to post to.
+(def (qt-schedule-init! callback)
+  (let ((id (register-qt-void-handler! callback)))
+    (raw_qt_schedule_init id)))
 
 (defrule (with-qt-app app body ...)
   (let ((app (qt-app-create)))

@@ -12,6 +12,7 @@
      ;; Application lifecycle
      qt_application_create qt_application_exec qt_application_quit
      qt_application_process_events qt_application_destroy
+     raw_qt_schedule_init
 
      ;; Widget base
      qt_widget_create qt_widget_show qt_widget_hide qt_widget_close
@@ -788,6 +789,11 @@ static void ffi_bool_trampoline(long callback_id, int value) {
 /* Create QApplication with no args (uses internal defaults) */
 static void* ffi_qt_application_create(void) {
     return qt_application_create(0, NULL);
+}
+
+/* Schedule init callback: wrap qt_schedule_init to use the shared void trampoline */
+static void ffi_qt_schedule_init(long callback_id) {
+    qt_schedule_init(ffi_void_trampoline, callback_id);
 }
 
 /* Connect button clicked signal using our static trampoline */
@@ -1603,6 +1609,10 @@ END-C
     "qt_application_process_events")
   (define-c-lambda qt_application_destroy ((pointer void)) void
     "qt_application_destroy")
+  ;; Schedule a one-shot callback to fire once the Qt event loop starts.
+  ;; Call after qt-app-create, before qt-app-exec!.
+  (define-c-lambda raw_qt_schedule_init (long) void
+    "ffi_qt_schedule_init")
 
   ;; ---- Widget base ----
   (define-c-lambda qt_widget_create ((pointer void)) (pointer void)

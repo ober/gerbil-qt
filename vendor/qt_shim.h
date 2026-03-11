@@ -26,6 +26,11 @@ void             qt_application_quit(qt_application_t app);
 void             qt_application_process_events(qt_application_t app);
 void             qt_application_destroy(qt_application_t app);
 
+/* Schedule a one-shot callback to fire once the Qt event loop starts.
+   Call after qt_application_create, before qt_application_exec.
+   The callback fires on the Qt main thread with the given callback_id. */
+void qt_schedule_init(qt_callback_void callback, long callback_id);
+
 /* --- Widget base (applies to all widget types) --- */
 qt_widget_t qt_widget_create(qt_widget_t parent);
 void qt_widget_show(qt_widget_t w);
