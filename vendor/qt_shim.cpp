@@ -357,6 +357,12 @@ private:
 // Creates QApplication, signals ready, runs exec(), cleans up.
 static void* qt_thread_main(void* arg) {
     (void)arg;
+    // Suppress X11 session management.  When the previous process was killed
+    // abnormally (crash, SIGKILL), the X session manager records the session
+    // and sends a "Die" or "Interact" request on the next launch.  If we don't
+    // handle it, the session manager may call QApplication::quit() immediately.
+    // Unsetting SESSION_MANAGER prevents Qt from even trying to connect.
+    unsetenv("SESSION_MANAGER");
     // Record THIS thread as the Qt main thread before creating QApplication.
     g_qt_main_thread = QThread::currentThread();
     auto* app = new QApplication(s_argc, s_argv);
@@ -406,7 +412,6 @@ extern "C" int qt_application_exec(qt_application_t app) {
     // with (thread-sleep! 0.01) in a loop.  thread-sleep! releases the VP,
     // so GC can always complete.  See qt-app-exec! in qt.ss.
     (void)app;
-    pthread_detach(g_qt_thread);  // don't need to join; Scheme polls the flag
     return 0;
 }
 
@@ -427,7 +432,11 @@ extern "C" void qt_application_process_events(qt_application_t app) {
 
 extern "C" void qt_application_destroy(qt_application_t app) {
     // Qt thread owns the QApplication and deletes it in qt_thread_main.
+    // By the time we are called, qt_application_is_running() has returned false
+    // (the Scheme polling loop exited), so the Qt thread is finishing cleanup.
+    // pthread_join waits for it to fully exit and frees thread resources.
     (void)app;
+    pthread_join(g_qt_thread, nullptr);
 }
 
 // Expose is_qt_main_thread() to C code (for use by Gerbil trampolines in libqt.ss).
