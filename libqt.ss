@@ -10,8 +10,8 @@
      QT_ECHO_NORMAL QT_ECHO_NO_ECHO QT_ECHO_PASSWORD QT_ECHO_PASSWORD_ON_EDIT
 
      ;; Application lifecycle
-     qt_application_create qt_application_exec qt_application_quit
-     qt_application_process_events qt_application_destroy
+     qt_application_create qt_application_exec qt_application_is_running
+     qt_application_quit qt_application_process_events qt_application_destroy
      qt_drain_pending_callbacks
      raw_qt_schedule_init
 
@@ -1675,6 +1675,8 @@ END-C
     "ffi_qt_application_create")
   (define-c-lambda qt_application_exec ((pointer void)) int
     "qt_application_exec")
+  (define-c-lambda qt_application_is_running () int
+    "qt_application_is_running")
   (define-c-lambda qt_application_quit ((pointer void)) void
     "qt_application_quit")
   (define-c-lambda qt_application_process_events ((pointer void)) void

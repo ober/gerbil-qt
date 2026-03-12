@@ -716,7 +716,16 @@
   (qt_application_create))
 
 (def (qt-app-exec! app)
-  (qt_application_exec app))
+  ;; Signal Qt that we're starting (no-op in C — just detaches the Qt thread).
+  (qt_application_exec app)
+  ;; Poll from Scheme using thread-sleep! so the Gambit VP is NEVER blocked in
+  ;; C code.  thread-sleep! releases the VP, allowing GC to complete normally.
+  ;; This avoids the SMP stop-the-world deadlock that occurs when a VP is stuck
+  ;; in pthread_join, nanosleep, or any other blocking C call.
+  (let loop ()
+    (thread-sleep! 0.01)
+    (when (= 1 (qt_application_is_running))
+      (loop))))
 
 (def (qt-app-quit! app)
   (qt_application_quit app))
