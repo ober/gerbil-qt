@@ -22,6 +22,7 @@ typedef void (*qt_callback_bool)(long callback_id, int value);
 /* --- Application lifecycle --- */
 qt_application_t qt_application_create(int argc, char** argv);
 int              qt_application_exec(qt_application_t app);
+int              qt_application_is_running(void);
 void             qt_application_quit(qt_application_t app);
 void             qt_application_process_events(qt_application_t app);
 void             qt_application_destroy(qt_application_t app);
